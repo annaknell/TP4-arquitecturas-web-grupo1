@@ -1,4 +1,7 @@
 package com.tudai.pagos.repository;
 
-public class PagoRepository {
+import com.tudai.pagos.entity.Pago;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PagoRepository extends JpaRepository<Pago, Long> {
 }
