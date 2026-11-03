@@ -14,11 +14,11 @@ public class Pago {
     @Column
     private Long compra_id;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String clave_idempotencia;
 
     @Column
-    private String hash_solicitud;
+    private String hashRequest;
 
     @Column
     private Long cliente_id;
@@ -30,22 +30,30 @@ public class Pago {
     private String moneda;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private EstadoPago estadoPago;
 
     @Column
     private LocalDate fecha_pago;
 
+    @Column
+    private String referencia_pasarela;
+
+    @Version
+    private Long version;
+
     public Pago() {}
 
-    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long cliente_id, String hash_solicitud, String clave_idempotencia, Long compra_id, LocalDate fecha_pago) {
+    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long cliente_id, String hashRequest, String clave_idempotencia, Long compra_id, LocalDate fecha_pago, String referencia_pasarela) {
         this.estadoPago = estadoPago;
         this.moneda = moneda;
         this.monto = monto;
         this.cliente_id = cliente_id;
-        this.hash_solicitud = hash_solicitud;
+        this.hashRequest = hashRequest;
         this.clave_idempotencia = clave_idempotencia;
         this.compra_id = compra_id;
         this.fecha_pago = fecha_pago;
+        this.referencia_pasarela = referencia_pasarela;
     }
 
     public Long getId() {
@@ -72,12 +80,12 @@ public class Pago {
         this.clave_idempotencia = clave_idempotencia;
     }
 
-    public String getHash_solicitud() {
-        return hash_solicitud;
+    public String getHashRequest() {
+        return hashRequest;
     }
 
-    public void setHash_solicitud(String hash_solicitud) {
-        this.hash_solicitud = hash_solicitud;
+    public void setHashRequest(String hashRequest) {
+        this.hashRequest = hashRequest;
     }
 
     public Long getCliente_id() {
@@ -118,5 +126,13 @@ public class Pago {
 
     public void setFecha_pago(LocalDate fecha_pago) {
         this.fecha_pago = fecha_pago;
+    }
+
+    public String getReferencia() {
+        return referencia_pasarela;
+    }
+
+    public void setReferencia(String referencia_pasarela) {
+        this.referencia_pasarela = referencia_pasarela;
     }
 }
