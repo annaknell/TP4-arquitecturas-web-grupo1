@@ -1,8 +1,8 @@
-package org.example.controller;
+package org.example.entradaservice.controller;
 
-import org.example.entity.Entrada;
-import org.example.repository.EntradaRepository;
-import org.example.service.EntradaService;
+
+import org.example.entradaservice.entity.Entrada;
+import org.example.entradaservice.service.EntradaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

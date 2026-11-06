@@ -1,7 +1,7 @@
-package org.example.service;
+package org.example.entradaservice.service;
 
-import org.example.entity.Entrada;
-import org.example.repository.EntradaRepository;
+import org.example.entradaservice.entity.Entrada;
+import org.example.entradaservice.repository.EntradaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
