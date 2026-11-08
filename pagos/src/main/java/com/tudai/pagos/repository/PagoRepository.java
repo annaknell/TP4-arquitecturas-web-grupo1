@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PagoRepository extends JpaRepository<Pago, Long> {
     @Query("SELECT p FROM Pago p WHERE p.cliente_id = :clienteId")
     List<Pago> findByClienteId(@Param("clienteId") Long clienteId);
+
+    @Query("SELECT p FROM Pago p WHERE p.clave_idempotencia = :claveIdempotencia")
+    Optional<Pago> findByClaveIdempotencia(@Param("claveIdempotencia") String claveIdempotencia);
 }

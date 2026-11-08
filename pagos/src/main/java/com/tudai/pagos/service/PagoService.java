@@ -1,38 +1,47 @@
 package com.tudai.pagos.service;
 
 import com.tudai.pagos.entity.Pago;
-import com.tudai.pagos.entity.Reintegro;
 import com.tudai.pagos.enums.EstadoPago;
 import com.tudai.pagos.enums.EstadoReintegro;
+import com.tudai.pagos.pasarela.PasarelaNoDisponibleException;
+import com.tudai.pagos.pasarela.PasarelaPagos;
+import com.tudai.pagos.pasarela.ResultadoCobro;
+import com.tudai.pagos.pasarela.SolicitudCobro;
 import com.tudai.pagos.repository.PagoRepository;
 import com.tudai.pagos.repository.ReintegroRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import com.tudai.pagos.pasarela.*;
+import java.time.LocalDate;
+import java.util.*;
 
-import java.util.List;
-import java.util.Objects;
 
 @Service
 public class PagoService {
     private final PagoRepository pagoRepository;
     private final ReintegroRepository reintegroRepository;
+    private final PasarelaPagos pasarela;
 
-    public PagoService(PagoRepository pagoRepository, ReintegroRepository reintegroRepository) {
+    public PagoService(PagoRepository pagoRepository, ReintegroRepository reintegroRepository, PasarelaPagos pasarela) {
         this.pagoRepository = pagoRepository;
         this.reintegroRepository = reintegroRepository;
+        this.pasarela = pasarela;
     }
 
     public List<Pago> getPagos() {
         return pagoRepository.findAll();
     }
     public Pago getPagoById(Long id) {
-        return pagoRepository.findById(id).orElse(null);
+        return pagoRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Pago " + id + " no encontrado"));
     }
     public List<Pago> getPagosByClienteId(Long clienteId) {
         return pagoRepository.findByClienteId(clienteId);
     }
-    public void savePago(Pago pago) {
-        pagoRepository.save(pago);
-    }
+
     private void aprobar(Pago pago, String referencia){
         EstadoPago actual = pago.getEstado();
         if (actual== EstadoPago.APROBADO){
@@ -74,6 +83,7 @@ public class PagoService {
         EstadoPago actual = pago.getEstado();
 
         if (actual == EstadoPago.REINTEGRADO) {
+            //si el pago fue reintegrado, no se hace nada.
             return;
         }
         if (actual != EstadoPago.APROBADO) {
@@ -90,6 +100,61 @@ public class PagoService {
         if (reintegrado == pago.getMonto()) {
             pago.setEstado(EstadoPago.REINTEGRADO);
         }
+    }
+    public Pago cobrar(String claveIdempotencia, String hashRequest, Long compraId,
+                       Long clienteId, Integer monto, String moneda) {
+
+        Optional<Pago> existente = pagoRepository.findByClaveIdempotencia(claveIdempotencia);
+        Pago pago;
+
+        if (existente.isPresent()) {
+            pago = resultadoGuardado(existente.get(), hashRequest);
+            EstadoPago estado = pago.getEstado();
+            if (estado != EstadoPago.PENDIENTE && estado != EstadoPago.INCIERTO) {
+                return pago; // APROBADO / RECHAZADO / REINTEGRADO: resultado definitivo
+            }
+            // PENDIENTE o INCIERTO: se reconsulta a la pasarela con la MISMA clave
+        } else {
+            try {
+                pago = pagoRepository.saveAndFlush(new Pago(EstadoPago.PENDIENTE, moneda, monto,
+                        clienteId, hashRequest, claveIdempotencia, compraId, LocalDate.now(), null));
+            } catch (DataIntegrityViolationException e) {
+                // Otro request con la misma clave se nos adelantó: decide la unicidad en la BD
+                Pago ganador = pagoRepository.findByClaveIdempotencia(claveIdempotencia)
+                        .orElseThrow(() -> e);
+                return resultadoGuardado(ganador, hashRequest);
+            }
+        }
+        return procesarEnPasarela(pago);
+    }
+
+    private Pago procesarEnPasarela(Pago pago) {
+        try {
+            ResultadoCobro r = pasarela.cobrar(new SolicitudCobro(
+                    pago.getClave_idempotencia(), pago.getMonto(), pago.getMoneda()));
+            switch (r.estado()) {
+                case APROBADO -> aprobar(pago, r.referencia());
+                case RECHAZADO -> rechazar(pago);
+                case INCIERTO -> marcarIncierto(pago);
+            }
+        } catch (PasarelaNoDisponibleException e) {
+            marcarIncierto(pago);
+        }
+        try {
+            return pagoRepository.save(pago);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            // Otro reintento simultáneo ya actualizó el pago: devolvemos lo que quedó guardado
+            return pagoRepository.findByClaveIdempotencia(pago.getClave_idempotencia())
+                    .orElseThrow(() -> e);
+        }
+    }
+
+    private Pago resultadoGuardado(Pago pago, String hashRequest) {
+        if (!coincideCon(pago, hashRequest)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "La clave de idempotencia ya se usó con un pedido distinto");
+        }
+        return pago;
     }
 
 }

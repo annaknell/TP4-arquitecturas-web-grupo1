@@ -4,5 +4,6 @@ public enum EstadoReintegro {
     PENDIENTE,
     APROBADO,
     RECHAZADO,
+    INCIERTO,
     FALLIDO
 }

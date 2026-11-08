@@ -39,12 +39,15 @@ public class Pago {
     @Column
     private String referencia_pasarela;
 
+    @Column
+    private String motivoRechazo;
+
     @Version
     private Long version;
 
     public Pago() {}
 
-    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long cliente_id, String hashRequest, String clave_idempotencia, Long compra_id, LocalDate fecha_pago, String referencia_pasarela) {
+    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long cliente_id, String hashRequest, String clave_idempotencia, Long compra_id, LocalDate fecha_pago, String referencia_pasarela, String motivoRechazo) {
         this.estadoPago = estadoPago;
         this.moneda = moneda;
         this.monto = monto;
@@ -54,6 +57,7 @@ public class Pago {
         this.compra_id = compra_id;
         this.fecha_pago = fecha_pago;
         this.referencia_pasarela = referencia_pasarela;
+        this.motivoRechazo = motivoRechazo;
     }
 
     public Long getId() {
@@ -134,5 +138,13 @@ public class Pago {
 
     public void setReferencia(String referencia_pasarela) {
         this.referencia_pasarela = referencia_pasarela;
+    }
+
+    public String getMotivoRechazo() {
+        return motivoRechazo;
+    }
+
+    public void setMotivoRechazo(String motivoRechazo) {
+        this.motivoRechazo = motivoRechazo;
     }
 }
