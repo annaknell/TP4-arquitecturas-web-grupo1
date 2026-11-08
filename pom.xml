@@ -9,7 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>entrada</module>
+        <module>entrada-service</module>
+        <module>compra-service</module>
     </modules>
     <properties>
         <maven.compiler.source>27</maven.compiler.source>
