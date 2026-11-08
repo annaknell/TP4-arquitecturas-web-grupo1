@@ -1,6 +1,6 @@
 package org.example.compraservice.controller;
 
-import org.example.compraservice.client.CompraRequest;
+import org.example.compraservice.dto.CompraRequest;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.service.CompraService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class CompraController {
         @RequestBody CompraRequest request,
         @RequestHeader("Idempotency-Key") String idempotencyKey,
         @RequestHeader("X-User-Id") Long clienteId) {
-        // En E1 usan header para el usuario, en E2 será el JWT
+        // En E1 usan header para el usuario, en E2 seria el JWT
 
         Compra compra = compraService.procesarCompra(request, idempotencyKey, clienteId);
 

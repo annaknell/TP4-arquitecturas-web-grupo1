@@ -2,6 +2,7 @@ package org.example.compraservice.service;
 
 import feign.FeignException;
 import org.example.compraservice.client.*;
+import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.repository.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,18 +37,18 @@ public class CompraService {
         }
 
         // 2. Verificar límite por cliente
-        long comprasPrevias = compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, request.getEventoId(), "COMPLETADA");
-        if (comprasPrevias + request.getAsientos().size() > MAX_ENTRADAS_POR_CLIENTE) {
+        long comprasPrevias = compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, request.eventoId(), "COMPLETADA");
+        if (comprasPrevias + request.asientos().size() > MAX_ENTRADAS_POR_CLIENTE) {
             throw new RuntimeException("Límite de entradas excedido para este evento");
         }
 
         // Inicializar la Compra
         Compra compra = new Compra();
         compra.setClienteId(clienteId);
-        compra.setEventoId(request.getEventoId());
+        compra.setEventoId(request.eventoId());
         compra.setIdempotencyKey(idempotencyKey);
-        compra.setAsientos(request.getAsientos());
-        compra.setPrecioTotal(request.getPrecioTotal());
+        compra.setAsientos(request.asientos());
+        compra.setPrecioTotal(request.precioTotal());
         compra.setEstado("PENDIENTE");
         compra.addPaso("Inicio de compra", "EJECUTADO");
         compraRepository.save(compra);
@@ -55,19 +56,19 @@ public class CompraService {
         try {
             // PASO 1: Reservar en Inventario (10 minutos)
             ReservaResponse reserva = inventarioClient.reservarAsientos(
-                new ReservaRequest(request.getEventoId(), request.getAsientos())
+                new ReservaRequest(request.eventoId(), request.asientos())
             ).getBody();
-            compra.setReservaId(reserva.getId());
-            compra.addPaso("Asientos reservados (ID: " + reserva.getId() + ")", "EJECUTADO");
+            compra.setReservaId(reserva.id()); // record no usa get
+            compra.addPaso("Asientos reservados (ID: " + reserva.id() + ")", "EJECUTADO");
             compraRepository.save(compra);
 
             // PASO 2: Cobrar en Pagos
             try {
                 PagoResponse pago = pagosClient.cobrar(
-                    new PagoRequest(clienteId, request.getPrecioTotal(), idempotencyKey)
+                    new PagoRequest(clienteId, request.precioTotal(), idempotencyKey)
                 ).getBody();
-                compra.setPagoId(pago.getId());
-                compra.addPaso("Pago aprobado (ID: " + pago.getId() + ")", "EJECUTADO");
+                compra.setPagoId(pago.id()); // record no usa get
+                compra.addPaso("Pago aprobado (ID: " + pago.id() + ")", "EJECUTADO");
                 compraRepository.save(compra);
             } catch (FeignException e) {
                 // COMPENSACIÓN 2: Si falla el pago, liberar la reserva
@@ -91,8 +92,8 @@ public class CompraService {
             }
 
             // PASO 4: Emitir Entradas
-            List<EntradaRequest> entradasAEmitir = request.getAsientos().stream()
-                .map(asientoId -> new EntradaRequest(request.getEventoId(), asientoId, clienteId, compra.getId()))
+            List<EntradaRequest> entradasAEmitir = request.asientos().stream()
+                .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId())) // getId() porque Compra es entidad
                 .collect(Collectors.toList());
 
             entradaClient.emitirEntradas(entradasAEmitir);
