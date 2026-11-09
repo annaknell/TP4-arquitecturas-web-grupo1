@@ -17,7 +17,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,7 @@ public class ReintegroService {
     private static final int MAX_INTENTOS = 3;
     private static final List<EstadoReintegro> RESERVAN_MONTO =
             List.of(EstadoReintegro.PENDIENTE, EstadoReintegro.INCIERTO, EstadoReintegro.APROBADO);
-
+    private static final Logger audit = LoggerFactory.getLogger("auditoria.pagos");
     private final ReintegroRepository reintegroRepository;
     private final PagoService pagoService;
     private final PasarelaPagos pasarela;
@@ -67,14 +68,22 @@ public class ReintegroService {
                 total);
     }
 
-    public List<Reintegro> getByPagoId(Long pagoId) { return reintegroRepository.findByPagoId(pagoId); }
+    public List<Reintegro> getByCompraId(Long compraId) {
+        return reintegroRepository.findByCompraId(compraId);
+    }
+    public List<Reintegro> getByPagoId(Long pagoId) {
+        return reintegroRepository.findByPagoId(pagoId);
+    }
 
     public Reintegro reintegrar(Long pagoId, String clave, Integer monto, MotivoReintegro motivo) {
         String hash = HashRequest.de(new ReintegroRequest(pagoId, monto, motivo));
 
         Optional<Reintegro> existente = reintegroRepository.findByClaveIdempotencia(clave);
         if (existente.isPresent()) {
-            return resultadoGuardado(existente.get(), hash); // idempotente
+            Reintegro previo = resultadoGuardado(existente.get(), hash); // idempotente
+            audit.info("op=REINTEGRO_REPETIDO reintegroId={} pagoId={} estado={}",
+                    previo.getId(), previo.getPagoId(), previo.getEstadoReintegro());
+            return previo;
         }
 
         Pago pago = pagoService.getPagoById(pagoId);
@@ -118,6 +127,8 @@ public class ReintegroService {
             r.setReferencia(res.referencia());
             r.setDetalle(res.motivo());
         } catch (PasarelaNoDisponibleException ex) {
+            audit.warn("op=REINTEGRO_PASARELA_NO_DISPONIBLE reintegroId={} compraId={} detalle={}",
+                    r.getId(), r.getCompraId(), ex.getMessage());
             r.setEstadoReintegro(EstadoReintegro.INCIERTO);
             r.setDetalle(ex.getMessage());
         }
@@ -128,6 +139,10 @@ public class ReintegroService {
         }
         r.setFechaActualizacion(LocalDateTime.now());
         r = reintegroRepository.save(r);
+
+        audit.info("op=REINTEGRO reintegroId={} pagoId={} compraId={} monto={} motivo={} estado={} intentos={}",
+                r.getId(), r.getPagoId(), r.getCompraId(), r.getMonto(),
+                r.getMotivoReintegro(), r.getEstadoReintegro(), r.getIntentos());
 
         if (r.getEstadoReintegro() == EstadoReintegro.APROBADO) {
             pagoService.aplicarReintegro(pago); // ya con el reintegro persistido

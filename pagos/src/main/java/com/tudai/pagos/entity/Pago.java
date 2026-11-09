@@ -15,7 +15,7 @@ public class Pago {
     @Column
     private Long compraId;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String claveIdempotencia;
 
     @Column
@@ -43,12 +43,18 @@ public class Pago {
     @Column
     private String motivoRechazo;
 
+    @Column
+    private LocalDateTime fechaVencimientoIdempotencia;
+
     @Version
     private Long version;
 
     public Pago() {}
 
-    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long clienteId, String hashRequest, String claveIdempotencia, Long compraId, LocalDateTime fechaPago, String referenciaPasarela, String motivoRechazo) {
+    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long clienteId,
+                String hashRequest, String claveIdempotencia, Long compraId,
+                LocalDateTime fechaPago, LocalDateTime fechaVencimientoIdempotencia,
+                String referenciaPasarela, String motivoRechazo) {
         this.estadoPago = estadoPago;
         this.moneda = moneda;
         this.monto = monto;
@@ -57,6 +63,7 @@ public class Pago {
         this.claveIdempotencia = claveIdempotencia;
         this.compraId = compraId;
         this.fechaPago = fechaPago;
+        this.fechaVencimientoIdempotencia = fechaVencimientoIdempotencia;
         this.referenciaPasarela = referenciaPasarela;
         this.motivoRechazo = motivoRechazo;
     }
@@ -147,5 +154,18 @@ public class Pago {
 
     public void setMotivoRechazo(String motivoRechazo) {
         this.motivoRechazo = motivoRechazo;
+    }
+
+    public LocalDateTime getFechaVencimientoIdempotencia() {
+        return fechaVencimientoIdempotencia;
+    }
+
+    public void setFechaVencimientoIdempotencia(LocalDateTime fechaVencimientoIdempotencia) {
+        this.fechaVencimientoIdempotencia = fechaVencimientoIdempotencia;
+    }
+
+    public boolean claveIdempotenciaVencida(LocalDateTime ahora) {
+        return fechaVencimientoIdempotencia != null
+                && !fechaVencimientoIdempotencia.isAfter(ahora);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +21,12 @@ public interface ReintegroRepository extends JpaRepository<Reintegro, Long> {
 
     List<Reintegro> findByPagoId(Long pagoId);
 
-    List<Reintegro> findByEstadoReintegroIn(Collection<EstadoReintegro> estados);
+    List<Reintegro> findByCompraId(Long compraId);
 
     List<Reintegro> findByEstadoReintegro(EstadoReintegro estado);
+
+    List<Reintegro> findByEstadoReintegroInAndFechaActualizacionBefore(
+            Collection<EstadoReintegro> estados, LocalDateTime limite);
 
     @Query("SELECT r.estadoReintegro, COUNT(r) FROM Reintegro r " +
             "WHERE r.compraId = :compraId GROUP BY r.estadoReintegro")

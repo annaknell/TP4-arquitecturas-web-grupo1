@@ -38,6 +38,15 @@ public class ReintegroController {
         return ReintegroResponse.de(reintegroService.getById(id));
     }
 
+    @GetMapping("/compra/{compraId}")
+    public List<ReintegroResponse> getByCompraId(@PathVariable Long compraId) {
+        return reintegroService.getByCompraId(compraId).stream().map(ReintegroResponse::de).toList();
+    }
+
+    @GetMapping("/pago/{pagoId}")
+    public List<ReintegroResponse> getByPagoId(@PathVariable Long pagoId) {
+        return reintegroService.getByPagoId(pagoId).stream().map(ReintegroResponse::de).toList();
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
