@@ -1,0 +1,61 @@
+package com.tudai.pagos.controller;
+
+import com.tudai.pagos.dto.ReintegroCompraRequest;
+import com.tudai.pagos.dto.ReintegroRequest;
+import com.tudai.pagos.dto.ReintegroResponse;
+import com.tudai.pagos.dto.ResumenReintegrosResponse;
+import com.tudai.pagos.enums.EstadoReintegro;
+import com.tudai.pagos.service.ReintegroService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/reintegros")
+public class ReintegroController {
+    private final ReintegroService reintegroService;
+
+    public ReintegroController(ReintegroService reintegroService) {
+        this.reintegroService = reintegroService;
+    }
+
+    @GetMapping
+    public List<ReintegroResponse> getAll(@RequestParam(required = false) EstadoReintegro estado) {
+        return reintegroService.getAll(estado).stream().map(ReintegroResponse::de).toList();
+    }
+
+    @GetMapping("/resumen")
+    public ResumenReintegrosResponse resumen(@RequestParam Long compraId) {
+        return reintegroService.resumenPorCompra(compraId);
+    }
+
+    @GetMapping("/{id}")
+    public ReintegroResponse getById(@PathVariable Long id) {
+        return ReintegroResponse.de(reintegroService.getById(id));
+    }
+
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReintegroResponse reintegrar(@RequestHeader("Idempotency-Key") String clave,
+                                        @Valid @RequestBody ReintegroRequest req) {
+        UUID.fromString(clave);
+        return ReintegroResponse.de(reintegroService.reintegrar(
+                req.pagoId(), clave, req.monto(), req.motivo()));
+    }
+
+    @PostMapping("/{id}/reintentar")
+    public ReintegroResponse reintentar(@PathVariable Long id) {
+        return ReintegroResponse.de(reintegroService.reintentar(id));
+    }
+    @PostMapping("/compra/{compraId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReintegroResponse reintegrarPorCompra(@PathVariable Long compraId,
+                                                 @Valid @RequestBody ReintegroCompraRequest req) {
+        return ReintegroResponse.de(reintegroService.reintegrarPorCompra(compraId, req.motivo()));
+    }
+}

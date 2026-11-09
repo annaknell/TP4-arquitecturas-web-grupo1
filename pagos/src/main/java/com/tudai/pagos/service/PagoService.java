@@ -14,8 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import com.tudai.pagos.pasarela.*;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -42,6 +42,24 @@ public class PagoService {
         return pagoRepository.findByClienteId(clienteId);
     }
 
+    public List<Pago> getPagosByCompraId(Long compraId) {
+        List<Pago> pagos = pagoRepository.findByCompraId(compraId);
+        if (pagos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "La compra " + compraId + " no tiene pagos");
+        }
+        return pagos;
+    }
+
+    public Pago getPagoCobradoByCompraId(Long compraId) {
+        return getPagosByCompraId(compraId).stream()
+                .filter(p -> p.getEstado() == EstadoPago.APROBADO
+                        || p.getEstado() == EstadoPago.REINTEGRADO)
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
+                        "La compra " + compraId + " no tiene un pago cobrado"));
+    }
+
     private void aprobar(Pago pago, String referencia){
         EstadoPago actual = pago.getEstado();
         if (actual== EstadoPago.APROBADO){
@@ -54,16 +72,17 @@ public class PagoService {
         pago.setEstado(EstadoPago.APROBADO);
         pago.setReferencia(referencia);
     }
-    private void rechazar(Pago pago){
+    private void rechazar(Pago pago, String motivo) {
         EstadoPago actual = pago.getEstado();
-        if (actual== EstadoPago.RECHAZADO){
+        if (actual == EstadoPago.RECHAZADO) {
             //si se hace un reintento sobre un pago ya rechazado, no se hace nada.
             return;
         }
-        if (actual != EstadoPago.PENDIENTE && actual != EstadoPago.INCIERTO){
+        if (actual != EstadoPago.PENDIENTE && actual != EstadoPago.INCIERTO) {
             throw new IllegalStateException("No se puede rechazar un pago en estado " + actual);
         }
         pago.setEstado(EstadoPago.RECHAZADO);
+        pago.setMotivoRechazo(motivo);
     }
     private void marcarIncierto(Pago pago){
         EstadoPago actual = pago.getEstado();
@@ -80,25 +99,18 @@ public class PagoService {
         return Objects.equals(pago.getHashRequest(), hashRequest);
     }
     public void aplicarReintegro(Pago pago) {
-        EstadoPago actual = pago.getEstado();
-
-        if (actual == EstadoPago.REINTEGRADO) {
-            //si el pago fue reintegrado, no se hace nada.
-            return;
+        if (pago.getEstado() == EstadoPago.REINTEGRADO) return;
+        if (pago.getEstado() != EstadoPago.APROBADO) {
+            throw new IllegalStateException("No se puede aplicar un reintegro a un pago en estado " + pago.getEstado());
         }
-        if (actual != EstadoPago.APROBADO) {
-            throw new IllegalStateException(
-                    "No se puede aplicar un reintegro a un pago en estado " + actual);
-        }
-
-        long reintegrado = reintegroRepository.sumarMontoPorPagoYEstado(pago.getId(), EstadoReintegro.APROBADO);
-
+        long reintegrado = reintegroRepository.sumarMontoPorPagoYEstados(
+                pago.getId(), List.of(EstadoReintegro.APROBADO));
         if (reintegrado > pago.getMonto()) {
             throw new IllegalStateException("Lo reintegrado supera el monto cobrado del pago");
         }
-        // Si queda saldo, el pago sigue APROBADO
         if (reintegrado == pago.getMonto()) {
             pago.setEstado(EstadoPago.REINTEGRADO);
+            pagoRepository.save(pago);
         }
     }
     public Pago cobrar(String claveIdempotencia, String hashRequest, Long compraId,
@@ -117,7 +129,7 @@ public class PagoService {
         } else {
             try {
                 pago = pagoRepository.saveAndFlush(new Pago(EstadoPago.PENDIENTE, moneda, monto,
-                        clienteId, hashRequest, claveIdempotencia, compraId, LocalDate.now(), null));
+                        clienteId, hashRequest, claveIdempotencia, compraId, LocalDateTime.now(), null, null));
             } catch (DataIntegrityViolationException e) {
                 // Otro request con la misma clave se nos adelantó: decide la unicidad en la BD
                 Pago ganador = pagoRepository.findByClaveIdempotencia(claveIdempotencia)
@@ -131,10 +143,10 @@ public class PagoService {
     private Pago procesarEnPasarela(Pago pago) {
         try {
             ResultadoCobro r = pasarela.cobrar(new SolicitudCobro(
-                    pago.getClave_idempotencia(), pago.getMonto(), pago.getMoneda()));
+                    pago.getClaveIdempotencia(), pago.getMonto(), pago.getMoneda()));
             switch (r.estado()) {
                 case APROBADO -> aprobar(pago, r.referencia());
-                case RECHAZADO -> rechazar(pago);
+                case RECHAZADO -> rechazar(pago, r.motivo());   // antes: rechazar(pago)
                 case INCIERTO -> marcarIncierto(pago);
             }
         } catch (PasarelaNoDisponibleException e) {
@@ -144,7 +156,7 @@ public class PagoService {
             return pagoRepository.save(pago);
         } catch (ObjectOptimisticLockingFailureException e) {
             // Otro reintento simultáneo ya actualizó el pago: devolvemos lo que quedó guardado
-            return pagoRepository.findByClaveIdempotencia(pago.getClave_idempotencia())
+            return pagoRepository.findByClaveIdempotencia(pago.getClaveIdempotencia())
                     .orElseThrow(() -> e);
         }
     }
@@ -156,5 +168,7 @@ public class PagoService {
         }
         return pago;
     }
+
+
 
 }

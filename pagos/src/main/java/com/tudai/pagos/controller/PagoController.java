@@ -43,6 +43,11 @@ public class PagoController {
         return pagoService.getPagosByClienteId(id).stream().map(PagoResponse::de).toList();
     }
 
+    @GetMapping("/compra/{compraId}")
+    public List<PagoResponse> getPagosByCompraId(@PathVariable Long compraId) {
+        return pagoService.getPagosByCompraId(compraId).stream().map(PagoResponse::de).toList();
+    }
+
     @PostMapping("/cobrar")
     @ResponseStatus(HttpStatus.CREATED) // 201 para aprobado, rechazado, incierto y reintentos
     public PagoResponse cobrar(@RequestHeader("Idempotency-Key") String clave,

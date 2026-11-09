@@ -4,42 +4,70 @@ import com.tudai.pagos.enums.EstadoReintegro;
 import com.tudai.pagos.enums.MotivoReintegro;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 public class Reintegro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private Long pago_id;
+    @Column(nullable = false)
+    private Long pagoId;
 
     @Column(nullable = false, unique = true)
-    private String clave_idempotencia;
+    private String claveIdempotencia;
 
-    @Column
+    @Column(nullable = false)
     private Integer monto;
 
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MotivoReintegro motivoReintegro;
 
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private EstadoReintegro estadoReintegro;
 
     @Column
     private Integer intentos;
 
+    @Column
+    private String hashRequest;
+
+    @Column
+    private String referenciaPasarela;
+
+    @Column
+    private String detalle;
+
+    @Column(nullable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(nullable = false)
+    private LocalDateTime fechaActualizacion;
+
+    @Column
+    private Long compraId;
+
+    @Version
+    private Long version;
+
     public Reintegro() {
     }
 
-    public Reintegro(Long pago_id, String clave_idempotencia, Integer monto, MotivoReintegro motivoReintegro, EstadoReintegro estadoReintegro, Integer intentos) {
-        this.pago_id = pago_id;
-        this.clave_idempotencia = clave_idempotencia;
+    public Reintegro(Long pagoId, Long compraId, String claveIdempotencia, String hashRequest,
+                     Integer monto, MotivoReintegro motivo) {
+        this.pagoId = pagoId;
+        this.compraId = compraId;
+        this.claveIdempotencia = claveIdempotencia;
+        this.hashRequest = hashRequest;
         this.monto = monto;
-        this.motivoReintegro = motivoReintegro;
-        this.estadoReintegro = estadoReintegro;
-        this.intentos = intentos;
+        this.motivoReintegro = motivo;
+        this.estadoReintegro = EstadoReintegro.PENDIENTE;
+        this.intentos = 0;
+        this.fechaCreacion = LocalDateTime.now();
+        this.fechaActualizacion = this.fechaCreacion;
     }
 
     public Long getId() {
@@ -50,20 +78,20 @@ public class Reintegro {
         this.id = id;
     }
 
-    public Long getPago_id() {
-        return pago_id;
+    public Long getPagoId() {
+        return pagoId;
     }
 
-    public void setPago_id(Long pago_id) {
-        this.pago_id = pago_id;
+    public void setPagoId(Long pago_id) {
+        this.pagoId = pago_id;
     }
 
-    public String getClave_idempotencia() {
-        return clave_idempotencia;
+    public String getClaveIdempotencia() {
+        return claveIdempotencia;
     }
 
-    public void setClave_idempotencia(String clave_idempotencia) {
-        this.clave_idempotencia = clave_idempotencia;
+    public void setClaveIdempotencia(String clave_idempotencia) {
+        this.claveIdempotencia = clave_idempotencia;
     }
 
     public Integer getMonto() {
@@ -96,5 +124,61 @@ public class Reintegro {
 
     public void setIntentos(Integer intentos) {
         this.intentos = intentos;
+    }
+
+    public String getHashRequest() {
+        return hashRequest;
+    }
+
+    public void setHashRequest(String hashRequest) {
+        this.hashRequest = hashRequest;
+    }
+
+    public String getReferencia() {
+        return referenciaPasarela;
+    }
+
+    public void setReferencia(String referencia_pasarela) {
+        this.referenciaPasarela = referencia_pasarela;
+    }
+
+    public String getDetalle() {
+        return detalle;
+    }
+
+    public void setDetalle(String detalle) {
+        this.detalle = detalle;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public LocalDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
+
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
+        this.fechaActualizacion = fechaActualizacion;
+    }
+
+    public Long getCompraId() {
+        return compraId;
+    }
+
+    public void setCompraId(Long compraId) {
+        this.compraId = compraId;
     }
 }

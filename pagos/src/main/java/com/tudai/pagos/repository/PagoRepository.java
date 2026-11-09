@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PagoRepository extends JpaRepository<Pago, Long> {
-    @Query("SELECT p FROM Pago p WHERE p.cliente_id = :clienteId")
+    @Query("SELECT p FROM Pago p WHERE p.clienteId = :clienteId")
     List<Pago> findByClienteId(@Param("clienteId") Long clienteId);
 
-    @Query("SELECT p FROM Pago p WHERE p.clave_idempotencia = :claveIdempotencia")
+    @Query("SELECT p FROM Pago p WHERE p.claveIdempotencia = :claveIdempotencia")
     Optional<Pago> findByClaveIdempotencia(@Param("claveIdempotencia") String claveIdempotencia);
+
+    @Query("SELECT p FROM Pago p WHERE p.compraId = :compraId")
+    List<Pago> findByCompraId(@Param("compraId") Long compraId);
 }

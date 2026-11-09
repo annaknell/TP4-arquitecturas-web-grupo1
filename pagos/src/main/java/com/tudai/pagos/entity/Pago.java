@@ -4,6 +4,7 @@ import com.tudai.pagos.enums.EstadoPago;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Pago {
@@ -12,16 +13,16 @@ public class Pago {
     private Long id;
 
     @Column
-    private Long compra_id;
+    private Long compraId;
 
     @Column(nullable = false, unique = true)
-    private String clave_idempotencia;
+    private String claveIdempotencia;
 
     @Column
     private String hashRequest;
 
     @Column
-    private Long cliente_id;
+    private Long clienteId;
 
     @Column
     private Integer monto;
@@ -34,10 +35,10 @@ public class Pago {
     private EstadoPago estadoPago;
 
     @Column
-    private LocalDate fecha_pago;
+    private LocalDateTime fechaPago;
 
     @Column
-    private String referencia_pasarela;
+    private String referenciaPasarela;
 
     @Column
     private String motivoRechazo;
@@ -47,16 +48,16 @@ public class Pago {
 
     public Pago() {}
 
-    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long cliente_id, String hashRequest, String clave_idempotencia, Long compra_id, LocalDate fecha_pago, String referencia_pasarela, String motivoRechazo) {
+    public Pago(EstadoPago estadoPago, String moneda, Integer monto, Long clienteId, String hashRequest, String claveIdempotencia, Long compraId, LocalDateTime fechaPago, String referenciaPasarela, String motivoRechazo) {
         this.estadoPago = estadoPago;
         this.moneda = moneda;
         this.monto = monto;
-        this.cliente_id = cliente_id;
+        this.clienteId = clienteId;
         this.hashRequest = hashRequest;
-        this.clave_idempotencia = clave_idempotencia;
-        this.compra_id = compra_id;
-        this.fecha_pago = fecha_pago;
-        this.referencia_pasarela = referencia_pasarela;
+        this.claveIdempotencia = claveIdempotencia;
+        this.compraId = compraId;
+        this.fechaPago = fechaPago;
+        this.referenciaPasarela = referenciaPasarela;
         this.motivoRechazo = motivoRechazo;
     }
 
@@ -68,20 +69,20 @@ public class Pago {
         this.id = id;
     }
 
-    public Long getCompra_id() {
-        return compra_id;
+    public Long getCompraId() {
+        return compraId;
     }
 
-    public void setCompra_id(Long compra_id) {
-        this.compra_id = compra_id;
+    public void setCompraId(Long compra_id) {
+        this.compraId = compra_id;
     }
 
-    public String getClave_idempotencia() {
-        return clave_idempotencia;
+    public String getClaveIdempotencia() {
+        return claveIdempotencia;
     }
 
-    public void setClave_idempotencia(String clave_idempotencia) {
-        this.clave_idempotencia = clave_idempotencia;
+    public void setClaveIdempotencia(String clave_idempotencia) {
+        this.claveIdempotencia = clave_idempotencia;
     }
 
     public String getHashRequest() {
@@ -92,12 +93,12 @@ public class Pago {
         this.hashRequest = hashRequest;
     }
 
-    public Long getCliente_id() {
-        return cliente_id;
+    public Long getClienteId() {
+        return clienteId;
     }
 
-    public void setCliente_id(Long cliente_id) {
-        this.cliente_id = cliente_id;
+    public void setClienteId(Long cliente_id) {
+        this.clienteId = cliente_id;
     }
 
     public Integer getMonto() {
@@ -124,20 +125,20 @@ public class Pago {
         this.estadoPago = estadoPago;
     }
 
-    public LocalDate getFecha_pago() {
-        return fecha_pago;
+    public LocalDateTime getFechaPago() {
+        return fechaPago;
     }
 
-    public void setFecha_pago(LocalDate fecha_pago) {
-        this.fecha_pago = fecha_pago;
+    public void setFechaPago(LocalDateTime fecha_pago) {
+        this.fechaPago = fecha_pago;
     }
 
     public String getReferencia() {
-        return referencia_pasarela;
+        return referenciaPasarela;
     }
 
     public void setReferencia(String referencia_pasarela) {
-        this.referencia_pasarela = referencia_pasarela;
+        this.referenciaPasarela = referencia_pasarela;
     }
 
     public String getMotivoRechazo() {
