@@ -21,3 +21,8 @@ spring:
           uri: http://localhost:8084 # Puerto de compra-service
           predicates:
             - Path=/api/compras/**
+
+        - id: pagos-service
+          uri: http://localhost:8085
+          predicates:
+              - Path=/api/pagos/**
