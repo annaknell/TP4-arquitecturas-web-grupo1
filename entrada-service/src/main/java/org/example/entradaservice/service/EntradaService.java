@@ -13,12 +13,18 @@ public class EntradaService {
     @Autowired
     private EntradaRepository entradaRepository;
 
-    public Entrada emitirEntrada(Entrada nuevaEntrada){
-        if (nuevaEntrada.getCodigoQr() == null || nuevaEntrada.getCodigoQr().isEmpty()) {
-            nuevaEntrada.setCodigoQr("QR-" + UUID.randomUUID().toString().toUpperCase());
+    public List<Entrada> emitirEntradas(List<Entrada> nuevasEntradas) {
+        for (Entrada nuevaEntrada : nuevasEntradas) {
+            if (nuevaEntrada.getCodigoQr() == null || nuevaEntrada.getCodigoQr().isEmpty()) {
+                nuevaEntrada.setCodigoQr("QR-" + UUID.randomUUID().toString().toUpperCase());
+            }
+
+            if (nuevaEntrada.getSectorId() == null) {
+                nuevaEntrada.setSectorId(1L);
+            }
+            nuevaEntrada.setEstado("EMITIDA");
         }
-        nuevaEntrada.setEstado("EMITIDA");
-        return entradaRepository.save(nuevaEntrada);
+        return entradaRepository.saveAll(nuevasEntradas);
     }
 
     public Entrada obtenerPorId(Long id){

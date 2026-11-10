@@ -20,7 +20,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/pagos")
+@RequestMapping("/api/pagos")
 public class PagoController {
     private final PagoService pagoService;
 
@@ -50,9 +50,11 @@ public class PagoController {
 
     @PostMapping("/cobrar")
     @ResponseStatus(HttpStatus.CREATED) // 201 para aprobado, rechazado, incierto y reintentos
-    public PagoResponse cobrar(@RequestHeader("Idempotency-Key") String clave,
+    public PagoResponse cobrar(@RequestHeader(value = "Idempotency-Key", required = false) String clave,
                                @Valid @RequestBody CobroRequest req) {
-        UUID.fromString(clave); // IllegalArgumentException -> 400 si no es un UUID
+        if (clave == null || clave.isBlank()) {
+            clave = java.util.UUID.randomUUID().toString();
+        }
         return PagoResponse.de(pagoService.cobrar(
                 clave, HashRequest.de(req),
                 req.compraId(), req.clienteId(), req.monto(), req.moneda()));

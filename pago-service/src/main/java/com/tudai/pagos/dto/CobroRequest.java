@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record CobroRequest(
-        @NotNull Long compraId,
-        @NotNull Long clienteId,
-        @NotNull @Positive Integer monto,
-        @NotBlank String moneda) {}
+         Long compraId,
+         Long clienteId,
+         @Positive Integer monto,
+         String moneda) {}

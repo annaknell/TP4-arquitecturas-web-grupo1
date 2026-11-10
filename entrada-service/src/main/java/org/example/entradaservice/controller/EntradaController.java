@@ -14,10 +14,10 @@ import java.util.List;
 public class EntradaController {
     @Autowired
     private EntradaService entradaService;
-    @PostMapping
-    public ResponseEntity<Entrada> emitirEntrada(@RequestBody Entrada nuevaEntrada){
-        Entrada e = entradaService.emitirEntrada(nuevaEntrada);
-        return ResponseEntity.ok(e);
+    @PostMapping("/emitir")
+    public ResponseEntity<List<Entrada>> emitirEntrada(@RequestBody List<Entrada> nuevasEntradas) {
+        List<Entrada> emitidas = entradaService.emitirEntradas(nuevasEntradas);
+        return ResponseEntity.ok(emitidas);
     }
 
     @GetMapping("/{id}")

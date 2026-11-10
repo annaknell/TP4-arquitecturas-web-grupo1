@@ -13,8 +13,8 @@ public final class HashRequest {
 
     /** SHA-256 de los campos del pedido. La clave de idempotencia NO entra en el hash. */
     public static String de(CobroRequest r) {
-        String canonico = r.compraId() + "|" + r.clienteId() + "|" + r.monto() + "|"
-                + r.moneda().trim().toUpperCase();
+        String monedaNormalizada = (r.moneda() != null) ? r.moneda().trim().toUpperCase() : "ARS";
+        String canonico = r.compraId() + "|" + r.clienteId() + "|" + r.monto() + "|" + monedaNormalizada;
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(canonico.getBytes(StandardCharsets.UTF_8));
