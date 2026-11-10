@@ -33,15 +33,22 @@ class EntradaServiceTest {
         entrada.setClienteId(1L);
         entrada.setEventoId(15L);
 
-        when(entradaRepository.save(any(Entrada.class))).thenAnswer(i -> i.getArgument(0));
+        // Mock para saveAll que devuelve la misma lista que recibe
+        when(entradaRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
 
-        Entrada resultado = entradaService.emitirEntrada(entrada);
+        // Pasamos una lista List.of(entrada)
+        List<Entrada> resultado = entradaService.emitirEntradas(List.of(entrada));
 
         assertNotNull(resultado);
-        assertEquals("EMITIDA", resultado.getEstado());
-        assertNotNull(resultado.getCodigoQr());
-        assertTrue(resultado.getCodigoQr().startsWith("QR-"));
-        verify(entradaRepository, times(1)).save(entrada);
+        assertEquals(1, resultado.size());
+
+        Entrada emitida = resultado.get(0);
+        assertEquals("EMITIDA", emitida.getEstado());
+        assertNotNull(emitida.getCodigoQr());
+        assertTrue(emitida.getCodigoQr().startsWith("QR-"));
+
+        // Verificamos que se llame a saveAll una vez
+        verify(entradaRepository, times(1)).saveAll(anyList());
     }
 
     @Test
