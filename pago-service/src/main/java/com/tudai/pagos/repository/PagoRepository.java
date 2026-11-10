@@ -22,8 +22,8 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     @Query("SELECT p FROM Pago p WHERE p.compraId = :compraId")
     List<Pago> findByCompraId(@Param("compraId") Long compraId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Pago p WHERE p.claveIdempotencia = :claveIdempotencia")
+    @Query(value = "SELECT * FROM pago WHERE clave_idempotencia = :claveIdempotencia FOR UPDATE",
+            nativeQuery = true)
     Optional<Pago> findByClaveIdempotenciaParaActualizar(@Param("claveIdempotencia") String claveIdempotencia);
 
     @Modifying

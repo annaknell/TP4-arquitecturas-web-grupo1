@@ -35,8 +35,8 @@ public interface ReintegroRepository extends JpaRepository<Reintegro, Long> {
             "WHERE r.compraId = :compraId GROUP BY r.estadoReintegro")
     List<Object[]> contarPorEstadoYCompra(@Param("compraId") Long compraId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT r FROM Reintegro r WHERE r.claveIdempotencia = :clave")
+    @Query(value = "SELECT * FROM reintegro WHERE clave_idempotencia = :clave FOR UPDATE",
+            nativeQuery = true)
     Optional<Reintegro> findByClaveIdempotenciaParaActualizar(@Param("clave") String clave);
 
     List<Reintegro> findByEventoId(Long eventoId);
