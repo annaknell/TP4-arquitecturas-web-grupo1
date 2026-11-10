@@ -11,7 +11,7 @@
     <modules>
         <module>entrada-service</module>
         <module>compra-service</module>
-        <module>inventario</module>
+        <module>inventario-service</module>
     </modules>
     <properties>
         <maven.compiler.source>27</maven.compiler.source>

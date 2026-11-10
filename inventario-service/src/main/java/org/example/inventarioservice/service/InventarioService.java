@@ -1,22 +1,22 @@
 package org.example.inventarioservice.service;
 
-import org.example.inventario.dto.DisponibilidadDTO;
-import org.example.inventario.dto.LiberacionDTO;
-import org.example.inventario.dto.ProvisionDTO;
-import org.example.inventario.dto.ReservaRequestDTO;
-import org.example.inventario.dto.ReservaResponseDTO;
-import org.example.inventario.entity.ConfiguracionEvento;
-import org.example.inventario.entity.EventoAsiento;
-import org.example.inventario.entity.Reserva;
-import org.example.inventario.entity.TipoSector;
-import org.example.inventario.entity.ZonaCupo;
-import org.example.inventario.exception.ConflictoException;
-import org.example.inventario.exception.NoEncontradoException;
-import org.example.inventario.exception.ReglaDeNegocioException;
-import org.example.inventario.repository.ConfiguracionEventoRepository;
-import org.example.inventario.repository.EventoAsientoRepository;
-import org.example.inventario.repository.ReservaRepository;
-import org.example.inventario.repository.ZonaCupoRepository;
+import org.example.inventarioservice.dto.DisponibilidadDTO;
+import org.example.inventarioservice.dto.LiberacionDTO;
+import org.example.inventarioservice.dto.ProvisionDTO;
+import org.example.inventarioservice.dto.ReservaRequestDTO;
+import org.example.inventarioservice.dto.ReservaResponseDTO;
+import org.example.inventarioservice.entity.ConfiguracionEvento;
+import org.example.inventarioservice.entity.EventoAsiento;
+import org.example.inventarioservice.entity.Reserva;
+import org.example.inventarioservice.entity.TipoSector;
+import org.example.inventarioservice.entity.ZonaCupo;
+import org.example.inventarioservice.exception.ConflictoException;
+import org.example.inventarioservice.exception.NoEncontradoException;
+import org.example.inventarioservice.exception.ReglaDeNegocioException;
+import org.example.inventarioservice.repository.ConfiguracionEventoRepository;
+import org.example.inventarioservice.repository.EventoAsientoRepository;
+import org.example.inventarioservice.repository.ReservaRepository;
+import org.example.inventarioservice.repository.ZonaCupoRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -349,7 +349,7 @@ public class InventarioService {
     }
 
     @Transactional
-    private LiberacionDTO.Resultado liberarReservasDelEvento(Long eventId, String motivo) {
+    public LiberacionDTO.Resultado liberarReservasDelEvento(Long eventId, String motivo) {
         Instant ahora = Instant.now();
         int asientosLiberados = 0;
         int unidadesLiberadas = 0;

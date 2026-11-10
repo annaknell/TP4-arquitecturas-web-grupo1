@@ -1,6 +1,6 @@
 package org.example.inventarioservice.repository;
 
-import org.example.inventario.entity.EventoAsiento;
+import org.example.inventarioservice.entity.EventoAsiento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

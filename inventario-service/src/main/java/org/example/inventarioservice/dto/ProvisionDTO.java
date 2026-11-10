@@ -9,8 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.inventario.entity.ConfiguracionEvento;
-import org.example.inventario.entity.TipoSector;
+import org.example.inventarioservice.entity.ConfiguracionEvento;
+import org.example.inventarioservice.entity.TipoSector;
 
 import java.util.List;
 

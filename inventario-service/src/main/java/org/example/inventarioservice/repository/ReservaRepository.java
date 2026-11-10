@@ -1,7 +1,7 @@
 package org.example.inventarioservice.repository;
 
-import org.example.inventario.entity.Reserva;
-import org.example.inventario.entity.TipoSector;
+import org.example.inventarioservice.entity.Reserva;
+import org.example.inventarioservice.entity.TipoSector;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

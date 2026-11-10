@@ -1,13 +1,9 @@
 package org.example.inventarioservice.controller;
 
 import jakarta.validation.Valid;
-import org.example.inventario.dto.DisponibilidadDTO;
-import org.example.inventario.dto.LiberacionDTO;
-import org.example.inventario.dto.ProvisionDTO;
-import org.example.inventario.dto.ReservaRequestDTO;
-import org.example.inventario.dto.ReservaResponseDTO;
-import org.example.inventario.entity.ConfiguracionEvento;
-import org.example.inventario.service.InventarioService;
+import org.example.inventarioservice.dto.*;
+import org.example.inventarioservice.entity.ConfiguracionEvento;
+import org.example.inventarioservice.service.InventarioService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package org.example.inventarioservice.repository;
 
-import org.example.inventario.entity.ZonaCupo;
+import org.example.inventarioservice.entity.ZonaCupo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

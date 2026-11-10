@@ -1,6 +1,6 @@
 package org.example.inventarioservice.repository;
 
-import org.example.inventario.entity.ConfiguracionEvento;
+import org.example.inventarioservice.entity.ConfiguracionEvento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
