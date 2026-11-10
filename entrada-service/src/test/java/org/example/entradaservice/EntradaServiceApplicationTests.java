@@ -1,7 +1,8 @@
-package org.example.entradaservice.service;
+package org.example.entradaservice;
 
 import org.example.entradaservice.entity.Entrada;
 import org.example.entradaservice.repository.EntradaRepository;
+import org.example.entradaservice.service.EntradaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
