@@ -55,9 +55,7 @@ public class ReintegroScheduler {
         MDC.put(TraceIdFilter.MDC_KEY, "scheduler-" + UUID.randomUUID());
         try {
             LocalDateTime limite = LocalDateTime.now().minusSeconds(antiguedadMinimaSeg);
-            List<Reintegro> candidatos = reintegroRepository
-                    .findByEstadoReintegroInAndFechaActualizacionBefore(REINTENTABLES, limite);
-
+            List<Reintegro> candidatos = reintegroRepository.findByEstadoReintegroInAndFechaActualizacionBefore(REINTENTABLES, limite);
             for (Reintegro r : candidatos) {
                 try {
                     Reintegro res = reintegroService.reintentar(r.getId());

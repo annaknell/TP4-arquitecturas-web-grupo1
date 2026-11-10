@@ -40,7 +40,6 @@ public class TraceIdFilter extends OncePerRequestFilter {
         }
         MDC.put(MDC_KEY, traceId);
         res.setHeader(HEADER, traceId);
-
         long inicio = System.nanoTime();
         try {
             chain.doFilter(req, res);

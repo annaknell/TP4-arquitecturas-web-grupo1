@@ -50,6 +50,12 @@ public class Reintegro {
     @Column
     private Long compraId;
 
+    @Column(unique = true)
+    private Long solicitudDevolucionId;
+
+    @Column
+    private Long eventoId;
+
     @Version
     private Long version;
 
@@ -57,13 +63,14 @@ public class Reintegro {
     }
 
     public Reintegro(Long pagoId, Long compraId, String claveIdempotencia, String hashRequest,
-                     Integer monto, MotivoReintegro motivo) {
+                     Integer monto, MotivoReintegro motivo, Long solicitudDevolucionId) {
         this.pagoId = pagoId;
         this.compraId = compraId;
         this.claveIdempotencia = claveIdempotencia;
         this.hashRequest = hashRequest;
         this.monto = monto;
         this.motivoReintegro = motivo;
+        this.solicitudDevolucionId = solicitudDevolucionId;
         this.estadoReintegro = EstadoReintegro.PENDIENTE;
         this.intentos = 0;
         this.fechaCreacion = LocalDateTime.now();
@@ -180,5 +187,21 @@ public class Reintegro {
 
     public void setCompraId(Long compraId) {
         this.compraId = compraId;
+    }
+
+    public Long getSolicitudDevolucionId() {
+        return solicitudDevolucionId;
+    }
+
+    public void setSolicitudDevolucionId(Long solicitudDevolucionId) {
+        this.solicitudDevolucionId = solicitudDevolucionId;
+    }
+
+    public Long getEventoId() {
+        return eventoId;
+    }
+
+    public void setEventoId(Long eventoId) {
+        this.eventoId = eventoId;
     }
 }

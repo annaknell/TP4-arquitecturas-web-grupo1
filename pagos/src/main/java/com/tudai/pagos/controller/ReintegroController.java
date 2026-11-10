@@ -1,9 +1,6 @@
 package com.tudai.pagos.controller;
 
-import com.tudai.pagos.dto.ReintegroCompraRequest;
-import com.tudai.pagos.dto.ReintegroRequest;
-import com.tudai.pagos.dto.ReintegroResponse;
-import com.tudai.pagos.dto.ResumenReintegrosResponse;
+import com.tudai.pagos.dto.*;
 import com.tudai.pagos.enums.EstadoReintegro;
 import com.tudai.pagos.service.ReintegroService;
 import jakarta.validation.Valid;
@@ -43,6 +40,12 @@ public class ReintegroController {
         return reintegroService.getByCompraId(compraId).stream().map(ReintegroResponse::de).toList();
     }
 
+    @GetMapping("/devolucion/{solicitudDevolucionId}")
+    public ReintegroResponse getBySolicitudDevolucionId(@PathVariable Long solicitudDevolucionId) {
+        return ReintegroResponse.de(
+                reintegroService.getBySolicitudDevolucionId(solicitudDevolucionId));
+    }
+
     @GetMapping("/pago/{pagoId}")
     public List<ReintegroResponse> getByPagoId(@PathVariable Long pagoId) {
         return reintegroService.getByPagoId(pagoId).stream().map(ReintegroResponse::de).toList();
@@ -67,4 +70,12 @@ public class ReintegroController {
                                                  @Valid @RequestBody ReintegroCompraRequest req) {
         return ReintegroResponse.de(reintegroService.reintegrarPorCompra(compraId, req.motivo()));
     }
+    @PostMapping("/devolucion-aprobada")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReintegroResponse reintegrarDevolucionAprobada(
+            @Valid @RequestBody ReintegroDevolucionAprobadaRequest req) {
+        return ReintegroResponse.de(reintegroService.reintegrarDevolucionAprobada(
+                req.solicitudDevolucionId(), req.pagoId(), req.monto()));
+    }
+
 }
