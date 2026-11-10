@@ -7,6 +7,8 @@ import org.example.catalogoservice.repository.EventoRepository;
 import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
 import org.example.catalogoservice.repository.ParticipanteRepository;
+import org.example.catalogoservice.client.EntradaClient;
+import org.example.catalogoservice.client.PagosClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,12 @@ public class EventoService {
 
     @Autowired
     private EventoSectorRepository eventoSectorRepository;
+
+    @Autowired
+    private EntradaClient entradaClient;
+
+    @Autowired
+    private PagosClient pagosClient;
 
     public List<Evento> listarEventosPublicados() {
         return eventoRepository.findByEstado("PUBLICADO");
@@ -63,6 +71,21 @@ public class EventoService {
         sincronizarInventario(eventoPublicado);
 
         return eventoPublicado;
+    }
+
+    @Transactional
+    public Evento cancelarEvento(Long id) {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+
+        if ("CANCELADO".equals(evento.getEstado())) {
+            return evento;
+        }
+
+        List<Long> comprasIds = entradaClient.cancelarEntradasPorEvento(id);
+        pagosClient.registrarPendientesPorCancelacion(id, comprasIds);
+        evento.setEstado("CANCELADO");
+        return eventoRepository.save(evento);
     }
 
     private void sincronizarInventario(Evento evento) {
