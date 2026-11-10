@@ -13,9 +13,10 @@ public class PagosClient {
 
     private final RestClient restClient;
 
-    public PagosClient(RestClient.Builder builder,
-                       @Value("${pago-service.url:http://localhost:8085}") String pagoServiceUrl) {
-        this.restClient = builder.baseUrl(pagoServiceUrl).build();
+    public PagosClient(@Value("${pago-service.url:http://localhost:8085}") String pagoServiceUrl) {
+        this.restClient = RestClient.builder()
+            .baseUrl(pagoServiceUrl)
+            .build();
     }
 
     public void registrarPendientesPorCancelacion(Long eventoId, List<Long> comprasIds) {

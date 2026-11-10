@@ -13,11 +13,11 @@ public class EntradaClient {
 
     private final RestClient restClient;
 
-    public EntradaClient(RestClient.Builder builder,
-                         @Value("${entrada-service.url:http://localhost:8086}") String entradaServiceUrl) {
-        this.restClient = builder.baseUrl(entradaServiceUrl).build();
+    public EntradaClient(@Value("http://localhost:8086") String entradaServiceUrl) {
+        this.restClient = RestClient.builder()
+            .baseUrl(entradaServiceUrl)
+            .build();
     }
-
     public List<Long> cancelarEntradasPorEvento(Long eventoId) {
         List<Long> compraIds = restClient.post()
                 .uri("/api/entradas/eventos/{eventoId}/cancelar", eventoId)
