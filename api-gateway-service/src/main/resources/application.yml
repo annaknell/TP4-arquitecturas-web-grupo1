@@ -1,0 +1,28 @@
+server:
+  port: 8080 # El Gateway suele correr en el puerto 8080 como única puerta de entrada
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: catalogo-service
+          uri: http://localhost:8082 # Puerto donde corre tu catalogo-service
+          predicates:
+            - Path=/api/eventos/**
+
+        - id: inventario-service
+          uri: http://localhost:8083 # Puerto de inventario-service
+          predicates:
+            - Path=/api/inventario/**
+
+        - id: compras-service
+          uri: http://localhost:8084 # Puerto de compra-service
+          predicates:
+            - Path=/api/compras/**
+
+        - id: pagos-service
+          uri: http://localhost:8085
+          predicates:
+              - Path=/api/pagos/**
