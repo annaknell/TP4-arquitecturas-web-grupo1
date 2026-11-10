@@ -37,4 +37,9 @@ public class EntradaController {
         Entrada actualizada = entradaService.cancelarEntrada(id);
         return ResponseEntity.ok(actualizada);
     }
+
+    @PostMapping("/eventos/{eventoId}/cancelar")
+    public ResponseEntity<List<Long>> cancelarEntradasPorEvento(@PathVariable Long eventoId) {
+        return ResponseEntity.ok(entradaService.cancelarEntradasPorEvento(eventoId));
+    }
 }

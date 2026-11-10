@@ -35,4 +35,19 @@ public class EntradaService {
         return entradaRepository.save(e);
     }
 
+    /**
+     * Cancela las entradas emitidas de un evento y devuelve las compras afectadas.
+     * Una segunda ejecución no modifica entradas ya canceladas ni devuelve compras nuevas.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public List<Long> cancelarEntradasPorEvento(Long eventoId) {
+        List<Entrada> entradas = entradaRepository.findByEventoIdAndEstadoIn(
+                eventoId, List.of("EMITIDA", "CANCELADA"));
+        entradas.stream()
+                .filter(entrada -> "EMITIDA".equals(entrada.getEstado()))
+                .forEach(entrada -> entrada.setEstado("CANCELADA"));
+        entradaRepository.saveAll(entradas);
+        return entradas.stream().map(Entrada::getCompraId).distinct().toList();
+    }
+
 }

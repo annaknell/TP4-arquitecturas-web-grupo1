@@ -44,4 +44,9 @@ public class EventoController {
         Evento eventoPublicado = eventoService.publicarEvento(id);
         return ResponseEntity.ok(eventoPublicado);
     }
+
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<Evento> cancelarEvento(@PathVariable Long id) {
+        return ResponseEntity.ok(eventoService.cancelarEvento(id));
+    }
 }

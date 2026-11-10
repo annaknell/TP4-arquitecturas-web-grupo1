@@ -10,4 +10,6 @@ import java.util.List;
 public interface EntradaRepository extends JpaRepository<Entrada, Long> {
     @Query("SELECT e FROM Entrada e WHERE e.clienteId = :id")
     List<Entrada> findByClienteId(@Param("id") Long id);
+
+    List<Entrada> findByEventoIdAndEstadoIn(Long eventoId, List<String> estados);
 }

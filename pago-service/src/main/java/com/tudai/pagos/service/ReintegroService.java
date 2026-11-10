@@ -1,6 +1,7 @@
 package com.tudai.pagos.service;
 
 import com.tudai.pagos.dto.ResumenReintegrosResponse;
+import com.tudai.pagos.dto.ResumenReintegrosEventoResponse;
 import com.tudai.pagos.entity.Pago;
 import com.tudai.pagos.entity.Reintegro;
 import com.tudai.pagos.enums.EstadoReintegro;
@@ -60,6 +61,28 @@ public class ReintegroService {
                 conteo.getOrDefault(EstadoReintegro.INCIERTO, 0L),
                 conteo.getOrDefault(EstadoReintegro.FALLIDO, 0L),
                 total);
+    }
+
+    /**
+     * Agrupa estados internos para la vista administrativa de una cancelación de evento.
+     * Pendientes: PENDIENTE e INCIERTO; completados: APROBADO;
+     * fallidos: RECHAZADO y FALLIDO.
+     */
+    public ResumenReintegrosEventoResponse resumenPorEvento(Long eventoId) {
+        Map<EstadoReintegro, Long> conteo = new EnumMap<>(EstadoReintegro.class);
+        for (Object[] fila : reintegroRepository.contarPorEstadoYEvento(eventoId)) {
+            conteo.put((EstadoReintegro) fila[0], (Long) fila[1]);
+        }
+
+        long pendientes = conteo.getOrDefault(EstadoReintegro.PENDIENTE, 0L)
+                + conteo.getOrDefault(EstadoReintegro.INCIERTO, 0L);
+        long completados = conteo.getOrDefault(EstadoReintegro.APROBADO, 0L);
+        long fallidos = conteo.getOrDefault(EstadoReintegro.RECHAZADO, 0L)
+                + conteo.getOrDefault(EstadoReintegro.FALLIDO, 0L);
+
+        return new ResumenReintegrosEventoResponse(
+                eventoId, pendientes, completados, fallidos,
+                pendientes + completados + fallidos);
     }
 
     public List<Reintegro> getByCompraId(Long compraId) {
@@ -129,7 +152,7 @@ public class ReintegroService {
 
     public Optional<Reintegro> registrarPendientePorCancelacion(Long compraId, Long eventoId) {
         MotivoReintegro motivo = MotivoReintegro.CANCELACION_EVENTO;
-        String clave = claveDerivada(compraId, motivo);
+        String clave = claveDerivadaCancelacion(compraId, eventoId);
         Optional<Reintegro> existente = reintegroRepository.findByClaveIdempotencia(clave);
         if (existente.isPresent()) {
             return existente;
@@ -158,6 +181,15 @@ public class ReintegroService {
         notificador.info("Evento cancelado; compra={}; cliente={}; reintegro={}",
                 compraId, pago.getClienteId(), r.getId());
         return Optional.of(r);
+    }
+
+    /**
+     * La cancelación se identifica por compra y evento: una misma compra puede tener
+     * entradas de eventos distintos y cada cancelación debe conservar su idempotencia.
+     */
+    static String claveDerivadaCancelacion(Long compraId, Long eventoId) {
+        String base = "reintegro-cancelacion-evento:" + compraId + ":" + eventoId;
+        return UUID.nameUUIDFromBytes(base.getBytes(StandardCharsets.UTF_8)).toString();
     }
 
 

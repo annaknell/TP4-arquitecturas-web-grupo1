@@ -30,6 +30,11 @@ public class ReintegroController {
         return reintegroService.resumenPorCompra(compraId);
     }
 
+    @GetMapping("/eventos/{eventoId}/resumen")
+    public ResumenReintegrosEventoResponse resumenPorEvento(@PathVariable Long eventoId) {
+        return reintegroService.resumenPorEvento(eventoId);
+    }
+
     @GetMapping("/{id}")
     public ReintegroResponse getById(@PathVariable Long id) {
         return ReintegroResponse.de(reintegroService.getById(id));
@@ -70,6 +75,18 @@ public class ReintegroController {
                                                  @Valid @RequestBody ReintegroCompraRequest req) {
         return ReintegroResponse.de(reintegroService.reintegrarPorCompra(compraId, req.motivo()));
     }
+
+    @PostMapping("/cancelacion-evento")
+    public List<ReintegroResponse> registrarPendientesPorCancelacion(
+            @Valid @RequestBody CancelacionEventoRequest req) {
+        return req.comprasIds().stream()
+                .distinct()
+                .map(compraId -> reintegroService.registrarPendientePorCancelacion(compraId, req.eventoId()))
+                .flatMap(java.util.Optional::stream)
+                .map(ReintegroResponse::de)
+                .toList();
+    }
+
     @PostMapping("/devolucion-aprobada")
     @ResponseStatus(HttpStatus.CREATED)
     public ReintegroResponse reintegrarDevolucionAprobada(
