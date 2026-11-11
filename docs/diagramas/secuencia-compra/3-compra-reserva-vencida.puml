@@ -1,0 +1,29 @@
+@startuml
+title Compra de una entrada numerada: reserva vencida
+
+actor "Cliente" as CLI
+participant "Compra\n8084" as COMP
+participant "Inventario\n8083" as INV
+participant "Pago\n8085" as PAG
+
+COMP -> INV : POST /api/inventario/reservas\n{eventoId, asientos[]}
+INV -> INV : reserva ACTIVA\nexpiraEn = ahora + inventario.reserva.minutos (10)
+INV --> COMP : 201 ReservaResponse {id, estado, expiraEn}
+
+== pasan los 10 minutos sin que llegue el cobro ==
+
+INV -> INV : @Scheduled cada 5000 ms: barrerVencidas()\nliberarRetencionesVencidas(ahora)\nfindByEstadoAndExpiraEnBefore(ACTIVA, ahora)\nvencerSiActiva(...) -> reserva VENCIDA
+note over INV : los asientos vuelven a estar libres\npara otros clientes
+
+== el cobro se aprueba después del vencimiento ==
+
+COMP -> PAG : POST /api/pagos/cobrar\nIdempotency-Key\n{compraId, clienteId, monto, moneda}
+PAG --> COMP : 201 PagoResponse {id, estado = APROBADO}
+COMP -> INV : POST /api/inventario/reservas/{id}/confirmar
+INV --> COMP : 409 Conflict "La reserva venció a las ..."
+COMP -> PAG : POST /api/reintegros/compra/{compraId}\n{motivo}
+PAG --> COMP : 201 ReintegroResponse
+COMP -> COMP : estado RESERVA_VENCIDA\npaso "Reserva vencida - Reintegro solicitado"
+COMP --> CLI : 409 Conflict
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+title Compra de una entrada numerada: pago rechazado
+
+actor "Cliente" as CLI
+participant "Compra\n8084" as COMP
+participant "Inventario\n8083" as INV
+participant "Pago\n8085" as PAG
+
+CLI -> COMP : POST /api/compras
+COMP -> INV : POST /api/inventario/reservas\n{eventoId, asientos[]}
+INV -> INV : retiene los asientos\nreserva ACTIVA, expiraEn = ahora + 10 min
+INV --> COMP : 201 ReservaResponse {id, estado}
+note right of COMP : guarda reservaId\npaso "Asientos reservados"
+
+COMP -> PAG : POST /api/pagos/cobrar\nIdempotency-Key\n{compraId, clienteId, monto, moneda}
+PAG --> COMP : 201 PagoResponse {estado = RECHAZADO}
+
+group compensación
+  COMP -> INV : POST /api/inventario/reservas/{id}/liberar
+  INV -> INV : libera los asientos retenidos
+  INV --> COMP : 200 reserva LIBERADA
+  COMP -> COMP : estado PAGO_RECHAZADO\npaso "Pago rechazado - Liberando reserva"
+  COMP --> CLI : 402 Payment Required
+end
+
+@enduml

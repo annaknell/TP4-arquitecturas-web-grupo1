@@ -1,0 +1,30 @@
+@startuml
+title Compra de una entrada numerada: camino normal
+
+actor "Cliente" as CLI
+participant "Compra\n8084" as COMP
+participant "Inventario\n8083" as INV
+participant "Pago\n8085" as PAG
+participant "Entrada\n8086" as ENT
+
+CLI -> COMP : POST /api/compras (vía API Gateway)\nIdempotency-Key + X-User-Id\n{eventoId, asientos[], precioTotal}
+COMP -> COMP : findByIdempotencyKey(clave)\nsi ya existe, devuelve esa compra
+COMP -> COMP : countByClienteIdAndEventoIdAndEstado()\ncompras previas + asientos <= 4
+note right of COMP : guarda la compra en estado PENDIENTE\npaso "Inicio de compra"
+COMP -> INV : POST /api/inventario/reservas\n{eventoId, asientos[]}
+INV -> INV : retiene los asientos\nreserva ACTIVA, expiraEn = ahora + 10 min
+INV --> COMP : 201 ReservaResponse {id, estado, expiraEn}
+note right of COMP : guarda reservaId\npaso "Asientos reservados"
+COMP -> PAG : POST /api/pagos/cobrar\nIdempotency-Key\n{compraId, clienteId, monto, moneda}
+note right of PAG : cobra en la pasarela\nidempotente por clave
+PAG --> COMP : 201 PagoResponse {id, estado}
+note right of COMP : guarda pagoId\npaso "Pago aprobado"
+COMP -> INV : POST /api/inventario/reservas/{id}/confirmar
+INV -> INV : los asientos RETENIDOS pasan a VENDIDOS\nreserva CONFIRMADA
+INV --> COMP : 200 ReservaResponse {estado = CONFIRMADA}
+COMP -> ENT : POST /api/entradas/emitir\nuna EntradaRequest por asiento
+ENT --> COMP : entradas emitidas
+COMP -> COMP : estado COMPLETADA\npaso "Entradas emitidas con éxito"
+COMP --> CLI : 201 Created con la compra COMPLETADA
+
+@enduml
