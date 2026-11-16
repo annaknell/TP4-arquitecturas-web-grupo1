@@ -34,6 +34,9 @@ public class Evento {
     @Column(name = "estado", nullable = false)
     private String estado; // ej. "PROGRAMADO", "EN_VENTA", "FINALIZADO", "CANCELADO"
 
+    @Column(name = "alta_demanda", nullable = false)
+    private boolean altaDemanda = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lugar_id", nullable = false)
     private Lugar lugar;

@@ -8,6 +8,7 @@ import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
 import org.example.catalogoservice.repository.ParticipanteRepository;
 import org.example.catalogoservice.client.EntradaClient;
+import org.example.catalogoservice.client.FilaVirtualClient;
 import org.example.catalogoservice.client.PagosClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class EventoService {
 
     @Autowired
     private PagosClient pagosClient;
+
+    @Autowired
+    private FilaVirtualClient filaVirtualClient;
 
     public List<Evento> listarEventosPublicados() {
         return eventoRepository.findByEstado("PUBLICADO");
@@ -69,6 +73,9 @@ public class EventoService {
         Evento eventoPublicado = eventoRepository.save(evento);
 
         sincronizarInventario(eventoPublicado);
+        if (eventoPublicado.isAltaDemanda()) {
+            filaVirtualClient.abrirFila(eventoPublicado.getId());
+        }
 
         return eventoPublicado;
     }
@@ -85,7 +92,11 @@ public class EventoService {
         List<Long> comprasIds = entradaClient.cancelarEntradasPorEvento(id);
         pagosClient.registrarPendientesPorCancelacion(id, comprasIds);
         evento.setEstado("CANCELADO");
-        return eventoRepository.save(evento);
+        Evento eventoCancelado = eventoRepository.save(evento);
+        if (eventoCancelado.isAltaDemanda()) {
+            filaVirtualClient.cancelarFila(eventoCancelado.getId());
+        }
+        return eventoCancelado;
     }
 
     private void sincronizarInventario(Evento evento) {
