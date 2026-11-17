@@ -7,6 +7,7 @@ import com.tudai.filavirtualservice.dto.IngresoFilaResponse;
 import com.tudai.filavirtualservice.dto.AutorizacionCompraResponse;
 import com.tudai.filavirtualservice.dto.HabilitarTandaResponse;
 import com.tudai.filavirtualservice.dto.PosicionFilaResponse;
+import com.tudai.filavirtualservice.dto.ValidarAutorizacionResponse;
 import com.tudai.filavirtualservice.exception.EventoNoHabilitadoException;
 import com.tudai.filavirtualservice.exception.TicketNoEncontradoException;
 import com.tudai.filavirtualservice.redis.FilaVirtualRedisRepository;
@@ -93,6 +94,18 @@ public class FilaVirtualService {
 
     public int vencerAutorizacionesPendientes() {
         return repository.vencerAutorizacionesPendientes();
+    }
+
+    public ValidarAutorizacionResponse validarYConsumirAutorizacion(Long eventoId, Long clienteId, String token) {
+        validarIds(eventoId, clienteId);
+        String resultado = repository.validarYConsumirAutorizacion(eventoId, clienteId, token);
+        return new ValidarAutorizacionResponse("CONSUMIDA".equals(resultado) || "NO_REQUIERE_FILA".equals(resultado), resultado);
+    }
+
+    public ValidarAutorizacionResponse restaurarAutorizacion(Long eventoId, Long clienteId, String token) {
+        validarIds(eventoId, clienteId);
+        String resultado = repository.restaurarAutorizacion(eventoId, clienteId, token);
+        return new ValidarAutorizacionResponse("RESTAURADA".equals(resultado), resultado);
     }
 
     private void validarIds(Long eventoId, Long clienteId) {

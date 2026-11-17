@@ -56,7 +56,7 @@ public class CompraService {
         try {
             // PASO 1: Reservar en Inventario (10 minutos)
             ReservaResponse reserva = inventarioClient.reservarAsientos(
-                new ReservaRequest(request.eventoId(), request.asientos())
+                new ReservaRequest(request.eventoId(), clienteId, request.asientos(), request.autorizacionFila(), idempotencyKey)
             ).getBody();
             compra.setReservaId(reserva.id()); // record no usa get
             compra.addPaso("Asientos reservados (ID: " + reserva.id() + ")", "EJECUTADO");

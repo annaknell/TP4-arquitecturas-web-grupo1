@@ -3,6 +3,8 @@ package com.tudai.filavirtualservice.controller;
 import com.tudai.filavirtualservice.dto.ConfiguracionEventoFilaRequest;
 import com.tudai.filavirtualservice.dto.EstadoEventoFilaRequest;
 import com.tudai.filavirtualservice.dto.HabilitarTandaResponse;
+import com.tudai.filavirtualservice.dto.ValidarAutorizacionRequest;
+import com.tudai.filavirtualservice.dto.ValidarAutorizacionResponse;
 import com.tudai.filavirtualservice.service.FilaVirtualService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +42,17 @@ public class FilaVirtualInternoController {
     @PostMapping("/{eventoId}/tandas/habilitar")
     public ResponseEntity<HabilitarTandaResponse> habilitarSiguienteTanda(@PathVariable Long eventoId) {
         return ResponseEntity.ok(filaVirtualService.habilitarSiguienteTanda(eventoId));
+    }
+
+    @PostMapping("/{eventoId}/autorizaciones/validar-y-consumir")
+    public ResponseEntity<ValidarAutorizacionResponse> validarYConsumir(@PathVariable Long eventoId,
+                                                                          @Valid @RequestBody ValidarAutorizacionRequest request) {
+        return ResponseEntity.ok(filaVirtualService.validarYConsumirAutorizacion(eventoId, request.clienteId(), request.token()));
+    }
+
+    @PostMapping("/{eventoId}/autorizaciones/restaurar")
+    public ResponseEntity<ValidarAutorizacionResponse> restaurar(@PathVariable Long eventoId,
+                                                                   @Valid @RequestBody ValidarAutorizacionRequest request) {
+        return ResponseEntity.ok(filaVirtualService.restaurarAutorizacion(eventoId, request.clienteId(), request.token()));
     }
 }

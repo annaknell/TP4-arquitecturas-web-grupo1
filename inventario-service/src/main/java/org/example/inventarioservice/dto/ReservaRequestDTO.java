@@ -33,4 +33,6 @@ public class ReservaRequestDTO {
     private BigDecimal precioUnitario;
 
     private String claveIdempotencia;
+
+    private String autorizacionFila;
 }

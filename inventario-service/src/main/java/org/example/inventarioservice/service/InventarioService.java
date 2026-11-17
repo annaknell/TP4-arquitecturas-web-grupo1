@@ -119,14 +119,24 @@ public class InventarioService {
             throw new ConflictoException("El evento " + pedido.getEventId()
                     + " no admite reservas: está " + config.getEstado());
         }
-
-        TipoSector tipo = tipoDeSector(pedido);
-        int cantidad = tipo == TipoSector.NUMERADO ? pedido.getAsientos().size() : pedido.getCantidad();
-        verificarTope(config, pedido.getEventId(), clienteId, cantidad, ahora);
-
-        return tipo == TipoSector.NUMERADO
-                ? reservarAsientos(pedido, clienteId, clave, ahora, cantidad)
-                : reservarZona(pedido, clienteId, clave, ahora, cantidad);
+        FilaVirtualClient.ResultadoAutorizacion autorizacion = filaVirtualClient.validarYConsumir(
+                pedido.getEventId(), clienteId, pedido.getAutorizacionFila());
+        if (!autorizacion.autorizada()) {
+            throw new ConflictoException("No se puede reservar: " + autorizacion.motivo());
+        }
+        try {
+            TipoSector tipo = tipoDeSector(pedido);
+            int cantidad = tipo == TipoSector.NUMERADO ? pedido.getAsientos().size() : pedido.getCantidad();
+            verificarTope(config, pedido.getEventId(), clienteId, cantidad, ahora);
+            return tipo == TipoSector.NUMERADO
+                    ? reservarAsientos(pedido, clienteId, clave, ahora, cantidad)
+                    : reservarZona(pedido, clienteId, clave, ahora, cantidad);
+        } catch (RuntimeException exception) {
+            if ("CONSUMIDA".equals(autorizacion.motivo())) {
+                filaVirtualClient.restaurar(pedido.getEventId(), clienteId, pedido.getAutorizacionFila());
+            }
+            throw exception;
+        }
     }
 
     private ReservaResponseDTO.Resultado reservarAsientos(ReservaRequestDTO pedido, Long clienteId, String clave,

@@ -23,6 +23,32 @@ public class FilaVirtualClient {
                 .toBodilessEntity();
     }
 
+    public ResultadoAutorizacion validarYConsumir(Long eventoId, Long clienteId, String token) {
+        ResultadoAutorizacion resultado = restClient.post()
+                .uri("/interno/fila/{eventoId}/autorizaciones/validar-y-consumir", eventoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ValidarAutorizacionRequest(clienteId, token))
+                .retrieve()
+                .body(ResultadoAutorizacion.class);
+        return resultado == null ? new ResultadoAutorizacion(false, "TOKEN_INVALIDO") : resultado;
+    }
+
+    public ResultadoAutorizacion restaurar(Long eventoId, Long clienteId, String token) {
+        ResultadoAutorizacion resultado = restClient.post()
+                .uri("/interno/fila/{eventoId}/autorizaciones/restaurar", eventoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ValidarAutorizacionRequest(clienteId, token))
+                .retrieve()
+                .body(ResultadoAutorizacion.class);
+        return resultado == null ? new ResultadoAutorizacion(false, "TOKEN_INVALIDO") : resultado;
+    }
+
     private record EstadoFilaRequest(String estado) {
+    }
+
+    private record ValidarAutorizacionRequest(Long clienteId, String token) {
+    }
+
+    public record ResultadoAutorizacion(boolean autorizada, String motivo) {
     }
 }

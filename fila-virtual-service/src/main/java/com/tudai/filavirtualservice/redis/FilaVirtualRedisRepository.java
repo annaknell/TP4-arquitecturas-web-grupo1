@@ -12,6 +12,44 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class FilaVirtualRedisRepository {
 
+    private static final DefaultRedisScript<String> VALIDAR_Y_CONSUMIR_AUTORIZACION_SCRIPT = new DefaultRedisScript<>("""
+            local estadoFila = redis.call('HGET', KEYS[1], 'estado')
+            if not estadoFila then return 'NO_REQUIERE_FILA' end
+            if estadoFila ~= 'ABIERTA' then return 'FILA_NO_ABIERTA' end
+            local ahora = redis.call('TIME')
+            local ahoraMillis = ahora[1] * 1000 + math.floor(ahora[2] / 1000)
+            if redis.call('HGET', KEYS[2], 'eventoId') ~= ARGV[1] then return 'TOKEN_INVALIDO' end
+            if redis.call('HGET', KEYS[2], 'clienteId') ~= ARGV[2] then return 'TOKEN_INVALIDO' end
+            local venceEn = tonumber(redis.call('HGET', KEYS[2], 'venceEn'))
+            if not venceEn or venceEn <= ahoraMillis then return 'TOKEN_VENCIDO' end
+            if redis.call('HGET', KEYS[3], 'estado') ~= 'HABILITADO' then return 'TOKEN_NO_HABILITADO' end
+            if redis.call('HGET', KEYS[3], 'autorizacionToken') ~= ARGV[3] then return 'TOKEN_INVALIDO' end
+            redis.call('HSET', KEYS[3], 'estado', 'CONSUMIDO')
+            redis.call('HDEL', KEYS[3], 'autorizacionToken')
+            redis.call('DEL', KEYS[2])
+            redis.call('ZREM', KEYS[4], ARGV[1] .. ':' .. ARGV[2] .. ':' .. ARGV[3])
+            return 'CONSUMIDA'
+            """, String.class);
+
+    private static final DefaultRedisScript<String> RESTAURAR_AUTORIZACION_SCRIPT = new DefaultRedisScript<>("""
+            local ahora = redis.call('TIME')
+            local ahoraMillis = ahora[1] * 1000 + math.floor(ahora[2] / 1000)
+            if redis.call('HGET', KEYS[1], 'estado') ~= 'CONSUMIDO' then return 'TOKEN_NO_CONSUMIDO' end
+            local venceEn = tonumber(redis.call('HGET', KEYS[1], 'habilitadoHasta'))
+            if not venceEn or venceEn <= ahoraMillis then return 'TOKEN_VENCIDO' end
+            local ticketId = redis.call('HGET', KEYS[1], 'ticketId')
+            local ttlSegundos = math.ceil((venceEn - ahoraMillis) / 1000)
+            redis.call('HSET', KEYS[1], 'estado', 'HABILITADO', 'autorizacionToken', ARGV[3])
+            redis.call('HSET', KEYS[2],
+                'eventoId', ARGV[1],
+                'clienteId', ARGV[2],
+                'ticketId', ticketId,
+                'venceEn', venceEn)
+            redis.call('EXPIRE', KEYS[2], ttlSegundos)
+            redis.call('ZADD', KEYS[3], venceEn, ARGV[1] .. ':' .. ARGV[2] .. ':' .. ARGV[3])
+            return 'RESTAURADA'
+            """, String.class);
+
     private static final DefaultRedisScript<List> HABILITAR_TANDA_SCRIPT = new DefaultRedisScript<>("""
             local estadoEvento = redis.call('HGET', KEYS[1], 'estado')
             if estadoEvento ~= 'ABIERTA' then
@@ -148,6 +186,28 @@ public class FilaVirtualRedisRepository {
         );
 
         return cantidad == null ? 0 : cantidad.intValue();
+    }
+
+    public String validarYConsumirAutorizacion(Long eventoId, Long clienteId, String token) {
+        if (token == null || token.isBlank()) {
+            return "TOKEN_REQUERIDO";
+        }
+        String resultado = redis.execute(VALIDAR_Y_CONSUMIR_AUTORIZACION_SCRIPT,
+                List.of(FilaRedisKeys.configuracion(eventoId), FilaRedisKeys.autorizacion(token),
+                        FilaRedisKeys.ticket(eventoId, clienteId), FilaRedisKeys.vencimientosAutorizacion()),
+                eventoId.toString(), clienteId.toString(), token);
+        return resultado == null ? "TOKEN_INVALIDO" : resultado;
+    }
+
+    public String restaurarAutorizacion(Long eventoId, Long clienteId, String token) {
+        if (token == null || token.isBlank()) {
+            return "TOKEN_REQUERIDO";
+        }
+        String resultado = redis.execute(RESTAURAR_AUTORIZACION_SCRIPT,
+                List.of(FilaRedisKeys.ticket(eventoId, clienteId), FilaRedisKeys.autorizacion(token),
+                        FilaRedisKeys.vencimientosAutorizacion()),
+                eventoId.toString(), clienteId.toString(), token);
+        return resultado == null ? "TOKEN_INVALIDO" : resultado;
     }
 
     public ResultadoTanda habilitarSiguienteTanda(Long eventoId, int tamanioTanda, List<String> tokens) {
