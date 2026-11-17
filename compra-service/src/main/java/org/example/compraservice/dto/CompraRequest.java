@@ -5,5 +5,10 @@ import java.util.List;
 public record CompraRequest(
     Long eventoId,
     List<Long> asientos,
-    Double precioTotal
-) {}
+    Double precioTotal,
+    String autorizacionFila
+) {
+    public CompraRequest(Long eventoId, List<Long> asientos, Double precioTotal) {
+        this(eventoId, asientos, precioTotal, null);
+    }
+}

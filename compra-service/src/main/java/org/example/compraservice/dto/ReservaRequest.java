@@ -4,5 +4,8 @@ import java.util.List;
 
 public record ReservaRequest(
     Long eventoId,
-    List<Long> asientos
+    Long clienteId,
+    List<Long> asientos,
+    String autorizacionFila,
+    String claveIdempotencia
 ) {}

@@ -1,5 +1,6 @@
 package org.example.inventarioservice.service;
 
+import org.example.inventarioservice.client.FilaVirtualClient;
 import org.example.inventarioservice.dto.DisponibilidadDTO;
 import org.example.inventarioservice.dto.LiberacionDTO;
 import org.example.inventarioservice.dto.ProvisionDTO;
@@ -40,6 +41,7 @@ public class InventarioService {
     private final ZonaCupoRepository zonaRepository;
     private final ReservaRepository reservaRepository;
     private final ConfiguracionEventoRepository configuracionRepository;
+    private final FilaVirtualClient filaVirtualClient;
 
     @Value("${inventario.reserva.minutos:10}")
     private long minutosReserva;
@@ -47,11 +49,13 @@ public class InventarioService {
     public InventarioService(EventoAsientoRepository asientoRepository,
                              ZonaCupoRepository zonaRepository,
                              ReservaRepository reservaRepository,
-                             ConfiguracionEventoRepository configuracionRepository) {
+                             ConfiguracionEventoRepository configuracionRepository,
+                             FilaVirtualClient filaVirtualClient) {
         this.asientoRepository = asientoRepository;
         this.zonaRepository = zonaRepository;
         this.reservaRepository = reservaRepository;
         this.configuracionRepository = configuracionRepository;
+        this.filaVirtualClient = filaVirtualClient;
     }
 
     @Transactional(readOnly = true)
@@ -115,14 +119,24 @@ public class InventarioService {
             throw new ConflictoException("El evento " + pedido.getEventId()
                     + " no admite reservas: está " + config.getEstado());
         }
-
-        TipoSector tipo = tipoDeSector(pedido);
-        int cantidad = tipo == TipoSector.NUMERADO ? pedido.getAsientos().size() : pedido.getCantidad();
-        verificarTope(config, pedido.getEventId(), clienteId, cantidad, ahora);
-
-        return tipo == TipoSector.NUMERADO
-                ? reservarAsientos(pedido, clienteId, clave, ahora, cantidad)
-                : reservarZona(pedido, clienteId, clave, ahora, cantidad);
+        FilaVirtualClient.ResultadoAutorizacion autorizacion = filaVirtualClient.validarYConsumir(
+                pedido.getEventId(), clienteId, pedido.getAutorizacionFila());
+        if (!autorizacion.autorizada()) {
+            throw new ConflictoException("No se puede reservar: " + autorizacion.motivo());
+        }
+        try {
+            TipoSector tipo = tipoDeSector(pedido);
+            int cantidad = tipo == TipoSector.NUMERADO ? pedido.getAsientos().size() : pedido.getCantidad();
+            verificarTope(config, pedido.getEventId(), clienteId, cantidad, ahora);
+            return tipo == TipoSector.NUMERADO
+                    ? reservarAsientos(pedido, clienteId, clave, ahora, cantidad)
+                    : reservarZona(pedido, clienteId, clave, ahora, cantidad);
+        } catch (RuntimeException exception) {
+            if ("CONSUMIDA".equals(autorizacion.motivo())) {
+                filaVirtualClient.restaurar(pedido.getEventId(), clienteId, pedido.getAutorizacionFila());
+            }
+            throw exception;
+        }
     }
 
     private ReservaResponseDTO.Resultado reservarAsientos(ReservaRequestDTO pedido, Long clienteId, String clave,
@@ -249,7 +263,25 @@ public class InventarioService {
 
         reserva.confirmar();
         reservaRepository.save(reserva);
+        marcarAgotadoSiNoQuedaInventario(reserva.getEventId());
         return respuesta(reserva);
+    }
+
+    /** Cierra la venta sólo cuando no quedan asientos ni cupos sin vender. */
+    private void marcarAgotadoSiNoQuedaInventario(Long eventId) {
+        ConfiguracionEvento config = configuracion(eventId);
+        if (config.getEstado() == ConfiguracionEvento.Estado.AGOTADO) {
+            return;
+        }
+        boolean quedanAsientos = asientoRepository.existsByEventIdAndEstadoNot(eventId, EventoAsiento.Estado.VENDIDO);
+        boolean quedanCupos = zonaRepository.existsByEventIdWithCupoSinVender(eventId);
+        if (quedanAsientos || quedanCupos) {
+            return;
+        }
+        config.setEstado(ConfiguracionEvento.Estado.AGOTADO);
+        config.setActualizadoEn(Instant.now());
+        configuracionRepository.save(config);
+        filaVirtualClient.marcarAgotada(eventId);
     }
 
     @Transactional

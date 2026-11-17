@@ -49,4 +49,14 @@ public class EventoController {
     public ResponseEntity<Evento> cancelarEvento(@PathVariable Long id) {
         return ResponseEntity.ok(eventoService.cancelarEvento(id));
     }
+
+    @PatchMapping("/{id}/suspender")
+    public ResponseEntity<Evento> suspenderEvento(@PathVariable Long id) {
+        return ResponseEntity.ok(eventoService.suspenderEvento(id));
+    }
+
+    @PatchMapping("/{id}/reanudar")
+    public ResponseEntity<Evento> reanudarEvento(@PathVariable Long id) {
+        return ResponseEntity.ok(eventoService.reanudarEvento(id));
+    }
 }
