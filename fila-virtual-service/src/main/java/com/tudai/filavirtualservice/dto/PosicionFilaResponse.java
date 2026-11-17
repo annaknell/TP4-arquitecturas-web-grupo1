@@ -9,5 +9,6 @@ public record PosicionFilaResponse(
         Long posicion,
         Long personasDelante,
         Instant habilitadoHasta,
-        int intervaloConsultaSugeridoSegundos) {
+        int intervaloConsultaSugeridoSegundos,
+        String autorizacionCompra) {
 }

@@ -35,6 +35,23 @@ public final class FilaRedisKeys {
         return "fila-virtual:autorizacion:" + token;
     }
 
+    /** ZSET global: token -> instante de vencimiento; se usa en la siguiente etapa para expirar habilitaciones. */
+    public static String vencimientosAutorizacion() {
+        return "fila-virtual:autorizaciones:vencimientos";
+    }
+
+    static String prefijoTicket(Long eventoId) {
+        return base(eventoId) + ":ticket:";
+    }
+
+    static String prefijoAutorizacion() {
+        return "fila-virtual:autorizacion:";
+    }
+
+    static String prefijoEventos() {
+        return PREFIX;
+    }
+
     private static String base(Long eventoId) {
         if (eventoId == null || eventoId <= 0) {
             throw new IllegalArgumentException("El id de evento debe ser positivo");

@@ -4,6 +4,8 @@ import com.tudai.filavirtualservice.domain.ConfiguracionFilaEvento;
 import com.tudai.filavirtualservice.domain.EstadoEventoFila;
 import com.tudai.filavirtualservice.domain.EstadoTicketFila;
 import com.tudai.filavirtualservice.dto.IngresoFilaResponse;
+import com.tudai.filavirtualservice.dto.AutorizacionCompraResponse;
+import com.tudai.filavirtualservice.dto.HabilitarTandaResponse;
 import com.tudai.filavirtualservice.dto.PosicionFilaResponse;
 import com.tudai.filavirtualservice.exception.EventoNoHabilitadoException;
 import com.tudai.filavirtualservice.exception.TicketNoEncontradoException;
@@ -11,6 +13,7 @@ import com.tudai.filavirtualservice.redis.FilaVirtualRedisRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,7 +51,7 @@ public class FilaVirtualService {
         }
         return new PosicionFilaResponse(ticket.ticketId(), estado, posicion, personasDelante,
                 ticket.habilitadoHastaEpochMillis() == null ? null : Instant.ofEpochMilli(ticket.habilitadoHastaEpochMillis()),
-                INTERVALO_CONSULTA_SUGERIDO_SEGUNDOS);
+                INTERVALO_CONSULTA_SUGERIDO_SEGUNDOS, ticket.autorizacionToken());
     }
 
     public void configurarEvento(Long eventoId, int tamanioTanda, int ventanaCompraMinutos) {
@@ -64,6 +67,32 @@ public class FilaVirtualService {
             throw new IllegalArgumentException("El identificador del evento y el estado son obligatorios");
         }
         repository.actualizarEstado(eventoId, estado);
+    }
+
+    /** Habilita estrictamente a los primeros clientes que aún permanecen en la cola. */
+    public HabilitarTandaResponse habilitarSiguienteTanda(Long eventoId) {
+        if (eventoId == null || eventoId <= 0) {
+            throw new IllegalArgumentException("El identificador del evento debe ser positivo");
+        }
+        int tamanioTanda = repository.obtenerTamanioTanda(eventoId);
+        if (tamanioTanda <= 0) {
+            throw new EventoNoHabilitadoException();
+        }
+        List<String> tokens = java.util.stream.IntStream.range(0, tamanioTanda)
+                .mapToObj(indice -> UUID.randomUUID().toString())
+                .toList();
+        FilaVirtualRedisRepository.ResultadoTanda resultado = repository.habilitarSiguienteTanda(eventoId, tamanioTanda, tokens);
+        if (resultado.eventoNoHabilitado()) {
+            throw new EventoNoHabilitadoException();
+        }
+        return new HabilitarTandaResponse(resultado.habilitaciones().stream()
+                .map(habilitacion -> new AutorizacionCompraResponse(habilitacion.clienteId(), habilitacion.ticketId(),
+                        habilitacion.token(), Instant.ofEpochMilli(habilitacion.venceEnEpochMillis())))
+                .toList());
+    }
+
+    public int vencerAutorizacionesPendientes() {
+        return repository.vencerAutorizacionesPendientes();
     }
 
     private void validarIds(Long eventoId, Long clienteId) {

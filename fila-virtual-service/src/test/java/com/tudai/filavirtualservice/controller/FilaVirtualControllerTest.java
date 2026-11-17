@@ -63,7 +63,7 @@ class FilaVirtualControllerTest {
     @Test
     void consultaPosicionDelUsuarioDelHeader() throws Exception {
         when(filaVirtualService.consultarPosicion(10L, 7L)).thenReturn(
-                new PosicionFilaResponse("ticket-7", EstadoTicketFila.EN_ESPERA, 3L, 2L, null, 10));
+                new PosicionFilaResponse("ticket-7", EstadoTicketFila.EN_ESPERA, 3L, 2L, null, 10, null));
 
         mockMvc.perform(get("/fila/10/mi-posicion").header("X-User-Id", "7"))
                 .andExpect(status().isOk())

@@ -14,4 +14,5 @@ public final class FilaRedisFields {
     public static final String CLIENTE_ID = "clienteId";
     public static final String INGRESADO_EN = "ingresadoEn";
     public static final String HABILITADO_HASTA = "habilitadoHasta";
+    public static final String AUTORIZACION_TOKEN = "autorizacionToken";
 }

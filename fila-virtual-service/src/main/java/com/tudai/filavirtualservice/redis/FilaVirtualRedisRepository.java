@@ -12,6 +12,69 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class FilaVirtualRedisRepository {
 
+    private static final DefaultRedisScript<List> HABILITAR_TANDA_SCRIPT = new DefaultRedisScript<>("""
+            local estadoEvento = redis.call('HGET', KEYS[1], 'estado')
+            if estadoEvento ~= 'ABIERTA' then
+                return {'EVENTO_NO_HABILITADO'}
+            end
+            local ventanaSegundos = tonumber(redis.call('HGET', KEYS[1], 'ventanaCompraSegundos'))
+            local clientes = redis.call('ZRANGE', KEYS[2], 0, tonumber(ARGV[1]) - 1)
+            if #clientes == 0 then
+                return {'SIN_PERSONAS'}
+            end
+            local ahora = redis.call('TIME')
+            local venceEn = ahora[1] * 1000 + math.floor(ahora[2] / 1000) + ventanaSegundos * 1000
+            local respuesta = {'HABILITADOS'}
+            for indice, clienteId in ipairs(clientes) do
+                local token = ARGV[indice + 1]
+                local ticketKey = KEYS[3] .. clienteId
+                local ticketId = redis.call('HGET', ticketKey, 'ticketId')
+                redis.call('HSET', ticketKey,
+                    'estado', 'HABILITADO',
+                    'habilitadoHasta', venceEn,
+                    'autorizacionToken', token)
+                local autorizacionKey = KEYS[4] .. token
+                redis.call('HSET', autorizacionKey,
+                    'eventoId', ARGV[#ARGV],
+                    'clienteId', clienteId,
+                    'ticketId', ticketId,
+                    'venceEn', venceEn)
+                redis.call('EXPIRE', autorizacionKey, ventanaSegundos)
+                local vencimientoId = ARGV[#ARGV] .. ':' .. clienteId .. ':' .. token
+                redis.call('ZADD', KEYS[5], venceEn, vencimientoId)
+                redis.call('ZREM', KEYS[2], clienteId)
+                table.insert(respuesta, clienteId)
+                table.insert(respuesta, ticketId)
+                table.insert(respuesta, token)
+                table.insert(respuesta, tostring(venceEn))
+            end
+            return respuesta
+            """, List.class);
+
+    /** Vence hasta cien autorizaciones por ejecución sin modificar tickets con una autorización más reciente. */
+    private static final DefaultRedisScript<Long> VENCER_AUTORIZACIONES_SCRIPT = new DefaultRedisScript<>("""
+            local ahora = redis.call('TIME')
+            local ahoraMillis = ahora[1] * 1000 + math.floor(ahora[2] / 1000)
+            local vencimientos = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', ahoraMillis, 'LIMIT', 0, 100)
+            local cantidadVencida = 0
+            for _, vencimientoId in ipairs(vencimientos) do
+                local eventoId, clienteId, token = string.match(vencimientoId, '^([^:]+):([^:]+):(.+)$')
+                if eventoId and clienteId and token then
+                    local ticketKey = KEYS[3] .. eventoId .. ':ticket:' .. clienteId
+                    local estado = redis.call('HGET', ticketKey, 'estado')
+                    local tokenActual = redis.call('HGET', ticketKey, 'autorizacionToken')
+                    if estado == 'HABILITADO' and tokenActual == token then
+                        redis.call('HSET', ticketKey, 'estado', 'VENCIDO')
+                        redis.call('HDEL', ticketKey, 'autorizacionToken')
+                        cantidadVencida = cantidadVencida + 1
+                    end
+                    redis.call('DEL', KEYS[2] .. token)
+                end
+                redis.call('ZREM', KEYS[1], vencimientoId)
+            end
+            return cantidadVencida
+            """, Long.class);
+
     private static final DefaultRedisScript<List> INGRESAR_SCRIPT = new DefaultRedisScript<>("""
             local estadoEvento = redis.call('HGET', KEYS[1], 'estado')
             if estadoEvento ~= 'ABIERTA' then
@@ -49,7 +112,7 @@ public class FilaVirtualRedisRepository {
             throw new IllegalStateException("Redis no devolvió resultado al registrar el ingreso");
         }
         if ("EVENTO_NO_HABILITADO".equals(texto(resultado.getFirst()))) {
-            return ResultadoIngreso.eventoNoHabilitado();
+            return ResultadoIngreso.deEventoNoHabilitado();
         }
         return new ResultadoIngreso(
                 "REINGRESO".equals(texto(resultado.getFirst())),
@@ -65,11 +128,58 @@ public class FilaVirtualRedisRepository {
                 texto(datos.get(FilaRedisFields.TICKET_ID)),
                 texto(datos.get(FilaRedisFields.ESTADO)),
                 Long.parseLong(texto(datos.get(FilaRedisFields.INGRESADO_EN))),
-                numeroOpcional(datos.get(FilaRedisFields.HABILITADO_HASTA))));
+                numeroOpcional(datos.get(FilaRedisFields.HABILITADO_HASTA)),
+                datos.containsKey(FilaRedisFields.AUTORIZACION_TOKEN)
+                        ? texto(datos.get(FilaRedisFields.AUTORIZACION_TOKEN)) : null));
     }
 
     public Long obtenerRango(Long eventoId, Long clienteId) {
         return redis.opsForZSet().rank(FilaRedisKeys.cola(eventoId), clienteId.toString());
+    }
+
+    public int vencerAutorizacionesPendientes() {
+        Long cantidad = redis.execute(
+                VENCER_AUTORIZACIONES_SCRIPT,
+                List.of(
+                        FilaRedisKeys.vencimientosAutorizacion(),
+                        FilaRedisKeys.prefijoAutorizacion(),
+                        FilaRedisKeys.prefijoEventos()
+                )
+        );
+
+        return cantidad == null ? 0 : cantidad.intValue();
+    }
+
+    public ResultadoTanda habilitarSiguienteTanda(Long eventoId, int tamanioTanda, List<String> tokens) {
+        java.util.ArrayList<String> argumentos = new java.util.ArrayList<>();
+        argumentos.add(Integer.toString(tamanioTanda));
+        argumentos.addAll(tokens);
+        argumentos.add(eventoId.toString());
+        List resultado = redis.execute(HABILITAR_TANDA_SCRIPT,
+                List.of(FilaRedisKeys.configuracion(eventoId), FilaRedisKeys.cola(eventoId),
+                        FilaRedisKeys.prefijoTicket(eventoId), FilaRedisKeys.prefijoAutorizacion(),
+                        FilaRedisKeys.vencimientosAutorizacion()), argumentos.toArray());
+        if (resultado == null || resultado.isEmpty()) {
+            throw new IllegalStateException("Redis no devolvió resultado al habilitar la tanda");
+        }
+        if ("EVENTO_NO_HABILITADO".equals(texto(resultado.getFirst()))) {
+            return ResultadoTanda.deEventoNoHabilitado();
+        }
+        if ("SIN_PERSONAS".equals(texto(resultado.getFirst()))) {
+            return new ResultadoTanda(false, List.of());
+        }
+        java.util.ArrayList<HabilitacionCreada> habilitaciones = new java.util.ArrayList<>();
+        for (int indice = 1; indice < resultado.size(); indice += 4) {
+            habilitaciones.add(new HabilitacionCreada(Long.parseLong(texto(resultado.get(indice))),
+                    texto(resultado.get(indice + 1)), texto(resultado.get(indice + 2)),
+                    Long.parseLong(texto(resultado.get(indice + 3)))));
+        }
+        return new ResultadoTanda(false, List.copyOf(habilitaciones));
+    }
+
+    public int obtenerTamanioTanda(Long eventoId) {
+        Object valor = redis.opsForHash().get(FilaRedisKeys.configuracion(eventoId), FilaRedisFields.TAMANIO_TANDA);
+        return valor == null ? 0 : Integer.parseInt(texto(valor));
     }
 
     /** Punto de integración para el futuro consumidor de eventos de Catálogo. */
@@ -95,7 +205,7 @@ public class FilaVirtualRedisRepository {
     }
 
     public record ResultadoIngreso(boolean reingreso, String ticketId, String estado, long ingresadoEnEpochMillis) {
-        static ResultadoIngreso eventoNoHabilitado() {
+        static ResultadoIngreso deEventoNoHabilitado() {
             return new ResultadoIngreso(false, null, null, 0);
         }
 
@@ -105,6 +215,15 @@ public class FilaVirtualRedisRepository {
     }
 
     public record TicketAlmacenado(String ticketId, String estado, long ingresadoEnEpochMillis,
-                                   Long habilitadoHastaEpochMillis) {
+                                   Long habilitadoHastaEpochMillis, String autorizacionToken) {
+    }
+
+    public record ResultadoTanda(boolean eventoNoHabilitado, List<HabilitacionCreada> habilitaciones) {
+        static ResultadoTanda deEventoNoHabilitado() {
+            return new ResultadoTanda(true, List.of());
+        }
+    }
+
+    public record HabilitacionCreada(Long clienteId, String ticketId, String token, long venceEnEpochMillis) {
     }
 }

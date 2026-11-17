@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyList;
 
 import com.tudai.filavirtualservice.domain.EstadoTicketFila;
 import com.tudai.filavirtualservice.dto.IngresoFilaResponse;
@@ -53,7 +54,7 @@ class FilaVirtualServiceTest {
     @Test
     void calculaPosicionYPersonasDelanteDesdeElRangoDeRedis() {
         when(repository.buscarTicket(10L, 7L)).thenReturn(Optional.of(
-                new FilaVirtualRedisRepository.TicketAlmacenado("ticket-7", "EN_ESPERA", 1_700_000_000_000L, null)));
+                new FilaVirtualRedisRepository.TicketAlmacenado("ticket-7", "EN_ESPERA", 1_700_000_000_000L, null, null)));
         when(repository.obtenerRango(10L, 7L)).thenReturn(4L);
 
         PosicionFilaResponse respuesta = service.consultarPosicion(10L, 7L);
@@ -66,7 +67,7 @@ class FilaVirtualServiceTest {
     @Test
     void ticketHabilitadoNoExponeUnaPosicionEnLaCola() {
         when(repository.buscarTicket(10L, 7L)).thenReturn(Optional.of(
-                new FilaVirtualRedisRepository.TicketAlmacenado("ticket-7", "HABILITADO", 1_700_000_000_000L, 1_700_000_600_000L)));
+                new FilaVirtualRedisRepository.TicketAlmacenado("ticket-7", "HABILITADO", 1_700_000_000_000L, 1_700_000_600_000L, "token-7")));
 
         PosicionFilaResponse respuesta = service.consultarPosicion(10L, 7L);
 
@@ -80,5 +81,27 @@ class FilaVirtualServiceTest {
         when(repository.buscarTicket(10L, 7L)).thenReturn(Optional.empty());
 
         assertThrows(TicketNoEncontradoException.class, () -> service.consultarPosicion(10L, 7L));
+    }
+
+    @Test
+    void habilitaLaSiguienteTandaConAutorizacionesTemporales() {
+        when(repository.obtenerTamanioTanda(10L)).thenReturn(2);
+        when(repository.habilitarSiguienteTanda(org.mockito.ArgumentMatchers.eq(10L), org.mockito.ArgumentMatchers.eq(2), anyList()))
+                .thenReturn(new FilaVirtualRedisRepository.ResultadoTanda(false, java.util.List.of(
+                        new FilaVirtualRedisRepository.HabilitacionCreada(7L, "ticket-7", "token-7", 1_700_000_600_000L),
+                        new FilaVirtualRedisRepository.HabilitacionCreada(8L, "ticket-8", "token-8", 1_700_000_600_000L))));
+
+        var respuesta = service.habilitarSiguienteTanda(10L);
+
+        assertEquals(2, respuesta.habilitados().size());
+        assertEquals(7L, respuesta.habilitados().getFirst().clienteId());
+        assertEquals("token-7", respuesta.habilitados().getFirst().token());
+    }
+
+    @Test
+    void delegaElVencimientoDeAutorizacionesAlRepositorio() {
+        when(repository.vencerAutorizacionesPendientes()).thenReturn(2);
+
+        assertEquals(2, service.vencerAutorizacionesPendientes());
     }
 }
