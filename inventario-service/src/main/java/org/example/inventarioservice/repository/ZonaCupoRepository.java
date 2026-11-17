@@ -17,6 +17,10 @@ public interface ZonaCupoRepository extends JpaRepository<ZonaCupo, Long> {
 
     boolean existsByEventIdAndSectorId(Long eventId, Long sectorId);
 
+    @Query("SELECT CASE WHEN COUNT(z) > 0 THEN true ELSE false END FROM ZonaCupo z "
+            + "WHERE z.eventId = :eventId AND z.vendidos < z.capacidad")
+    boolean existsByEventIdWithCupoSinVender(@Param("eventId") Long eventId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
             UPDATE zona_cupo

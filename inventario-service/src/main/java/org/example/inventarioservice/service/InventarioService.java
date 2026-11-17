@@ -1,5 +1,6 @@
 package org.example.inventarioservice.service;
 
+import org.example.inventarioservice.client.FilaVirtualClient;
 import org.example.inventarioservice.dto.DisponibilidadDTO;
 import org.example.inventarioservice.dto.LiberacionDTO;
 import org.example.inventarioservice.dto.ProvisionDTO;
@@ -40,6 +41,7 @@ public class InventarioService {
     private final ZonaCupoRepository zonaRepository;
     private final ReservaRepository reservaRepository;
     private final ConfiguracionEventoRepository configuracionRepository;
+    private final FilaVirtualClient filaVirtualClient;
 
     @Value("${inventario.reserva.minutos:10}")
     private long minutosReserva;
@@ -47,11 +49,13 @@ public class InventarioService {
     public InventarioService(EventoAsientoRepository asientoRepository,
                              ZonaCupoRepository zonaRepository,
                              ReservaRepository reservaRepository,
-                             ConfiguracionEventoRepository configuracionRepository) {
+                             ConfiguracionEventoRepository configuracionRepository,
+                             FilaVirtualClient filaVirtualClient) {
         this.asientoRepository = asientoRepository;
         this.zonaRepository = zonaRepository;
         this.reservaRepository = reservaRepository;
         this.configuracionRepository = configuracionRepository;
+        this.filaVirtualClient = filaVirtualClient;
     }
 
     @Transactional(readOnly = true)
@@ -249,7 +253,25 @@ public class InventarioService {
 
         reserva.confirmar();
         reservaRepository.save(reserva);
+        marcarAgotadoSiNoQuedaInventario(reserva.getEventId());
         return respuesta(reserva);
+    }
+
+    /** Cierra la venta sólo cuando no quedan asientos ni cupos sin vender. */
+    private void marcarAgotadoSiNoQuedaInventario(Long eventId) {
+        ConfiguracionEvento config = configuracion(eventId);
+        if (config.getEstado() == ConfiguracionEvento.Estado.AGOTADO) {
+            return;
+        }
+        boolean quedanAsientos = asientoRepository.existsByEventIdAndEstadoNot(eventId, EventoAsiento.Estado.VENDIDO);
+        boolean quedanCupos = zonaRepository.existsByEventIdWithCupoSinVender(eventId);
+        if (quedanAsientos || quedanCupos) {
+            return;
+        }
+        config.setEstado(ConfiguracionEvento.Estado.AGOTADO);
+        config.setActualizadoEn(Instant.now());
+        configuracionRepository.save(config);
+        filaVirtualClient.marcarAgotada(eventId);
     }
 
     @Transactional

@@ -19,7 +19,7 @@ public class FilaVirtualClient {
 
     public void abrirFila(Long eventoId) {
         restClient.put()
-                .uri("/interno/fila/eventos/{eventoId}/configuracion", eventoId)
+                .uri("/interno/fila/{eventoId}/configuracion", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ConfiguracionFilaRequest(TAMANIO_TANDA_INICIAL, VENTANA_COMPRA_MINUTOS))
                 .retrieve()
@@ -27,10 +27,22 @@ public class FilaVirtualClient {
     }
 
     public void cancelarFila(Long eventoId) {
+        cambiarEstado(eventoId, "CANCELADA");
+    }
+
+    public void pausarFila(Long eventoId) {
+        cambiarEstado(eventoId, "PAUSADA");
+    }
+
+    public void reabrirFila(Long eventoId) {
+        cambiarEstado(eventoId, "ABIERTA");
+    }
+
+    private void cambiarEstado(Long eventoId, String estado) {
         restClient.put()
-                .uri("/interno/fila/eventos/{eventoId}/estado", eventoId)
+                .uri("/interno/fila/{eventoId}/estado", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new EstadoFilaRequest("CANCELADA"))
+                .body(new EstadoFilaRequest(estado))
                 .retrieve()
                 .toBodilessEntity();
     }

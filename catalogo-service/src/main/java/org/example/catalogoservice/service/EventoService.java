@@ -99,6 +99,43 @@ public class EventoService {
         return eventoCancelado;
     }
 
+    @Transactional
+    public Evento suspenderEvento(Long id) {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+
+        if ("CANCELADO".equals(evento.getEstado())) {
+            throw new IllegalStateException("No se puede suspender un evento cancelado");
+        }
+        if ("SUSPENDIDO".equals(evento.getEstado())) {
+            return evento;
+        }
+
+        evento.setEstado("SUSPENDIDO");
+        Evento eventoSuspendido = eventoRepository.save(evento);
+        if (eventoSuspendido.isAltaDemanda()) {
+            filaVirtualClient.pausarFila(eventoSuspendido.getId());
+        }
+        return eventoSuspendido;
+    }
+
+    @Transactional
+    public Evento reanudarEvento(Long id) {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+
+        if (!"SUSPENDIDO".equals(evento.getEstado())) {
+            throw new IllegalStateException("Solo se puede reanudar un evento suspendido");
+        }
+
+        evento.setEstado("PUBLICADO");
+        Evento eventoReanudado = eventoRepository.save(evento);
+        if (eventoReanudado.isAltaDemanda()) {
+            filaVirtualClient.reabrirFila(eventoReanudado.getId());
+        }
+        return eventoReanudado;
+    }
+
     private void sincronizarInventario(Evento evento) {
         // TODO: Implementar llamada HTTP con RestTemplate o WebClient hacia inventario-service
         // Ejemplo: restTemplate.postForEntity("http://localhost:8083/api/inventario/inicializar", evento, Void.class);

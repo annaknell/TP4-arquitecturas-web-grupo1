@@ -23,6 +23,8 @@ public interface EventoAsientoRepository extends JpaRepository<EventoAsiento, Lo
 
     List<EventoAsiento> findByReservaId(Long reservaId);
 
+    boolean existsByEventIdAndEstadoNot(Long eventId, EventoAsiento.Estado estado);
+
     @Query(value = """
             SELECT COUNT(*)
               FROM evento_asiento a
