@@ -15,9 +15,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 /**
- * Configuración de Spring Security: API stateless protegida con JWT (US-45).
- * Los endpoints públicos son registro, login y JWKS; todo lo demás exige un
- * token válido. El control fino por rol se hace con {@code @PreAuthorize}.
+ * Configuración de Spring Security: API stateless protegida con JWT.
+ *
+ * <p><b>US-45</b> (criterio 3): la autenticación es por token firmado; sin token
+ * o con token inválido, 401.</p>
+ * <p><b>Criterio transversal US-46 a US-49</b>: "un token ausente, inválido o
+ * vencido devuelve 401; un rol sin permiso devuelve 403". El control fino por
+ * rol (cliente/organizador/admin/personal de acceso) lo aplican los endpoints
+ * con {@code @PreAuthorize} y, en los demás servicios, el rol del claim.</p>
  */
 @Configuration
 @EnableWebSecurity

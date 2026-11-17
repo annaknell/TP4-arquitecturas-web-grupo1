@@ -1,4 +1,7 @@
 # auth-service · TicketYa — build multi-stage (Java 21)
+# EN-10 (E2, criterio 2): cada servicio tiene su contenedor; la configuración
+# (claves JWT, contraseña del admin) se inyecta por variables de entorno y no
+# hay secretos en el repositorio.
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 

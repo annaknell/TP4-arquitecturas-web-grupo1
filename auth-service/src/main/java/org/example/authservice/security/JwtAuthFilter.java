@@ -20,7 +20,12 @@ import java.util.UUID;
 /**
  * Valida el token Bearer de cada request, arma el SecurityContext y expone
  * {@code userId} / {@code role} como atributos (misma semántica que los
- * headers X-User-Id / X-User-Role que propaga el API Gateway).
+ * headers X-User-Id / X-User-Role de US-44 que propaga el API Gateway).
+ *
+ * <p><b>US-45</b> (criterio 3): verificación de firma y vencimiento del token.
+ * <b>Criterio transversal US-46 a US-49</b>: "un token ausente, inválido o
+ * vencido devuelve 401" — ante cualquier error de validación el filtro deja
+ * la request sin autenticar y el EntryPoint responde 401.</p>
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
 

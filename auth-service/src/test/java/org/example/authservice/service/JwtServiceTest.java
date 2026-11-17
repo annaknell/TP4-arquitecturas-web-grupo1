@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests de JwtService: claims, expiración estricta y rechazo de tokens vencidos.
+ * Cobertura: US-45 (criterio 2: JWT con identificador, rol y vencimiento de 1 hora).
  */
 class JwtServiceTest {
 
@@ -58,6 +59,7 @@ class JwtServiceTest {
         usuario.setRol(org.example.authservice.entity.Rol.CLIENTE);
     }
 
+    /** US-45 (criterio 2): el token incluye identificador, rol y vencimiento de 1 hora. */
     @Test
     @DisplayName("El token firmado incluye sub, userId, role y expiración de 1 hora")
     void generaTokenConClaims() {
@@ -72,6 +74,7 @@ class JwtServiceTest {
         assertThat(jwt.getExpiresAt().getEpochSecond() - jwt.getIssuedAt().getEpochSecond()).isEqualTo(3600L);
     }
 
+    /** US-45 (criterio 2): vencimiento estricto de 1 hora — un token vencido no decodifica. */
     @Test
     @DisplayName("Un token con expiración vencida no decodifica")
     void rechazaTokenExpirado() {

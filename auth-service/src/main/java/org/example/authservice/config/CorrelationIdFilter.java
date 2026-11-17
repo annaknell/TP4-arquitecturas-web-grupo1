@@ -17,6 +17,11 @@ import java.util.UUID;
  * Trazabilidad: propaga el header {@code X-Correlation-Id} a los logs (MDC)
  * y a la respuesta. Si no viene, se genera uno. Nunca se registran datos
  * sensibles (contraseñas ni tokens).
+ *
+ * <p><b>EN-09</b> (criterios 2 y 4): cada solicitud lleva un identificador de
+ * correlación, generado si no viene y propagado; dado un identificador se puede
+ * reconstruir la operación a través de los servicios. Los logs no contienen
+ * datos sensibles.</p>
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)

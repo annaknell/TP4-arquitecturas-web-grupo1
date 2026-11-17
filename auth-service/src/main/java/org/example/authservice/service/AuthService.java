@@ -17,8 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
 /**
- * Lógica de identidad: auto-registro, login y alta privilegiada (US-45).
- * Las contraseñas se hashean con BCrypt y nunca se exponen ni se loguean.
+ * Lógica de identidad: auto-registro, login y alta privilegiada.
+ *
+ * <p>Cobertura de User Stories (F12 · Identidad y permisos):</p>
+ * <ul>
+ *   <li><b>US-45</b> (E2 · Seguridad): registro de clientes, login con JWT,
+ *       alta de roles privilegiados por un administrador, hash de contraseñas.</li>
+ *   <li><b>US-48</b> (E2 · Seguridad): el ADMINISTRADOR es quien gestiona usuarios
+ *       (criterio 1: "gestionar usuarios"); aquí se concreta vía {@link #createPrivileged}.</li>
+ * </ul>
  */
 @Service
 public class AuthService {
@@ -35,13 +42,22 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    /** Auto-registro público: siempre crea cuentas CLIENTE. */
+    /**
+     * <b>US-45</b> (criterio 1): "Los clientes se registran por sí mismos".
+     * Auto-registro público: siempre crea cuentas CLIENTE.
+     */
     @Transactional
     public UsuarioResponse register(RegisterRequest request) {
         return saveUser(request.nombre(), request.email(), request.password(), Rol.CLIENTE);
     }
 
-    /** Alta privilegiada (solo ADMINISTRADOR): ORGANIZADOR, ADMINISTRADOR o PERSONAL_ACCESO. */
+    /**
+     * <b>US-45</b> (criterio 1): "Organizadores, administradores y personal de acceso son
+     * dados de alta por un administrador".
+     * <b>US-48</b> (criterio 1): "gestionar usuarios" es función del ADMINISTRADOR
+     * (el acceso al endpoint se restringe con @PreAuthorize en UserController).
+     * Rechaza el rol CLIENTE: para ese rol existe el auto-registro público.
+     */
     @Transactional
     public UsuarioResponse createPrivileged(CreateUserRequest request) {
         if (request.rol() == Rol.CLIENTE) {
@@ -50,7 +66,15 @@ public class AuthService {
         return saveUser(request.nombre(), request.email(), request.password(), request.rol());
     }
 
-    /** Valida credenciales y emite un JWT firmado con vigencia estricta de 1 hora. */
+    /**
+     * <b>US-45</b> (criterio 2): "Dado credenciales válidas, cuando inicio sesión, entonces
+     * recibo un JWT con identificador, rol y vencimiento (1 hora). Con credenciales
+     * inválidas recibo 401".
+     * <b>US-45</b> (criterio 4): "Las contraseñas se guardan con hash y nunca aparecen en
+     * logs" (la comparación se hace contra el hash BCrypt; los mensajes de error no
+     * distinguen email inexistente de contraseña incorrecta).
+     * Valida credenciales y emite un JWT firmado con vigencia estricta de 1 hora.
+     */
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(request.email())

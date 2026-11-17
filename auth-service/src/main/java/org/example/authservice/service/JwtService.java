@@ -11,13 +11,16 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Emisión de JWT firmados con RS256 (US-45).
+ * Emisión de JWT firmados con RS256.
+ *
+ * <p><b>US-45</b> (criterio 2): el JWT incluye identificador, rol y vencimiento
+ * de 1 hora.</p>
  *
  * <p>Claims incluidos:
  * <ul>
  *   <li>{@code sub}: email del usuario</li>
  *   <li>{@code userId}: identificador UUID</li>
- *   <li>{@code role}: rol asignado</li>
+ *   <li>{@code role}: rol asignado (base de los permisos de US-46 a US-49 en los demás servicios)</li>
  *   <li>{@code iat} / {@code exp}: emisión y expiración estricta (1 hora por defecto)</li>
  * </ul></p>
  */
@@ -43,6 +46,11 @@ public class JwtService {
         return expirationMinutes;
     }
 
+    /**
+     * <b>US-45</b> (criterio 2): genera el token con identificador (sub/userId),
+     * rol y expiración estricta de 1 hora. El claim {@code role} que emite acá
+     * es el que US-46 a US-49 consumen para autorizar en cada servicio.
+     */
     public String generateToken(Usuario usuario) {
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(expirationMinutes * 60);

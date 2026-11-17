@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
 /**
  * Semilla del primer ADMINISTRADOR (necesario para el alta privilegiada).
  * La contraseña se toma de la configuración/entorno y NUNCA se loguea.
+ *
+ * <p><b>US-45</b> (criterio 1): garantiza que exista el administrador que dará
+ * de alta a los roles privilegiados. <b>US-48</b>: habilita la función de
+ * gestión de usuarios desde el primer arranque.</p>
  */
 @Component
 public class AdminSeeder implements ApplicationRunner {

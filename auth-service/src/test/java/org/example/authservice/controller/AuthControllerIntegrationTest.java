@@ -33,8 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pruebas de integración (MockMvc + Spring Security Test) para US-45:
- * registro, login, expiración de JWT y control de acceso por roles.
+ * Pruebas de integración (MockMvc + Spring Security Test).
+ *
+ * <p>Cobertura: <b>US-45</b> (registro, login, JWT de 1 hora, hash de
+ * contraseñas, JWKS), <b>criterio transversal US-46 a US-49</b> (401 con token
+ * ausente/inválido/vencido; 403 con rol sin permiso) y <b>EN-13</b> (criterio 2:
+ * pruebas de seguridad que verifican que cada endpoint solo es accesible por
+ * los roles correspondientes).</p>
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -82,6 +87,7 @@ class AuthControllerIntegrationTest {
     // Registro público
     // ------------------------------------------------------------------
 
+    /** US-45 (criterios 1 y 4): registro público, rol CLIENTE, password hasheada en BD. */
     @Test
     @DisplayName("register: 201 crea cuenta CLIENTE y la contraseña queda hasheada en BD")
     void registerCreaCliente() throws Exception {
@@ -102,6 +108,7 @@ class AuthControllerIntegrationTest {
         assertThat(guardado.getPassword()).isNotEqualTo("Secreta1!");
     }
 
+    /** US-45 (criterio 1): unicidad de cuenta por email. */
     @Test
     @DisplayName("register: 409 si el email ya está registrado")
     void registerEmailDuplicado() throws Exception {
@@ -114,6 +121,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Email duplicado"));
     }
 
+    /** US-45 (criterio 2): datos de registro validados → 400. */
     @Test
     @DisplayName("register: 400 con datos inválidos")
     void registerDatosInvalidos() throws Exception {
@@ -130,6 +138,7 @@ class AuthControllerIntegrationTest {
     // Login
     // ------------------------------------------------------------------
 
+    /** US-45 (criterio 2): login emite JWT con identificador, rol y vencimiento de 1 hora. */
     @Test
     @DisplayName("login: 200 emite JWT con vigencia de 1 hora")
     void loginEmitToken() throws Exception {
@@ -154,6 +163,7 @@ class AuthControllerIntegrationTest {
         assertThat(expiresAt.getEpochSecond() - issuedAt.getEpochSecond()).isEqualTo(3600L);
     }
 
+    /** US-45 (criterio 2): credenciales inválidas → 401. */
     @Test
     @DisplayName("login: 401 con contraseña incorrecta")
     void loginPasswordIncorrecta() throws Exception {
@@ -165,6 +175,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** US-45 (criterio 2): credenciales inválidas → 401 (email inexistente). */
     @Test
     @DisplayName("login: 401 con email inexistente")
     void loginEmailInexistente() throws Exception {
@@ -180,6 +191,7 @@ class AuthControllerIntegrationTest {
     // Endpoint protegido /api/auth/me
     // ------------------------------------------------------------------
 
+    /** US-45 + criterio transversal US-46 a US-49: token válido accede; sin token → 401. */
     @Test
     @DisplayName("me: 200 con token válido y 401 sin token")
     void meConYSinToken() throws Exception {
@@ -191,6 +203,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** Criterio transversal US-46 a US-49: token vencido → 401. */
     @Test
     @DisplayName("me: 401 con token expirado")
     void meTokenExpirado() throws Exception {
@@ -199,6 +212,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** Criterio transversal US-46 a US-49: token inválido (firma) → 401. */
     @Test
     @DisplayName("me: 401 con token firmado con otra clave (tampering)")
     void meTokenFirmaInvalida() throws Exception {
@@ -211,6 +225,10 @@ class AuthControllerIntegrationTest {
     // Alta privilegiada POST /api/auth/users (solo ADMINISTRADOR)
     // ------------------------------------------------------------------
 
+    /**
+     * US-48 (criterio 1) + US-45 (criterio 1) + EN-13 (criterio 2):
+     * el ADMINISTRADOR gestiona usuarios (alta de ORGANIZADOR/Admin/Personal).
+     */
     @Test
     @DisplayName("users: 201 con token de ADMINISTRADOR y rol ORGANIZADOR")
     void usersConAdmin() throws Exception {
@@ -225,6 +243,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 
+    /** US-46 (criterio 2) + transversal US-46 a US-49: CLIENTE sin permiso → 403. */
     @Test
     @DisplayName("users: 403 con token de CLIENTE")
     void usersConCliente() throws Exception {
@@ -237,6 +256,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    /** Criterio transversal US-46 a US-49: sin token → 401. */
     @Test
     @DisplayName("users: 401 sin token")
     void usersSinToken() throws Exception {
@@ -248,6 +268,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** US-45 (criterio 1): el alta privilegiada no crea CLIENTE (para eso existe /register). */
     @Test
     @DisplayName("users: 400 si se intenta crear rol CLIENTE")
     void usersRolClienteRechazado() throws Exception {
@@ -264,6 +285,7 @@ class AuthControllerIntegrationTest {
     // JWKS público
     // ------------------------------------------------------------------
 
+    /** US-45 (criterio 3): JWKS permite al gateway validar firma y vencimiento sin secretos compartidos. */
     @Test
     @DisplayName("jwks: expone la clave pública sin material privado")
     void jwksPublico() throws Exception {

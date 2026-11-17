@@ -17,6 +17,10 @@ import java.util.Map;
  * Mapeo de errores a códigos HTTP: 400 (validación), 401 (credenciales/token),
  * 403 (rol insuficiente) y 409 (email duplicado). Respuestas ProblemDetail
  * (RFC 7807) sin exponer información sensible.
+ *
+ * <p>Cubre los códigos del criterio transversal <b>US-46 a US-49</b> (401 token
+ * ausente/inválido/vencido, 403 rol sin permiso) y las respuestas de
+ * <b>US-45</b>.</p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,13 +38,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
-    /** 409: email duplicado. */
+    /** <b>US-45</b> (criterio 1): email ya registrado → 409. */
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ProblemDetail> handleDuplicateEmail(DuplicateEmailException ex) {
         return problem(HttpStatus.CONFLICT, ex.getMessage(), "Email duplicado");
     }
 
-    /** 401: credenciales inválidas en el login. */
+    /** <b>US-45</b> (criterio 2): credenciales inválidas → 401. */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
         return problem(HttpStatus.UNAUTHORIZED, "Credenciales inválidas", "No autorizado");
@@ -58,7 +62,9 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.CONFLICT, "Conflicto con los datos enviados", "Conflicto");
     }
 
-    /** 403: rol insuficiente (control de acceso por roles). */
+    /**
+     * <b>Criterio transversal US-46 a US-49</b>: "un rol sin permiso devuelve 403".
+     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ProblemDetail> handleAccessDenied(AccessDeniedException ex) {
         return problem(HttpStatus.FORBIDDEN, "No tiene permisos para realizar esta operación", "Prohibido");

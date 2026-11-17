@@ -23,7 +23,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Alta privilegiada de cuentas (US-45): solo ADMINISTRADOR.
+ * Alta privilegiada de cuentas: solo ADMINISTRADOR.
+ *
+ * <p><b>US-45</b> (criterio 1): organizadores, administradores y personal de
+ * acceso son dados de alta por un administrador.
+ * <b>US-48</b> (criterio 1): "gestionar usuarios" es función operativa del
+ * administrador. Documentación según <b>EN-12</b>.</p>
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -36,6 +41,13 @@ public class UserController {
         this.authService = authService;
     }
 
+    /**
+     * <b>US-48</b> (criterio 1): el administrador gestiona usuarios (alta de
+     * ORGANIZADOR, ADMINISTRADOR y PERSONAL_ACCESO — roles de US-47 y US-49).
+     * <b>US-45</b> (criterio 1): las cuentas privilegiadas solo se crean acá.
+     * <b>Criterio transversal US-46 a US-49</b>: CLIENTE recibe 403 (US-46
+     * criterio 2: "no puede administrar"), anónimo 401.
+     */
     @PostMapping("/users")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @Operation(

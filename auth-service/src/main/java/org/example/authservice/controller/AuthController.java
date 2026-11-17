@@ -32,7 +32,11 @@ import java.net.URI;
 import java.util.Map;
 
 /**
- * Endpoints públicos de identidad (US-45): auto-registro, login y JWKS.
+ * Endpoints públicos de identidad: auto-registro, login y JWKS.
+ *
+ * <p><b>US-45</b> (E2 · Seguridad): registro, login con JWT y validación en el
+ * gateway vía JWKS. Documentación según <b>EN-12</b> (ejemplos y códigos de
+ * error por endpoint, esquema bearer JWT).</p>
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -49,6 +53,11 @@ public class AuthController {
         this.publicJwkSet = publicJwkSet;
     }
 
+    /**
+     * <b>US-45</b> (criterio 1): "Los clientes se registran por sí mismos".
+     * <b>US-46</b>: habilita al CLIENTE para acceder al sistema y ejercer sus
+     * funciones (buscar, comprar, gestionar sus entradas).
+     */
     @PostMapping("/register")
     @Operation(
             summary = "Auto-registro público",
@@ -96,6 +105,11 @@ public class AuthController {
         return ResponseEntity.created(URI.create("/api/auth/me")).body(created);
     }
 
+    /**
+     * <b>US-45</b> (criterios 2 y 4): valida credenciales y emite el JWT con
+     * identificador, rol y vencimiento de 1 hora; 401 con credenciales inválidas.
+     * El claim {@code role} emitido acá define los permisos de US-46 a US-49.
+     */
     @PostMapping("/login")
     @Operation(
             summary = "Inicio de sesión",
@@ -136,6 +150,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    /**
+     * <b>US-45</b> (criterio 3) / <b>criterio transversal US-46 a US-49</b>:
+     * endpoint protegido para verificar que el token es válido y no está
+     * vencido (401 en caso contrario). Es el punto de verificación de identidad
+     * que usan todos los roles para "acceder a sus funciones".
+     */
     @GetMapping("/me")
     @Operation(
             summary = "Usuario autenticado actual",
@@ -156,6 +176,11 @@ public class AuthController {
         return ResponseEntity.ok(UsuarioResponse.from(usuario));
     }
 
+    /**
+     * <b>US-45</b> (criterio 3): "El gateway valida firma y vencimiento del token
+     * y propaga la identidad a los servicios" — este endpoint expone la clave
+     * pública (JWKS) que permite esa validación sin compartir secretos.
+     */
     @GetMapping("/.well-known/jwks.json")
     @Operation(
             summary = "Clave pública (JWKS)",
