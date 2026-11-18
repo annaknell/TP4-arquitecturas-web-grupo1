@@ -1,11 +1,14 @@
 package org.example.entradaservice.service;
 
+import org.example.entradaservice.dto.ValidarEntradaResponse;
 import org.example.entradaservice.entity.Entrada;
 import org.example.entradaservice.repository.EntradaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -54,6 +57,39 @@ public class EntradaService {
                 .forEach(entrada -> entrada.setEstado("CANCELADA"));
         entradaRepository.saveAll(entradas);
         return entradas.stream().map(Entrada::getCompraId).distinct().toList();
+    }
+
+    /**
+     * Valida el QR en la puerta: el cambio a USADA lo decide la base en un solo UPDATE,
+     * así dos lectores simultáneos no pueden autorizar la misma entrada.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public ValidarEntradaResponse validar(String codigoQr, Long eventoId) {
+        Entrada entrada = entradaRepository.findByCodigoQr(codigoQr).orElse(null);
+        if (entrada == null) {
+            return rechazo("INEXISTENTE", null);
+        }
+        if (!Objects.equals(entrada.getEventoId(), eventoId)) {
+            return rechazo("EVENTO_EQUIVOCADO", null);
+        }
+
+        Instant ahora = Instant.now();
+        if (entradaRepository.marcarUsada(codigoQr, ahora) == 1) {
+            return new ValidarEntradaResponse(true, null, entrada.getSectorId(), entrada.getAsientoId(), ahora);
+        }
+
+        Entrada actual = entradaRepository.findByCodigoQr(codigoQr).orElse(null);
+        if (actual == null) {
+            return rechazo("INEXISTENTE", null);
+        }
+        if ("USADA".equals(actual.getEstado())) {
+            return rechazo("YA_USADA", actual.getUsadaEn());
+        }
+        return rechazo(actual.getEstado(), null);
+    }
+
+    private ValidarEntradaResponse rechazo(String motivo, Instant usadaEn) {
+        return new ValidarEntradaResponse(false, motivo, null, null, usadaEn);
     }
 
 }
