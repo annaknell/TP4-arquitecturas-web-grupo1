@@ -1,0 +1,167 @@
+name: ticketya
+
+x-mysql: &mysqlCredenciales
+  SPRING_DATASOURCE_USERNAME: root
+  SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ticketya}
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ticketya}
+    volumes:
+      - datos-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - datos-mongo:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api-gateway-service:
+    build: ./api-gateway-service
+    environment:
+      CATALOGO_URL: http://catalogo-service:8082
+      INVENTARIO_URL: http://inventario-service:8083
+      COMPRAS_URL: http://compra-service:8084
+      PAGOS_URL: http://pago-service:8085
+      ENTRADAS_URL: http://entrada-service:8086
+      AUTH_URL: http://auth-service:8081
+      FILA_VIRTUAL_URL: http://fila-virtual-service:8086
+      RECOMENDACIONES_URL: http://recomendaciones-service:8087
+    ports:
+      - "8080:8080"
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      catalogo-service:
+        condition: service_started
+      inventario-service:
+        condition: service_started
+      compra-service:
+        condition: service_started
+      pago-service:
+        condition: service_started
+      fila-virtual-service:
+        condition: service_started
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_auth?createDatabaseIfNotExist=true
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-Admin123!}
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  catalogo-service:
+    build: ./catalogo-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_catalogo?createDatabaseIfNotExist=true
+      ENTRADA_SERVICE_URL: http://entrada-service:8086
+      FILA_VIRTUAL_SERVICE_URL: http://fila-virtual-service:8086
+      PAGO_SERVICE_URL: http://pago-service:8085
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  inventario-service:
+    build: ./inventario-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_inventario?createDatabaseIfNotExist=true
+      FILA_VIRTUAL_SERVICE_URL: http://fila-virtual-service:8086
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  compra-service:
+    build: ./compra-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_compras?createDatabaseIfNotExist=true
+      ENTRADA_SERVICE_URL: http://entrada-service:8086
+      INVENTARIO_SERVICE_URL: http://inventario-service:8083
+      PAGO_SERVICE_URL: http://pago-service:8085
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  pago-service:
+    build: ./pago-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_pagos?createDatabaseIfNotExist=true
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  entrada-service:
+    build: ./entrada-service
+    environment:
+      <<: *mysqlCredenciales
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_entradas?createDatabaseIfNotExist=true
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  fila-virtual-service:
+    build: ./fila-virtual-service
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  recomendaciones-service:
+    build: ./recomendaciones-service
+    environment:
+      SPRING_MONGODB_HOST: mongo
+      SPRING_MONGODB_PORT: 27017
+      SPRING_DATA_MONGODB_HOST: mongo
+      SPRING_DATA_MONGODB_PORT: 27017
+    mem_limit: 420m
+    restart: on-failure
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  datos-mysql:
+  datos-mongo:

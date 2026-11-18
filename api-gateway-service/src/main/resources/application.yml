@@ -1,33 +1,50 @@
 server:
-  port: 8080 # El Gateway suele correr en el puerto 8080 como única puerta de entrada
+  port: 8080
 
 spring:
   application:
     name: api-gateway
   cloud:
     gateway:
-      routes:
-        - id: catalogo-service
-          uri: http://localhost:8082 # Puerto donde corre tu catalogo-service
-          predicates:
-            - Path=/api/eventos/**
+      server:
+        webmvc:
+          routes:
+            - id: catalogo-service
+              uri: ${CATALOGO_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/eventos/**,/api/lugares/**
 
-        - id: inventario-service
-          uri: http://localhost:8083 # Puerto de inventario-service
-          predicates:
-            - Path=/api/inventario/**
+            - id: auth-service
+              uri: ${AUTH_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/auth/**
 
-        - id: compras-service
-          uri: http://localhost:8084 # Puerto de compra-service
-          predicates:
-            - Path=/api/compras/**
+            - id: inventario-service
+              uri: ${INVENTARIO_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/inventario/**
 
-        - id: pagos-service
-          uri: http://localhost:8085
-          predicates:
-              - Path=/api/pagos/**
+            - id: compras-service
+              uri: ${COMPRAS_URL:http://localhost:8084}
+              predicates:
+                - Path=/api/compras/**
 
-        - id: fila-virtual-service
-          uri: http://localhost:8086
-          predicates:
-            - Path=/fila/**
+            - id: pagos-service
+              uri: ${PAGOS_URL:http://localhost:8085}
+              predicates:
+                - Path=/api/pagos/**,/reintegros/**
+
+            - id: entradas-service
+              uri: ${ENTRADAS_URL:http://localhost:8086}
+              predicates:
+                - Path=/api/entradas/**
+
+            - id: fila-virtual-service
+              uri: ${FILA_VIRTUAL_URL:http://localhost:8086}
+              predicates:
+                - Path=/fila/**
+
+            - id: recomendaciones-service
+              uri: ${RECOMENDACIONES_URL:http://localhost:8087}
+              predicates:
+                - Path=/api/recomendaciones/**,/api/preferencias/**

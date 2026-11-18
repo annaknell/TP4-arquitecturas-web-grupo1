@@ -4,7 +4,9 @@ import org.example.entradaservice.dto.ValidarEntradaResponse;
 import org.example.entradaservice.entity.Entrada;
 import org.example.entradaservice.repository.EntradaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,7 +33,8 @@ public class EntradaService {
     }
 
     public Entrada obtenerPorId(Long id){
-        return entradaRepository.findById(id).orElseThrow(() -> new RuntimeException("entrada no encontrada con ID: " + id));
+        return entradaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entrada no encontrada con ID: " + id));
     }
 
     public List<Entrada> listarPorCliente(Long clienteId){

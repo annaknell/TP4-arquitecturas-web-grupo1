@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "inventario-service", url = "http://localhost:8083/api/inventario")
+@FeignClient(name = "inventario-service", url = "${inventario-service.url:http://localhost:8083}/api/inventario")
 public interface InventarioClient {
 
     @PostMapping("/reservas")
