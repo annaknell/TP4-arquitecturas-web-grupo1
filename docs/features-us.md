@@ -1,497 +1,773 @@
 # TicketYa — Features y User Stories
 
-## F01 — Gestión de lugares y sectores
+## F01 — Gestión de eventos
 
-### US-01 — Registrar un lugar
-**Como** administrador **quiero** registrar un lugar con su nombre, dirección, ciudad y ubicación
-(latitud/longitud) **para** que los organizadores puedan crear eventos en él.
+### US-01 — Crear evento en borrador
 
-**Criterios de aceptación**
-1. **Dado** que envío nombre, dirección, ciudad, latitud y longitud válidos, **cuando** registro el
-   lugar, **entonces** se crea con un ID único y se responde 201 con los datos guardados.
-2. **Dado** que falta el nombre, **cuando** intento registrar el lugar, **entonces** se rechaza con
-   un error de validación (400) y no se guarda nada.
-3. **Dado** que hay lugares registrados, **cuando** consulto el listado, **entonces** obtengo todos
-   con su ID, nombre, dirección y ciudad.
-
-### US-02 — Definir los sectores de un lugar
-**Como** administrador **quiero** definir los sectores de un lugar, indicando si son numerados
-(filas y asientos) o no numerados (zona con capacidad máxima) **para** poder vender entradas
-según la distribución real del lugar.
+**Como** organizador **quiero** crear un evento con sus datos básicos **para** prepararlo antes de
+publicarlo.
 
 **Criterios de aceptación**
-1. **Dado** un sector numerado, **cuando** lo defino, **entonces** debo indicar sus asientos, cada
-   uno con fila y número, y cada asiento queda con un ID único.
-2. **Dado** un sector no numerado (p. ej. "Campo"), **cuando** lo defino, **entonces** debo indicar
-   una capacidad máxima mayor a 0 y no se crean asientos individuales.
-3. **Dado** un sector numerado sin asientos o una zona sin capacidad válida, **cuando** intento
-   guardarlo, **entonces** se rechaza con un error de validación.
-4. **Dado** un lugar con sectores, **cuando** lo consulto, **entonces** veo sus sectores con el tipo
-   y la capacidad de cada uno.
+1. **Dado** que envío nombre, descripción, tipo (recital, teatro, deporte, conferencia u otro), fecha
+   y hora futuras y un lugar existente, **cuando** creo el evento, **entonces** queda en estado
+   **borrador**, con mi usuario como organizador, y recibo 201 con su ID.
+2. **Dado** que falta el nombre, el tipo, la fecha o el lugar, o la fecha no es futura, **cuando**
+   intento crearlo, **entonces** recibo 400 y no se guarda nada.
+3. **Dado** un evento en borrador, **cuando** un cliente lo busca o pide su detalle, **entonces** no
+   aparece en las búsquedas y el detalle devuelve 404.
+
+### US-02 — Modificar evento
+
+**Como** organizador **quiero** modificar los datos de mi evento **para** corregir o actualizar la
+información.
+
+**Criterios de aceptación**
+1. **Dado** un evento propio en borrador, **cuando** lo edito, **entonces** puedo cambiar cualquier dato.
+2. **Dado** un evento propio publicado, **cuando** lo edito, **entonces** solo puedo cambiar
+   descripción, participantes, fecha y hora.
+3. **Dado** un evento publicado con entradas vendidas, **cuando** cambio la fecha o la hora,
+   **entonces** se registra como *cambio relevante* y se emite el evento interno que consume la
+   notificación de US-39.
+4. **Dado** un evento con entradas vendidas, **cuando** intento cambiar el lugar, **entonces** recibo
+   422 (simplificación deliberada para no reubicar asientos ya emitidos).
+5. **Dado** un evento cancelado o finalizado, **cuando** intento editarlo, **entonces** recibo 409.
+6. **Dado** un evento de otro organizador, **cuando** intento editarlo, **entonces** recibo 403.
+
+### US-03 — Gestionar participantes del evento
+
+**Como** organizador **quiero** asociar artistas, equipos o disertantes a mi evento **para** que los
+clientes puedan encontrarlo por ellos.
+
+**Criterios de aceptación**
+1. **Regla:** un participante tiene ID, nombre y tipo (artista, equipo, disertante). Un evento puede
+   tener cero o más participantes y un participante puede estar en muchos eventos.
+2. **Dado** un participante que ya existe (mismo nombre, sin distinguir mayúsculas), **cuando** lo
+   asocio a un evento, **entonces** se reutiliza el existente y no se crea un duplicado.
+3. **Dado** un participante nuevo, **cuando** lo asocio, **entonces** se crea y queda asociado al evento.
+4. **Regla:** los participantes son criterio de búsqueda (US-12) y la base de los artistas favoritos
+   (US-35).
+
+### US-04 — Publicar evento
+
+**Como** organizador **quiero** publicar mi evento **para** que quede disponible para búsqueda y compra.
+
+**Criterios de aceptación**
+1. **Dado** un evento propio en borrador con lugar, fecha futura y todos sus sectores habilitados con
+   precio, **cuando** lo publico, **entonces** pasa a **publicado**, aparece en las búsquedas, se
+   puede comprar y se emite el evento interno *evento publicado* (usado por US-40).
+2. **Dado** un evento sin lugar, sin fecha futura, sin sectores habilitados o con algún sector sin
+   precio, **cuando** intento publicarlo, **entonces** recibo 422 con la lista de faltantes.
+3. **Dado** un evento que no está en borrador, **cuando** intento publicarlo, **entonces** recibo 409.
+4. **Dado** un evento de otro organizador, **cuando** intento publicarlo, **entonces** recibo 403.
+
+### US-05 — Marcar evento de alta demanda
+*Actualizada en la Entrega 2.*
+
+**Como** organizador **quiero** marcar un evento como de alta demanda **para** que su venta se ordene
+mediante fila virtual.
+
+**Criterios de aceptación**
+1. **Regla:** *alta demanda* es un atributo booleano del evento, editable mientras está en borrador.
+2. **Dado** un evento de alta demanda, **cuando** se publica, **entonces** se abre su fila virtual
+   con tandas de 10 clientes y una ventana de compra de 10 minutos (US-30 a US-32).
+3. **Dado** un evento que no es de alta demanda, **cuando** se publica, **entonces** no se crea fila y
+   la compra es directa.
+
+### US-06 — Suspender, reanudar o cancelar un evento
+
+**Como** administrador **quiero** suspender, reanudar o cancelar cualquier evento **para** responder a
+incidentes operativos.
+
+**Criterios de aceptación**
+1. **Dado** un evento publicado, **cuando** un administrador lo suspende, **entonces** pasa a
+   **suspendido**: no admite nuevas reservas ni compras, no aparece en búsquedas y las entradas ya
+   emitidas siguen siendo válidas. Si tiene fila virtual, la fila queda pausada.
+2. **Dado** un evento suspendido, **cuando** un administrador lo reanuda, **entonces** vuelve a
+   **publicado** (y su fila, si tiene, se reabre).
+3. **Dado** un evento no finalizado, **cuando** un administrador lo cancela, **entonces** pasa a
+   **cancelado** de forma irreversible, se liberan las reservas vigentes, se cierra su fila y se
+   dispara el reintegro masivo de US-29.
+4. **Dado** un evento finalizado o una transición no permitida, **cuando** se intenta la acción,
+   **entonces** se recibe 409.
+5. **Dado** un usuario que no es administrador, **cuando** intenta cualquiera de estas acciones,
+   **entonces** recibe 403.
+6. **Regla:** cada acción registra usuario, motivo y fecha.
+
+### US-07 — Actualizar estados automáticamente
+
+**Como** sistema **quiero** actualizar el estado de los eventos según las ventas y la fecha **para**
+mantener coherente la oferta pública.
+
+**Criterios de aceptación**
+1. **Dado** un evento publicado, **cuando** se confirma la venta del último lugar, **entonces** pasa a
+   **agotado** y no admite nuevas reservas.
+2. **Dado** un evento agotado que no comenzó, **cuando** se aprueba una devolución que libera un
+   lugar, **entonces** vuelve a **publicado**.
+3. **Dado** un evento cuya hora de fin ya pasó, **cuando** el sistema lo revisa, **entonces** pasa a
+   **finalizado** y deja de ser comprable, devolvible y visible en búsquedas.
+4. **Dado** una transición no contemplada, **cuando** se intenta, **entonces** se rechaza con 409.
+   El cliente ve el estado actual en el detalle (US-14).
 
 ---
 
-## F02 — Gestión y publicación de eventos
+## F02 — Lugares, sectores y precios
 
-### US-03 — Crear un evento en borrador
-**Como** organizador **quiero** crear un evento con nombre, descripción, tipo, participantes, fecha y
-hora, y lugar **para** empezar a prepararlo antes de ponerlo a la venta.
+### US-08 — Registrar lugar
 
-**Criterios de aceptación**
-1. **Dado** que envío los datos obligatorios (nombre, tipo, fecha y hora, lugar existente),
-   **cuando** creo el evento, **entonces** se guarda con un ID único, en estado **BORRADOR**, con
-   mi usuario como organizador, y se responde 201.
-2. **Dado** que indico un lugar que no existe, **cuando** creo el evento, **entonces** se rechaza
-   (404) y no se crea nada.
-3. **Dado** que la fecha del evento ya pasó, **cuando** creo el evento, **entonces** se rechaza con
-   un error de validación.
-4. **Dado** un evento en BORRADOR, **cuando** un cliente lista los eventos disponibles,
-   **entonces** ese evento no aparece.
-
-### US-04 — Configurar sectores y precios del evento
-**Como** organizador **quiero** definir el precio de cada sector del lugar para mi evento **para**
-vender cada sector a su valor.
+**Como** administrador (u organizador, para sus lugares) **quiero** registrar un lugar **para** poder
+asignarlo a eventos.
 
 **Criterios de aceptación**
-1. **Dado** un evento en BORRADOR, **cuando** asigno un precio mayor a 0 a un sector del lugar del
-   evento, **entonces** el precio queda registrado para ese evento y sector.
-2. **Dado** un sector que no pertenece al lugar del evento, **cuando** intento asignarle precio,
-   **entonces** se rechaza con un error de validación.
-3. **Dado** que asigno precio dos veces al mismo sector, **cuando** guardo, **entonces** queda un
-   solo precio (el último) y no un duplicado.
-4. **Dado** un evento, **cuando** consulto sus sectores, **entonces** obtengo cada sector con su
-   precio y su capacidad.
+1. **Dado** que envío nombre, dirección, ciudad, latitud (−90 a 90) y longitud (−180 a 180) válidos,
+   **cuando** registro el lugar, **entonces** se crea con un ID único y recibo 201 con los datos guardados.
+2. **Dado** que falta algún dato o las coordenadas están fuera de rango, **cuando** intento
+   registrarlo, **entonces** recibo 400 y no se guarda nada.
+3. **Dado** un ID de lugar que ya existe, **cuando** intento registrarlo, **entonces** recibo 409.
+4. **Dado** un lugar registrado, **cuando** creo eventos, **entonces** puedo asignarlo a varios.
 
-### US-05 — Publicar un evento
-**Como** organizador **quiero** publicar mi evento **para** que los clientes puedan verlo y comprar
-entradas.
+### US-09 — Configurar sector numerado
 
-**Criterios de aceptación**
-1. **Dado** un evento en BORRADOR con al menos un sector con precio, **cuando** lo publico,
-   **entonces** pasa a estado **PUBLICADO** y se responde 200.
-2. **Dado** que el evento se publicó, **cuando** se consulta su disponibilidad, **entonces** el
-   inventario tiene cargados todos sus asientos como LIBRES y el cupo completo de cada zona.
-3. **Dado** un evento sin sectores con precio, **cuando** intento publicarlo, **entonces** se
-   rechaza indicando qué falta.
-4. **Dado** un evento CANCELADO o FINALIZADO, **cuando** intento publicarlo, **entonces** se
-   rechaza (409).
-
-### US-06 — Suspender un evento
-**Como** administrador **quiero** suspender cualquier evento publicado **para** frenar la venta
-ante un problema sin cancelarlo definitivamente.
+**Como** administrador u organizador **quiero** definir sectores con filas y asientos identificados
+**para** vender asientos específicos.
 
 **Criterios de aceptación**
-1. **Dado** un evento PUBLICADO, **cuando** lo suspendo, **entonces** pasa a SUSPENDIDO y el
-   inventario deja de aceptar nuevas reservas para ese evento (409).
-2. **Dado** un evento SUSPENDIDO, **cuando** lo vuelvo a publicar, **entonces** se reanuda la venta
-   con la disponibilidad que tenía.
-3. **Dado** un evento suspendido, **cuando** se consulta, **entonces** las entradas ya vendidas
-   siguen siendo válidas.
+1. **Dado** un sector numerado, **cuando** lo defino, **entonces** indico sus asientos con fila y
+   número, únicos dentro del sector, y cada asiento recibe un ID.
+2. **Dado** un sector numerado sin asientos o con asientos repetidos, **cuando** intento guardarlo,
+   **entonces** recibo 400.
+3. **Regla:** cada asiento pertenece a un único sector y un lugar puede tener varios sectores.
+4. **Dado** un lugar con eventos publicados que tienen entradas vendidas, **cuando** intento modificar
+   sus sectores o asientos, **entonces** recibo 422.
 
-### US-07 — Ver el detalle de un evento
-**Como** cliente **quiero** ver el detalle de un evento con sus sectores, precios y lugares
-disponibles **para** decidir qué entrada comprar.
+### US-10 — Configurar sector no numerado
+
+**Como** administrador u organizador **quiero** definir una zona con capacidad máxima (por ejemplo
+"Campo") **para** vender entradas sin asiento asignado.
 
 **Criterios de aceptación**
-1. **Dado** un evento PUBLICADO, **cuando** consulto su detalle, **entonces** veo nombre,
-   descripción, tipo, participantes, fecha y hora, lugar, estado, y cada sector con su precio.
-2. **Dado** un sector numerado, **cuando** consulto la disponibilidad, **entonces** veo cada
-   asiento (fila y número) con su estado: LIBRE, RETENIDO o VENDIDO.
-3. **Dado** un sector no numerado, **cuando** consulto la disponibilidad, **entonces** veo la
-   capacidad y cuántos lugares quedan disponibles.
-4. **Dado** que una reserva venció, **cuando** consulto la disponibilidad, **entonces** sus asientos
-   se muestran LIBRES aunque el proceso de limpieza todavía no haya corrido.
-5. **Dado** un ID de evento inexistente, **cuando** lo consulto, **entonces** se responde 404.
+1. **Dado** un sector no numerado con capacidad entera mayor a cero, **cuando** lo defino,
+   **entonces** se guarda sin asientos individuales.
+2. **Dado** una capacidad menor o igual a cero, **cuando** intento guardarlo, **entonces** recibo 400.
+3. **Regla:** disponibilidad = capacidad − entradas vendidas − reservas vigentes, y nunca se venden
+   más entradas que la capacidad (US-23).
+
+### US-11 — Habilitar sectores y definir precios por evento
+
+**Como** organizador **quiero** elegir qué sectores del lugar se ofrecen en mi evento y fijar el precio
+de cada uno **para** definir mi oferta comercial.
+
+**Criterios de aceptación**
+1. **Dado** un evento en borrador, **cuando** habilito sectores y les pongo precio, **entonces** se
+   guardan por evento y sector (el mismo lugar puede tener precios distintos en eventos distintos).
+2. **Dado** un precio menor o igual a cero, **cuando** intento guardarlo, **entonces** recibo 400.
+3. **Dado** un evento publicado, **cuando** cambio el precio de un sector sin entradas vendidas,
+   **entonces** se acepta; si el sector ya tiene ventas, recibo 422. Las compras hechas conservan su importe.
+4. **Regla:** no se puede publicar un evento con algún sector habilitado sin precio (US-04).
 
 ---
 
-## F03 — Búsqueda de eventos
+## F03 — Búsqueda y exploración
 
-### US-08 — Buscar eventos por varios criterios
-**Como** cliente **quiero** buscar eventos combinando tipo, organizador, participante, ciudad y
-rango de fechas **para** encontrar rápido lo que me interesa.
+### US-12 — Buscar eventos por múltiples criterios
 
-**Criterios de aceptación**
-1. **Dado** eventos publicados de distintos tipos, **cuando** filtro por tipo "recital",
-   **entonces** solo obtengo recitales.
-2. **Dado** que combino varios filtros (p. ej. ciudad "Tandil" y fechas entre el 01/12 y el 31/12),
-   **cuando** busco, **entonces** obtengo solo los eventos que cumplen **todos** los filtros.
-3. **Dado** que busco por participante, **cuando** indico parte del nombre sin importar
-   mayúsculas, **entonces** obtengo los eventos donde participa.
-4. **Dado** que no envío ningún filtro, **cuando** busco, **entonces** obtengo todos los eventos
-   publicados.
-5. **Dado** cualquier búsqueda, **cuando** obtengo resultados, **entonces** nunca aparecen eventos
-   en BORRADOR, CANCELADOS ni FINALIZADOS.
-6. **Dado** que ningún evento cumple los filtros, **cuando** busco, **entonces** obtengo una lista
-   vacía (200), no un error.
-
-### US-09 — Ordenar los resultados de búsqueda
-**Como** cliente **quiero** ordenar los resultados por fecha, precio o relevancia **para** comparar
-opciones fácilmente.
+**Como** cliente **quiero** buscar eventos combinando filtros **para** encontrar rápido lo que me interesa.
 
 **Criterios de aceptación**
-1. **Dado** resultados de búsqueda, **cuando** ordeno por fecha, **entonces** aparecen del más
-   próximo al más lejano.
-2. **Dado** resultados de búsqueda, **cuando** ordeno por precio, **entonces** se ordenan por el
-   precio más bajo de cada evento, de menor a mayor.
-3. **Dado** que busco con un texto, **cuando** ordeno por relevancia, **entonces** aparecen primero
-   los eventos cuyo nombre o participantes coinciden con el texto.
-4. **Dado** que indico un criterio de orden inválido, **cuando** busco, **entonces** se responde
-   400 indicando los criterios válidos.
+1. **Dado** filtros opcionales de tipo, organizador, participante, ciudad y rango de fechas, **cuando**
+   busco, **entonces** se combinan con Y (todos deben cumplirse).
+2. **Dado** cualquier búsqueda, **cuando** obtengo resultados, **entonces** solo veo eventos
+   publicados o agotados (identificados como tales); nunca borradores, suspendidos, cancelados ni finalizados.
+3. **Dado** muchos resultados, **cuando** busco, **entonces** vienen paginados (máximo 50 por página)
+   e incluyen el total.
+4. **Dado** que no hay coincidencias, **cuando** busco, **entonces** recibo 200 con una lista vacía.
+5. **Dado** un rango con fecha *desde* posterior a fecha *hasta*, **cuando** busco, **entonces** recibo 400.
+
+### US-13 — Ordenar resultados
+
+**Como** cliente **quiero** ordenar los resultados **para** priorizar lo que más me importa.
+
+**Criterios de aceptación**
+1. **Dado** una búsqueda, **cuando** pido ordenar por fecha, precio (mínimo del evento) o relevancia,
+   ascendente o descendente, **entonces** el orden se aplica a todo el conjunto y no solo a la página devuelta.
+2. **Dado** que no indico orden, **cuando** busco, **entonces** se usa fecha ascendente y, en empate, ID.
+3. **Dado** un criterio de orden inválido, **cuando** busco, **entonces** recibo 400 con los criterios válidos.
+4. **Regla:** la relevancia combina proximidad de fecha y volumen de ventas; la fórmula se documenta en el diseño.
+
+### US-14 — Consultar detalle y disponibilidad
+
+**Como** cliente **quiero** ver el detalle de un evento y su disponibilidad **para** decidir mi compra.
+
+**Criterios de aceptación**
+1. **Dado** un evento publicado o agotado, **cuando** pido su detalle, **entonces** veo datos del
+   evento, estado, lugar con coordenadas, participantes, sectores y precios.
+2. **Dado** un sector numerado, **cuando** consulto la disponibilidad, **entonces** veo el estado de
+   cada asiento (libre, reservado, vendido); en un sector no numerado veo la cantidad disponible.
+3. **Dado** un evento inexistente o en borrador, **cuando** pido su detalle, **entonces** recibo 404.
+4. **Regla:** la disponibilidad se lee siempre de la fuente de verdad y nunca de caché (EN-08); los
+   datos descriptivos sí son cacheables.
 
 ---
 
-## F04 — Compra con reserva temporal y emisión de QR
+## F04 — Reserva temporal y compra
 
-### US-10 — Elegir asientos numerados y reservarlos
-**Como** cliente **quiero** elegir asientos específicos de un sector numerado y que se reserven
-mientras pago **para** no perderlos durante el pago.
+### US-15 — Iniciar compra eligiendo evento y sector
 
-**Criterios de aceptación**
-1. **Dado** un evento PUBLICADO con asientos libres, **cuando** elijo uno o más asientos del mismo
-   sector, **entonces** quedan RETENIDOS a mi nombre por **10 minutos** y recibo la reserva con su
-   hora de vencimiento.
-2. **Dado** que alguno de los asientos elegidos ya está retenido o vendido, **cuando** intento
-   reservar, **entonces** se rechaza toda la reserva (409) y no queda retenido ninguno.
-3. **Dado** que elijo asientos repetidos o de sectores distintos, **cuando** intento reservar,
-   **entonces** se rechaza con un error de validación.
-4. **Dado** un evento que no está PUBLICADO, **cuando** intento reservar, **entonces** se rechaza
-   (409).
-
-### US-11 — Comprar en un sector no numerado
-**Como** cliente **quiero** indicar cuántas entradas quiero en un sector no numerado **para**
-comprar sin elegir asientos.
+**Como** cliente **quiero** elegir un evento y un sector **para** comenzar mi compra.
 
 **Criterios de aceptación**
-1. **Dado** una zona con cupo suficiente, **cuando** pido N entradas, **entonces** se retienen N
-   lugares del cupo por 10 minutos.
-2. **Dado** que el cupo restante es menor a N, **cuando** pido N entradas, **entonces** se rechaza
-   (409) y el cupo no cambia.
-3. **Dado** un pedido que trae asientos y cantidad a la vez, o ninguno de los dos, **cuando** lo
-   envío, **entonces** se rechaza con un error de validación.
+1. **Dado** un evento publicado con disponibilidad en el sector, **cuando** inicio la compra,
+   **entonces** veo el precio unitario del sector.
+2. **Dado** un evento en otro estado o un sector sin disponibilidad, **cuando** intento iniciar la
+   compra, **entonces** recibo 409 con el motivo.
+3. **Dado** que no estoy identificado, **cuando** intento iniciar la compra, **entonces** recibo 401
+   (US-44 en la Entrega 1, US-45 en la Entrega 2).
 
-### US-12 — Pagar y recibir entradas con QR
-**Como** cliente **quiero** pagar mi reserva y recibir mis entradas con un código QR único **para**
-poder ingresar al evento.
+### US-16 — Seleccionar lugares
 
-**Criterios de aceptación**
-1. **Dado** una reserva vigente y un pago **aprobado**, **cuando** se completa la compra,
-   **entonces** los lugares pasan a VENDIDO, se emite una entrada por lugar y la compra queda
-   COMPLETADA (201).
-2. **Dado** que se emitieron las entradas, **cuando** las consulto, **entonces** cada una tiene un
-   código QR único, el evento, el sector, el asiento (si es numerado) y estado EMITIDA.
-3. **Dado** cualquier par de entradas del sistema, **cuando** se comparan sus QR, **entonces**
-   nunca son iguales (restricción de unicidad en la base).
-4. **Dado** que la compra se completó, **cuando** la consulto, **entonces** veo cada paso realizado
-   (reserva, pago, confirmación, emisión) con su fecha y hora.
-
-### US-13 — Liberar los lugares si el pago es rechazado
-**Como** cliente **quiero** que, si mi pago es rechazado, los lugares se liberen y no se me emitan
-entradas **para** no quedar con una compra a medias.
+**Como** cliente **quiero** elegir asientos específicos o una cantidad de entradas **para** armar mi compra.
 
 **Criterios de aceptación**
-1. **Dado** una reserva vigente, **cuando** la pasarela **rechaza** el pago, **entonces** la reserva
-   se libera, los lugares vuelven a estar LIBRES y la compra queda PAGO_RECHAZADO (402).
-2. **Dado** un pago rechazado, **cuando** consulto mis entradas, **entonces** no hay ninguna entrada
-   emitida para esa compra.
-3. **Dado** un pago rechazado, **cuando** otro cliente consulta la disponibilidad, **entonces** esos
-   lugares están disponibles de inmediato.
+1. **Dado** un sector numerado, **cuando** elijo uno o más asientos libres, **entonces** se aceptan;
+   si alguno está vendido, reservado por otro cliente o no existe, la respuesta indica cuáles.
+2. **Dado** un sector no numerado, **cuando** elijo una cantidad, **entonces** debe ser mayor a cero
+   y no superar la disponibilidad ni el límite por cliente (US-18).
+3. **Dado** una selección válida, **cuando** la confirmo, **entonces** veo el precio total antes de reservar.
+4. **Regla:** una compra involucra un único evento y un único sector.
 
-### US-14 — Liberar los lugares si la reserva vence
-**Como** cliente **quiero** que, si no termino de pagar dentro del plazo, los lugares se liberen
-**para** que otros puedan comprarlos.
+### US-17 — Reservar temporalmente los lugares
 
-**Criterios de aceptación**
-1. **Dado** una reserva ACTIVA, **cuando** pasan 10 minutos sin confirmarse, **entonces** pasa a
-   VENCIDA y sus lugares vuelven a estar LIBRES.
-2. **Dado** una reserva VENCIDA, **cuando** se intenta confirmarla, **entonces** se rechaza (409).
-3. **Dado** que el pago se aprobó pero la reserva ya había vencido, **cuando** la confirmación
-   falla, **entonces** se solicita el **reintegro** del pago, no se emiten entradas y la compra
-   queda RESERVA_VENCIDA (409).
-
-### US-15 — Limitar las entradas por cliente
-**Como** organizador **quiero** limitar la cantidad de entradas que un cliente compra para un mismo
-evento **para** evitar la reventa y repartir mejor las entradas.
+**Como** cliente **quiero** que mis lugares queden reservados durante 10 minutos **para** pagar sin perderlos.
 
 **Criterios de aceptación**
-1. **Dado** un evento con un máximo de N entradas por cliente, **cuando** un cliente intenta
-   reservar más de N en total, **entonces** se rechaza indicando el límite y cuántas ya tiene.
-2. **Dado** que el conteo incluye entradas vendidas y reservas activas del cliente, **cuando** un
-   cliente con 3 de 4 posibles pide 2 más, **entonces** se rechaza.
-3. **Dado** que una reserva del cliente venció o se liberó, **cuando** vuelve a reservar,
-   **entonces** esos lugares ya no cuentan para su límite.
+1. **Dado** lugares disponibles, **cuando** confirmo la selección, **entonces** se crea una reserva
+   con cliente, evento, lugares, importe congelado y vencimiento (ahora + 10 minutos), y la respuesta
+   incluye el ID de la reserva y su vencimiento.
+2. **Dado** que un solo lugar de la selección no está disponible, **cuando** reservo, **entonces** no
+   se reserva ninguno y recibo 409 con el detalle (todo o nada).
+3. **Dado** una reserva vigente, **cuando** otro cliente intenta reservar o comprar esos lugares,
+   **entonces** recibe 409.
+4. **Dado** que ya tengo una reserva vigente para el evento, **cuando** intento crear otra,
+   **entonces** se rechaza: máximo una reserva vigente por cliente y evento.
+5. **Dado** un evento de alta demanda, **cuando** reservo, **entonces** debo presentar una
+   autorización vigente de la fila virtual (US-32).
 
-### US-16 — Registrar la compra y consultar mis entradas
-**Como** cliente **quiero** que quede registrado el detalle de mi compra y el medio de pago, y poder
-ver mis entradas **para** tener constancia y acceso a ellas.
+### US-18 — Limitar entradas por cliente
+
+**Como** organizador **quiero** que cada cliente tenga un tope de entradas por evento **para** evitar
+acaparamiento y reventa masiva.
 
 **Criterios de aceptación**
-1. **Dado** una compra, **cuando** se registra, **entonces** guarda cliente, evento, lugares,
-   importe total, medio de pago, estado y fecha.
-2. **Dado** un pago, **cuando** se registra, **entonces** guarda la compra a la que pertenece, el
-   monto, la moneda, el estado (APROBADO, RECHAZADO, INCIERTO, REINTEGRADO) y la referencia de la
-   pasarela.
-3. **Dado** que soy un cliente con compras, **cuando** consulto mis entradas, **entonces** veo todas
-   las mías con su QR y estado, y ninguna de otros clientes.
+1. **Regla:** el límite es por evento (6 por defecto) y configurable.
+2. **Dado** un cliente, **cuando** reserva, **entonces** se suman sus entradas compradas no devueltas,
+   sus reservas vigentes y la nueva selección.
+3. **Dado** un cliente que con la nueva selección supera el límite, **cuando** intenta reservar,
+   **entonces** recibe 422 antes de reservar y antes de procesar cualquier pago.
+
+### US-19 — Pagar una reserva
+
+**Como** cliente **quiero** pagar mi reserva a través de la pasarela de pagos **para** confirmar mi compra.
+
+**Criterios de aceptación**
+1. **Dado** una reserva vigente propia, **cuando** pago sin el encabezado `Idempotency-Key`,
+   **entonces** recibo 400.
+2. **Dado** un pago aprobado, **cuando** se procesa, **entonces** la compra queda confirmada y se
+   emiten las entradas (US-22).
+3. **Dado** un pago rechazado, **cuando** se procesa, **entonces** se liberan los lugares (US-21) y
+   la compra queda rechazada con su motivo.
+4. **Dado** una reserva vencida, **cuando** intento pagar, **entonces** no se cobra y recibo 409.
+5. **Dado** que la aprobación llega con la reserva vencida y los lugares ya los tomó otro cliente,
+   **cuando** se procesa, **entonces** se ejecuta el reintegro automático como compensación (EN-06).
+6. **Regla:** en la Entrega 1 la pasarela es un mock con escenarios configurables (aprobado, rechazado, timeout,
+   respuesta demorada); en la Entrega 2 se agrega la resiliencia de EN-07.
+
+### US-20 — Registrar compra y consultar su resultado
+
+**Como** cliente **quiero** consultar el estado y el detalle de mis compras **para** saber si se concretaron.
+
+**Criterios de aceptación**
+1. **Dado** una compra, **cuando** se registra, **entonces** guarda cliente, evento, entradas,
+   importe, fecha, medio de pago (tipo y últimos cuatro dígitos, nunca datos completos) y referencia de pago.
+2. **Regla:** estados de la compra: pendiente, aprobada, rechazada, expirada, reintegrada.
+3. **Dado** mis compras, **cuando** las listo o consulto una, **entonces** veo su detalle.
+4. **Dado** una compra de otro cliente, **cuando** la consulto, **entonces** recibo 404.
+
+### US-21 — Liberar lugares cuando la reserva no se concreta
+
+**Como** sistema **quiero** liberar los lugares reservados que no se vendieron **para** que otros
+clientes puedan comprarlos.
+
+Disparadores: pago rechazado, vencimiento de la reserva, devolución aprobada (US-28) y cancelación
+del evento (US-06).
+
+**Criterios de aceptación**
+1. **Dado** una reserva vigente, **cuando** se registra un pago rechazado, **entonces** los lugares
+   quedan libres de inmediato.
+2. **Dado** una reserva sin pago aprobado, **cuando** vence el TTL, **entonces** se libera
+   automáticamente (máximo 5 segundos de demora) y toda consulta de disponibilidad ignora las reservas vencidas.
+3. **Dado** una liberación ya ejecutada, **cuando** se ejecuta otra vez, **entonces** no genera
+   inconsistencias ni afecta entradas vendidas (idempotente).
+4. **Dado** lugares liberados, **cuando** consulto la disponibilidad (US-14), **entonces** aparecen libres.
 
 ---
 
-## F05 — No doble venta e idempotencia
+## F05 — Entradas y no doble venta
 
-### US-17 — Un asiento nunca se vende dos veces
-**Como** cliente **quiero** que, si muchos compramos el mismo asiento a la vez, solo uno lo
-consiga **para** no llegar al evento y encontrar mi lugar ocupado.
+### US-22 — Emitir entrada con QR único
 
-**Criterios de aceptación**
-1. **Dado** un asiento LIBRE, **cuando** muchos clientes intentan reservarlo **al mismo tiempo**,
-   **entonces** exactamente una reserva resulta exitosa y las demás reciben 409.
-2. **Dado** que hay varias instancias del servicio de inventario ejecutándose, **cuando** ocurre lo
-   anterior, **entonces** el resultado es el mismo (el control se hace en la base de datos, con
-   una actualización condicional del estado, no en memoria).
-3. **Dado** el test automatizado de no doble venta, **cuando** se ejecuta, **entonces** verifica que
-   de N compras simultáneas del mismo asiento solo una queda COMPLETADA.
-
-### US-18 — Reintentar un pago sin cobrar dos veces
-**Como** cliente **quiero** poder reintentar la compra si se me corta la conexión, sin que se me
-cobre ni se me emitan entradas dos veces.
+**Como** cliente **quiero** recibir una entrada con QR único por cada lugar comprado **para** poder
+ingresar al evento.
 
 **Criterios de aceptación**
-1. **Dado** que toda compra se envía con una clave de idempotencia (`Idempotency-Key`), **cuando**
-   repito la misma solicitud con la misma clave, **entonces** recibo la misma compra y no se crea
-   otra.
-2. **Dado** un cobro ya procesado, **cuando** se repite con la misma clave, **entonces** pagos
-   devuelve el mismo pago y la pasarela no cobra de nuevo.
-3. **Dado** que reutilizo una clave con datos distintos (otro monto u otro evento), **cuando**
-   envío la solicitud, **entonces** se rechaza indicando que la clave ya se usó para otra
-   operación.
-4. **Dado** que dos reintentos con la misma clave llegan a la vez, **cuando** se procesan,
-   **entonces** se registra un solo pago (restricción de unicidad sobre la clave).
-5. **Dado** una compra sin clave de idempotencia, **cuando** se envía, **entonces** se rechaza (400).
+1. **Dado** un pago aprobado, **cuando** se confirma la compra, **entonces** se emite una entrada por
+   cada lugar adquirido, asociada a su compra.
+2. **Regla:** cada entrada tiene ID, QR único y no adivinable (por ejemplo, un token firmado),
+   evento, cliente, asiento o sector, estado (válida, utilizada, devuelta, cancelada) y fecha de emisión.
+3. **Dado** que la emisión falla, **cuando** se intenta confirmar la compra, **entonces** se compensa
+   con reintegro y liberación de lugares (EN-06).
 
-### US-19 — El último lugar de una zona se vende una sola vez
-**Como** cliente **quiero** que, si quedan pocos lugares en una zona, nunca se vendan más de los
-que hay.
+### US-23 — Evitar la doble venta
+
+**Como** organizador **quiero** que un mismo lugar nunca se venda dos veces **para** garantizar la
+integridad de mi evento.
 
 **Criterios de aceptación**
-1. **Dado** una zona con 1 lugar disponible, **cuando** varios clientes piden 1 entrada a la vez,
-   **entonces** solo uno lo obtiene y los demás reciben 409.
-2. **Dado** cualquier secuencia de reservas concurrentes, **cuando** termina, **entonces** vendidos
-   más retenidos nunca supera la capacidad de la zona.
+1. **Dado** un asiento libre, **cuando** N solicitudes concurrentes intentan reservarlo (incluso en
+   distintas instancias del servicio), **entonces** exactamente una tiene éxito y las demás reciben 409.
+2. **Dado** un sector no numerado con un único lugar disponible, **cuando** N solicitudes
+   concurrentes piden ese lugar, **entonces** solo una lo obtiene y nunca se supera la capacidad.
+3. **Regla:** un asiento no puede figurar en dos entradas vigentes del mismo evento; se garantiza con
+   una restricción de unicidad en la base de datos (EN-04).
+4. **Regla de prueba:** test automatizado con al menos 50 hilos sobre el mismo asiento y sobre el
+   último lugar de una zona (EN-13).
+
+### US-24 — Procesar reintentos sin duplicados
+
+**Como** cliente **quiero** reintentar un pago ante un problema de conexión **para** no pagar dos
+veces ni recibir entradas duplicadas.
+
+**Criterios de aceptación**
+1. **Dado** un pago ya procesado, **cuando** llega un reintento con la misma `Idempotency-Key`,
+   **entonces** se devuelve el resultado registrado (misma compra, mismo código) sin cobrar de nuevo
+   ni emitir entradas adicionales.
+2. **Dado** una clave ya usada, **cuando** llega con un cuerpo distinto, **entonces** recibo 422.
+3. **Dado** dos reintentos simultáneos con la misma clave, **cuando** se procesan, **entonces** se
+   ejecuta una sola vez: el segundo espera o recibe el resultado del primero.
+4. **Regla:** la clave caduca a las 24 horas.
+
+### US-25 — Ver mis entradas
+
+**Como** cliente **quiero** ver mis entradas con su QR **para** presentarlas en el ingreso.
+
+**Criterios de aceptación**
+1. **Dado** mis entradas, **cuando** las listo, **entonces** veo evento, fecha, lugar, sector o
+   asiento, estado y QR de cada una.
+2. **Dado** una entrada devuelta, cancelada o de un evento finalizado, **cuando** la listo,
+   **entonces** se muestra con su estado y sin QR utilizable.
+3. **Dado** una entrada de otro cliente, **cuando** la consulto, **entonces** recibo 404.
 
 ---
 
-## F06 — Devoluciones y cancelación de eventos
+## F06 — Devoluciones y cancelaciones
 
-### US-20 — Solicitar la devolución de una entrada
-**Como** cliente **quiero** pedir la devolución de una entrada **para** recuperar mi dinero si no
-puedo ir.
+### US-26 — Solicitar devolución de una entrada
 
-**Criterios de aceptación**
-1. **Dado** una entrada EMITIDA mía y faltan **más de 72 horas** para el evento, **cuando** pido la
-   devolución, **entonces** se registra una solicitud PENDIENTE de aprobación.
-2. **Dado** que faltan 72 horas o menos para el evento, **cuando** pido la devolución, **entonces**
-   se rechaza indicando el plazo.
-3. **Dado** una entrada usada, cancelada o de otro cliente, **cuando** pido la devolución,
-   **entonces** se rechaza.
-4. **Dado** que ya hay una solicitud pendiente para esa entrada, **cuando** la pido de nuevo,
-   **entonces** no se crea una segunda solicitud.
-
-### US-21 — Aprobar o rechazar una devolución
-**Como** administrador **quiero** aprobar o rechazar las solicitudes de devolución **para**
-controlar los reintegros.
+**Como** cliente **quiero** solicitar la devolución de una entrada **para** recuperar mi dinero si no
+puedo asistir.
 
 **Criterios de aceptación**
-1. **Dado** una solicitud PENDIENTE, **cuando** la **apruebo**, **entonces** la entrada pasa a
-   CANCELADA, el asiento (o el lugar de la zona) vuelve a estar disponible y se solicita el
-   reintegro a la pasarela.
-2. **Dado** una solicitud PENDIENTE, **cuando** la **rechazo**, **entonces** la entrada sigue
-   EMITIDA y no se reintegra nada.
-3. **Dado** una solicitud ya resuelta, **cuando** intento aprobarla de nuevo, **entonces** no se
-   genera un segundo reintegro.
-4. **Dado** un reintegro aprobado por el total, **cuando** consulto el pago, **entonces** está
-   REINTEGRADO.
+1. **Dado** una entrada propia válida de un evento que comienza en más de 72 horas, **cuando** pido
+   la devolución, **entonces** la solicitud queda **pendiente** y la entrada sigue siendo válida
+   hasta que se resuelva.
+2. **Dado** un evento que comienza en menos de 72 horas, **cuando** pido la devolución, **entonces**
+   recibo 422 indicando que el plazo venció.
+3. **Dado** una entrada que ya tiene una solicitud pendiente, o que no es propia o no está válida,
+   **cuando** pido otra, **entonces** se rechaza (409, 404 o 422 según el caso).
+4. **Regla:** las entradas de eventos cancelados no requieren solicitud (US-29).
 
-### US-22 — Cancelar un evento
-**Como** administrador **quiero** cancelar un evento **para** que todas sus entradas vendidas pasen
-a reintegro.
+### US-27 — Resolver devolución
 
-**Criterios de aceptación**
-1. **Dado** un evento con entradas vendidas, **cuando** lo cancelo, **entonces** el evento pasa a
-   CANCELADO, todas sus entradas EMITIDAS pasan a CANCELADA y se registra un reintegro pendiente
-   por cada compra.
-2. **Dado** un evento cancelado, **cuando** un cliente intenta reservar, **entonces** se rechaza
-   (409) y se liberan las reservas que estaban activas.
-3. **Dado** un evento ya cancelado, **cuando** lo cancelo otra vez, **entonces** no se duplican
-   reintegros ni cancelaciones (operación idempotente).
-4. **Dado** un evento cancelado, **cuando** consulto el resumen de reintegros del evento,
-   **entonces** veo cuántos están pendientes, completados y fallidos.
-
-### US-23 — Reintentar reintegros fallidos
-**Como** administrador **quiero** que los reintegros que fallaron por problemas de la pasarela se
-reintenten **para** que ningún cliente se quede sin su dinero.
+**Como** administrador **quiero** aprobar o rechazar solicitudes de devolución **para** controlar los reintegros.
 
 **Criterios de aceptación**
-1. **Dado** un reintegro PENDIENTE o INCIERTO, **cuando** corre el proceso de reintento
-   automático, **entonces** se vuelve a pedir a la pasarela con la misma clave de idempotencia.
-2. **Dado** un reintegro fallido, **cuando** lo reintento manualmente, **entonces** se actualiza su
-   estado y se incrementa el contador de intentos.
-3. **Dado** que la pasarela ya había procesado ese reintegro, **cuando** se reintenta, **entonces**
-   no se devuelve el dinero dos veces.
+1. **Dado** que soy administrador, **cuando** listo las solicitudes pendientes, **entonces** las veo
+   con su entrada y cliente.
+2. **Dado** una solicitud pendiente, **cuando** la apruebo o la rechazo, **entonces** se registra
+   administrador, fecha, resultado y motivo (obligatorio al rechazar).
+3. **Dado** una solicitud ya resuelta, **cuando** intento resolverla, **entonces** recibo 409.
+4. **Dado** una entrada ya utilizada, **cuando** intento aprobar su devolución, **entonces** recibo 409.
+5. **Dado** un usuario que no es administrador, **cuando** intenta resolver, **entonces** recibe 403.
+6. **Dado** una solicitud propia, **cuando** la consulto como cliente, **entonces** veo su estado:
+   pendiente, aprobada o rechazada.
+
+### US-28 — Reintegrar y liberar lugar por devolución aprobada
+
+**Como** cliente **quiero** recibir el reintegro cuando se aprueba mi devolución **para** recuperar el
+importe pagado.
+
+**Criterios de aceptación**
+1. **Dado** una devolución aprobada, **cuando** se procesa, **entonces** la entrada pasa a
+   **devuelta** (su QR deja de ser válido), se libera el lugar (US-21) y se solicita a la pasarela
+   el reintegro del importe pagado por esa entrada.
+2. **Dado** un reintegro ya solicitado, **cuando** se vuelve a procesar la misma solicitud,
+   **entonces** no se duplica (clave de idempotencia derivada de la solicitud).
+3. **Dado** que la pasarela falla, **cuando** se pide el reintegro, **entonces** queda registrado
+   como pendiente o rechazado, se reintenta y el administrador lo ve.
+4. **Dado** un lugar liberado, **cuando** el evento sigue publicado y no comenzó, **entonces** vuelve
+   a ofrecerse sin afectar otras entradas válidas.
+
+### US-29 — Reintegrar entradas de un evento cancelado
+
+**Como** cliente **quiero** recibir automáticamente el reintegro si el evento se cancela **para** no
+perder mi dinero.
+
+**Criterios de aceptación**
+1. **Dado** un evento que pasa a cancelado, **cuando** se procesa la cancelación, **entonces** todas
+   sus entradas válidas pasan a **canceladas** y se inicia un reintegro por cada compra afectada.
+2. **Dado** que el proceso se interrumpe, **cuando** se reanuda, **entonces** continúa sin duplicar
+   reintegros (idempotente por compra).
+3. **Dado** cada comprador afectado, **cuando** se cancela el evento, **entonces** se le notifica: en la Entrega 1
+   con un notificador simulado que deja registro en el log; en la Entrega 2 con el servicio real (US-39).
+4. **Dado** que soy administrador, **cuando** consulto el avance, **entonces** veo los reintegros
+   pendientes, completados y fallidos.
 
 ---
 
-## F07 — Fila virtual para eventos de alta demanda
+## F07 — Fila virtual
 
-### US-24 — Entrar a la fila virtual
-**Como** cliente **quiero** entrar a una fila virtual cuando abre la venta de un evento masivo y
-ver mi posición **para** saber cuánto me falta.
+### US-30 — Ingresar a la fila virtual
+*Actualizada en la Entrega 2.*
 
-**Criterios de aceptación**
-1. Dado un evento de alta demanda con la venta abierta, cuando entro, recibo mi posición según el
-   orden de llegada.
-2. Dado que estoy en la fila, cuando consulto, veo mi posición actualizada.
-
-### US-25 — Habilitar compras por tandas
-**Como** sistema **quiero** habilitar a los clientes de la fila por tandas, en orden **para** que
-la venta sea justa y el sistema no se sature.
+**Como** cliente **quiero** ingresar a una fila cuando abre la venta de un evento de alta demanda
+**para** tener una oportunidad justa de compra.
 
 **Criterios de aceptación**
-1. Dado que llega mi turno, cuando me habilitan, puedo comprar durante un tiempo limitado.
-2. Dado que no estoy habilitado, cuando intento reservar, se rechaza.
+1. **Dado** un evento de alta demanda con la fila abierta, **cuando** ingreso, **entonces** recibo un
+   ticket de fila con ID, estado **en espera** y la hora de ingreso, y mi lugar se ordena por la
+   marca de tiempo del servidor (no la del cliente).
+2. **Dado** que ya estoy en la fila, **cuando** vuelvo a ingresar, **entonces** recibo el mismo
+   ticket, conservo mi posición original, se indica que es un reingreso y no se duplica mi lugar.
+3. **Dado** un evento sin fila o con la fila pausada, agotada o cancelada, **cuando** intento
+   ingresar, **entonces** recibo 409 (`EVENTO_NO_HABILITADO`).
+4. **Dado** un evento de alta demanda, **cuando** intento reservar sin una autorización vigente de la
+   fila, **entonces** recibo 409 con el motivo (autorización inválida, vencida o no habilitada).
+5. **Dado** un evento que no es de alta demanda, **cuando** reservo, **entonces** no se exige fila.
+6. **Regla:** implementación simplificada sobre Redis (conjunto ordenado por hora de llegada y
+   operaciones atómicas), justificada en el informe técnico.
 
-### US-26 — Marcar un evento como de alta demanda
-**Como** administrador **quiero** marcar un evento como de alta demanda y definir el tamaño de las
-tandas **para** activar la fila virtual.
+### US-31 — Consultar mi posición en la fila
+*Actualizada en la Entrega 2.*
 
-**Criterios de aceptación**
-1. Dado un evento marcado, cuando abre la venta, todo cliente pasa por la fila.
-2. Dado un evento no marcado, la compra es directa.
-
-## F08 — Control de acceso con QR
-
-### US-27 — Validar una entrada en el ingreso
-**Como** personal de acceso **quiero** escanear el QR de una entrada **para** dejar pasar solo a
-quien tiene una entrada válida.
-
-**Criterios de aceptación**
-1. Dado un QR existente, EMITIDO y de este evento, cuando lo escaneo, se acepta y la entrada pasa a
-   USADA.
-2. Dado el mismo QR escaneado a la vez en dos puertas, solo una lectura se acepta.
-
-### US-28 — Rechazar entradas inválidas
-**Como** personal de acceso **quiero** que se rechacen los QR inválidos indicando el motivo.
+**Como** cliente **quiero** conocer mi posición **para** saber cuánto falta para poder comprar.
 
 **Criterios de aceptación**
-1. Dado un QR ya usado, cancelado, inexistente o de otro evento, cuando lo escaneo, se rechaza con
-   el motivo.
+1. **Dado** que estoy en espera, **cuando** consulto, **entonces** veo mi posición actual, cuántas
+   personas tengo delante, mi estado y el intervalo sugerido para volver a consultar (10 segundos).
+2. **Dado** que avanzó la fila, **cuando** vuelvo a consultar, **entonces** mi posición se actualiza.
+3. **Dado** que fui habilitado, **cuando** consulto, **entonces** veo el estado **habilitado**, mi
+   autorización de compra y hasta cuándo es válida.
+4. **Dado** que mi ventana venció o ya usé la autorización, **cuando** consulto, **entonces** veo el
+   estado **vencido** o **consumido**.
+5. **Dado** que no estoy en la fila de ese evento, **cuando** consulto, **entonces** recibo 404.
+6. **Regla:** cada cliente consulta solo su propia posición; se identifica por el token, no por un
+   parámetro que pueda cambiar.
+
+### US-32 — Habilitar la compra por orden y por tandas
+*Actualizada en la Entrega 2.*
+
+**Como** cliente **quiero** ser habilitado respetando el orden de llegada **para** comprar sin que el
+sistema colapse.
+
+**Criterios de aceptación**
+1. **Dado** una fila abierta con clientes en espera, **cuando** se habilita una tanda, **entonces**
+   pasan a **habilitados** los primeros N clientes en orden estricto de llegada (N configurable; 10
+   por defecto) y cada uno recibe una autorización de compra única.
+2. **Dado** un cliente habilitado, **cuando** reserva dentro de su ventana de 10 minutos,
+   **entonces** la autorización se consume (es de un solo uso) y la reserva continúa (US-17).
+3. **Dado** que la reserva falla después de consumir la autorización (por ejemplo, el asiento ya no
+   está libre), **cuando** se rechaza, **entonces** la autorización se restaura para que el cliente
+   pueda reintentar dentro de su ventana.
+4. **Dado** un cliente habilitado que no reserva a tiempo, **cuando** vence su ventana, **entonces**
+   pasa a **vencido** (el sistema revisa los vencimientos cada 30 segundos) y pierde el turno; puede
+   volver a ingresar al final de la fila.
+5. **Dado** un evento que se suspende, se cancela o se agota, **cuando** cambia su estado,
+   **entonces** la fila pasa a pausada, cancelada o agotada, no admite ingresos ni habilita tandas y
+   se informa a los clientes en espera. Al reanudar el evento, la fila se reabre.
+6. **Regla:** el avance de la fila no bloquea el flujo de compra.
+
+---
+
+## F08 — Control de acceso
+
+### US-33 — Validar una entrada al escanear su QR
+
+**Como** personal de acceso **quiero** escanear el QR de una entrada **para** verificar su legitimidad.
+
+**Criterios de aceptación**
+1. **Dado** un QR existente, en estado válida y del evento en el que estoy controlando, **cuando** lo
+   escaneo, **entonces** la respuesta es **autorizado** con datos mínimos (sector o asiento) y sin
+   datos personales del cliente.
+2. **Dado** un QR inexistente, **cuando** lo escaneo, **entonces** se rechaza con el motivo *inexistente*.
+3. **Dado** un QR de otro evento, **cuando** lo escaneo, **entonces** se rechaza con el motivo *otro evento*.
+4. **Dado** un QR de una entrada devuelta o cancelada, **cuando** lo escaneo, **entonces** se rechaza
+   con el motivo *devuelta* o *cancelada*.
+5. **Regla:** la operación recibe el QR y el evento; solo la puede usar el personal de acceso (US-49).
+
+### US-34 — Marcar entrada como utilizada y rechazar el segundo uso
+
+**Como** personal de acceso **quiero** que cada QR ingrese una sola vez **para** evitar accesos duplicados.
+
+**Criterios de aceptación**
+1. **Dado** una entrada válida, **cuando** se autoriza su ingreso, **entonces** pasa a **utilizada**
+   con fecha, hora y puesto de acceso.
+2. **Dado** una entrada ya utilizada, **cuando** se escanea de nuevo, **entonces** se rechaza como
+   *ya utilizada*, se informa la hora del primer ingreso y no se modifica el primer registro.
+3. **Dado** dos lectores que escanean el mismo QR al mismo tiempo, **cuando** se procesan,
+   **entonces** solo uno es autorizado (actualización atómica condicional).
+4. **Dado** cualquier validación, autorizada o rechazada, **cuando** termina, **entonces** queda
+   registrada en la auditoría centralizada (EN-09).
+
+---
 
 ## F09 — Preferencias y recomendaciones
 
-### US-29 — Registrar mis preferencias
-**Como** cliente **quiero** guardar tipos de evento, artistas favoritos y ciudad **para** recibir
-sugerencias a mi medida.
+### US-35 — Registrar preferencias
+*Actualizada en la Entrega 2.*
+
+**Como** cliente **quiero** registrar mis gustos **para** recibir una oferta acorde a mis intereses.
 
 **Criterios de aceptación**
-1. Dado que guardo preferencias, cuando las consulto, las veo tal como las guardé (base NoSQL).
+1. **Dado** que guardo tipos de evento, artistas favoritos y ciudades de interés, **cuando** las
+   consulto, **entonces** las veo tal como las guardé.
+2. **Dado** que ya tengo preferencias, **cuando** las vuelvo a guardar, **entonces** se actualizan
+   (un único documento por cliente, sin duplicados).
+3. **Dado** preferencias de otro cliente, **cuando** intento verlas o modificarlas, **entonces** se
+   rechaza: solo son visibles y modificables por su dueño.
+4. **Dado** un artista favorito que no existe como participante, **cuando** lo guardo, **entonces**
+   recibo 404.
+5. **Regla:** se almacenan en MongoDB (EN-02), porque son documentos de estructura flexible que se
+   consultan por cliente.
 
-### US-30 — Recibir recomendaciones
-**Como** cliente **quiero** ver eventos sugeridos según mi historial ("quienes compraron para este
-evento también compraron…") **para** descubrir eventos nuevos.
+### US-36 — Recibir recomendaciones según gustos e historial
+
+**Como** cliente **quiero** que me sugieran eventos según mis preferencias y compras anteriores
+**para** descubrir propuestas de mi interés.
 
 **Criterios de aceptación**
-1. Dado que compré para un evento, cuando pido recomendaciones, veo eventos publicados que
-   compraron otros clientes de ese evento, sin incluir los que ya compré.
+1. **Dado** un cliente con preferencias o compras, **cuando** pide recomendaciones, **entonces**
+   recibe eventos que coinciden con sus tipos, artistas o ciudades de interés y con su historial.
+2. **Dado** cualquier recomendación, **cuando** se arma la lista, **entonces** solo incluye eventos
+   publicados con disponibilidad; nunca borradores, suspendidos, agotados, cancelados, finalizados ni
+   eventos para los que el cliente ya compró.
+3. **Dado** un cliente sin historial ni preferencias, **cuando** pide recomendaciones, **entonces**
+   recibe los eventos más vendidos de su ciudad.
+4. **Regla:** se admite una versión simplificada del algoritmo, justificada en el diseño.
+
+### US-37 — Sugerir eventos relacionados
+*Actualizada en la Entrega 2.*
+
+**Como** cliente **quiero** ver "quienes compraron este evento también compraron…" **para** encontrar
+eventos afines.
+
+**Criterios de aceptación**
+1. **Dado** un evento con sugerencias calculadas, **cuando** las consulto, **entonces** recibo otros
+   eventos cuyos compradores coinciden, ordenados por cantidad de coincidencias, y la fecha de la
+   última actualización.
+2. **Dado** un evento sin sugerencias calculadas, **cuando** las consulto, **entonces** recibo 404.
+3. **Regla:** solo se exponen datos agregados, nunca datos personales de otros clientes, y se exige
+   un mínimo configurable de compradores coincidentes.
+4. **Regla:** las sugerencias se guardan precalculadas por evento y se actualizan a partir de las
+   compras confirmadas (versión simplificada; se acepta consistencia eventual).
+5. **Regla:** solo se sugieren eventos publicados con disponibilidad.
+
+---
 
 ## F10 — Notificaciones
 
-### US-31 — Confirmación de compra
-**Como** cliente **quiero** recibir un email o push al confirmar la compra con mis entradas.
+### US-38 — Notificar compra confirmada
+
+**Como** cliente **quiero** recibir una notificación al confirmarse mi compra **para** tener el
+comprobante de mis entradas.
 
 **Criterios de aceptación**
-1. Dado una compra COMPLETADA, se envía la notificación de forma asíncrona; si el servicio de
-   notificaciones falla, la compra igual se completa.
+1. **Dado** una compra aprobada, **cuando** se confirma, **entonces** se me envía un email o push que
+   identifica la compra y las entradas emitidas.
+2. **Dado** que el servicio de notificaciones falla, **cuando** se intenta enviar, **entonces** la
+   compra sigue confirmada (nunca se revierte), se reintenta y, si persiste, el mensaje pasa a la cola
+   de reenvío (EN-07).
+3. **Regla:** el envío es asíncrono (EN-03) y no demora la respuesta de la compra.
 
-### US-32 — Aviso de cancelación o cambio de evento
-**Como** cliente **quiero** ser avisado si el evento se cancela o cambia de fecha o lugar.
+### US-39 — Notificar cambios y cancelaciones de eventos
+
+**Como** cliente **quiero** ser avisado si cambia o se cancela un evento al que voy a asistir **para**
+tomar decisiones a tiempo.
 
 **Criterios de aceptación**
-1. Dado un evento cancelado o modificado, cada comprador recibe una única notificación.
+1. **Dado** un cambio relevante (US-02) en un evento, **cuando** se registra, **entonces** se
+   notifica a cada comprador con entradas vigentes, identificando el evento y el cambio.
+2. **Dado** un evento cancelado (US-06), **cuando** se procesa la cancelación, **entonces** se
+   notifica a cada comprador e informa además el proceso de reintegro.
+3. **Dado** un comprador con varias entradas, **cuando** se notifica, **entonces** recibe un solo
+   mensaje (por comprador, no por entrada).
+4. **Dado** que el proceso de notificación se repite, **cuando** se reprocesa, **entonces** no se
+   generan mensajes duplicados.
 
-### US-33 — Aviso de artista favorito en mi ciudad
-**Como** cliente **quiero** enterarme cuando un artista favorito publica un evento en mi ciudad.
+### US-40 — Notificar evento de artista favorito
+
+**Como** cliente **quiero** enterarme cuando un artista favorito publica un evento en mi ciudad
+**para** no perder la oportunidad de comprar.
 
 **Criterios de aceptación**
-1. Dado que se publica un evento con ese artista en mi ciudad, recibo la notificación.
+1. **Dado** que tengo un artista favorito y una ciudad de interés configurados (US-35), **cuando** se
+   publica (US-04) un evento con ese artista en un lugar de esa ciudad, **entonces** se me notifica.
+2. **Dado** un cliente que no tiene configurados ese artista y esa ciudad, **cuando** se publica el
+   evento, **entonces** no se le notifica.
+3. **Dado** un evento no publicado, **cuando** cambia de datos, **entonces** no se notifica.
+4. **Dado** un evento ya notificado, **cuando** el proceso se repite, **entonces** se envía una sola
+   notificación por cliente y evento.
+
+---
 
 ## F11 — Reportes para organizadores
 
-### US-34 — Ventas y devoluciones por sector
-**Como** organizador **quiero** ver las entradas vendidas y devueltas por sector de mis eventos.
+### US-41 — Consultar ventas y devoluciones por sector
+
+**Como** organizador **quiero** ver las entradas vendidas y devueltas por sector **para** seguir la
+evolución de mi evento.
 
 **Criterios de aceptación**
-1. Dado un evento mío, cuando pido el reporte, veo vendidas y devueltas por sector.
-2. Dado un evento de otro organizador, el reporte se rechaza.
+1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo por sector la cantidad de
+   entradas vendidas y devueltas, y el total del evento.
+2. **Dado** un evento de otro organizador, **cuando** pido el reporte, **entonces** recibo 403 (o 404
+   para no revelar que existe).
+3. **Dado** que soy administrador, **cuando** pido el reporte de cualquier evento, **entonces** lo veo.
+4. **Regla:** los datos reflejan operaciones confirmadas; si se alimentan de eventos asíncronos puede
+   haber una demora de segundos.
 
-### US-35 — Ocupación y recaudación
-**Como** organizador **quiero** ver el porcentaje de ocupación y la recaudación de mis eventos.
+### US-42 — Consultar porcentaje de ocupación
 
-**Criterios de aceptación**
-1. Dado un evento, el reporte muestra ocupación (vendidas / capacidad) y recaudación neta de
-   reintegros.
-
-## F12 — Seguridad
-
-### US-36 — Autenticarme
-**Como** usuario **quiero** iniciar sesión y recibir un token JWT **para** usar el sistema con mi
-rol.
+**Como** organizador **quiero** conocer la ocupación de mi evento **para** decidir acciones comerciales.
 
 **Criterios de aceptación**
-1. Dado credenciales válidas, recibo un JWT con mi rol; dado credenciales inválidas, 401.
+1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo la ocupación por sector y
+   total, identificando cada sector.
+2. **Regla:** ocupación = entradas válidas emitidas (vendidas − devueltas) ÷ capacidad. La capacidad
+   de un sector numerado es su cantidad de asientos y la de uno no numerado, su capacidad máxima.
+3. **Ejemplo:** un sector de 200 lugares con 150 vendidas y 10 devueltas tiene 70 % de ocupación.
+4. **Dado** un evento ajeno, **cuando** pido el reporte, **entonces** recibo 403 o 404 (como en US-41).
 
-### US-37 — Acceso según el rol
-**Como** administrador del sistema **quiero** que cada endpoint solo sea accesible por los roles
-que corresponden.
+### US-43 — Consultar recaudación
 
-**Criterios de aceptación**
-1. Dado un cliente, cuando intenta publicar o cancelar un evento, recibe 403.
-2. Dado una solicitud sin token a un endpoint protegido, recibe 401.
-
-## F13 — Operación y calidad del sistema
-
-### US-38 — Trazabilidad de las operaciones
-**Como** administrador **quiero** que cada solicitud quede registrada con endpoint, usuario, código
-de respuesta y tiempo, y que cada operación crítica tenga un identificador común entre servicios.
+**Como** organizador **quiero** ver la recaudación de mi evento **para** evaluar su rendimiento financiero.
 
 **Criterios de aceptación**
-1. Dado una compra, puedo seguirla en el log centralizado de todos los servicios con un mismo
-   `X-Correlation-Id`.
+1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo recaudación bruta, importe
+   reintegrado y recaudación neta, por evento y por sector.
+2. **Dado** reintegros pendientes, **cuando** pido el reporte, **entonces** se informan por separado
+   y no se descuentan de la recaudación neta hasta que se apliquen.
+3. **Regla:** solo se consideran ventas aprobadas y reintegros aplicados.
+4. **Dado** un evento ajeno, **cuando** pido el reporte, **entonces** recibo 403; solo el organizador
+   propietario (o un administrador) puede consultarlo.
 
-### US-39 — Resiliencia ante servicios externos
-**Como** cliente **quiero** que el sistema responda aunque la pasarela o las notificaciones fallen.
+---
 
-**Criterios de aceptación**
-1. Dado que la pasarela no responde, se aplican timeout, reintentos y fallback, y el pago queda
-   INCIERTO para reconciliarse después, sin dejar lugares retenidos para siempre.
+## F12 — Identidad y permisos
+encabezados; en la Entrega 2 se reemplaza por JWT sin cambiar las reglas de negocio.
 
-### US-40 — Cache del catálogo
-**Como** cliente **quiero** que el catálogo y las búsquedas respondan rápido en momentos de mucha
-demanda.
+### US-44 — Identificarse mediante encabezados
+*Actualizada en la Entrega 2.*
 
-**Criterios de aceptación**
-1. Dado un evento modificado, su cache se invalida; la disponibilidad de asientos nunca se cachea.
-
-### US-41 — Despliegue con un solo comando
-**Como** desarrollador **quiero** levantar todo el sistema con un único `docker-compose.yml`
-**para** desplegarlo fácilmente.
+**Como** usuario de cualquier rol **quiero** identificarme con encabezados **para** operar en la
+Entrega 1 sin autenticación.
 
 **Criterios de aceptación**
-1. Cada microservicio se puede construir y ejecutar por separado, con su propia base de datos.
-2. Con `docker compose up` quedan arriba bases, gateway y microservicios, cada uno en su
-   contenedor.
+1. **Dado** un endpoint no público, **cuando** faltan `X-User-Id` o `X-User-Role`, **entonces** recibo
+   401; un rol inválido devuelve 400.
+2. **Regla:** las reglas de rol (por ejemplo, solo administradores) y de pertenencia (organizador
+   propietario, cliente dueño) se aplican sobre esta identidad desde la Entrega 1, para que en la
+   Entrega 2 solo cambie el mecanismo.
+3. **Dado** la Entrega 2, **cuando** una request pasa por el gateway, **entonces** el gateway completa
+   `X-User-Id` y `X-User-Role` a partir del JWT validado y descarta los que haya enviado el cliente.
+4. **Regla:** el mecanismo de la Entrega 1 es temporal, se documenta como inseguro y no se expone
+   fuera del entorno de desarrollo.
 
-### US-42 — Soportar la apertura de venta masiva
-**Como** organizador **quiero** que el sistema soporte miles de compras simultáneas.
+### US-45 — Registrarse e iniciar sesión con JWT
+*Actualizada en la Entrega 2.*
+
+**Como** usuario **quiero** registrarme e iniciar sesión **para** acceder al sistema de forma segura.
 
 **Criterios de aceptación**
-1. Dado una prueba de carga del flujo de compra (JMeter), se reportan usuarios concurrentes, tiempos
-   de respuesta y errores, y no hay ninguna doble venta.
+1. **Dado** nombre, email válido y contraseña de 8 a 72 caracteres, **cuando** me registro,
+   **entonces** se crea mi cuenta siempre con rol **cliente** y recibo 201.
+2. **Dado** datos inválidos, **cuando** me registro, **entonces** recibo 400; **dado** un email ya
+   registrado, recibo 409.
+3. **Dado** credenciales válidas, **cuando** inicio sesión, **entonces** recibo un JWT firmado (RS256)
+   con mi identificador, email, rol y un vencimiento de 1 hora.
+4. **Dado** credenciales inválidas, **cuando** inicio sesión, **entonces** recibo 401 sin indicar si
+   falló el email o la contraseña.
+5. **Dado** un token válido, **cuando** consulto mi cuenta, **entonces** veo mis datos sin la contraseña.
+6. **Dado** cualquier request al sistema, **cuando** pasa por el gateway, **entonces** se validan
+   firma, emisor y vencimiento del token con la clave pública que publica el servicio de identidad
+   (JWKS), y la identidad se propaga a los servicios.
+7. **Regla:** las contraseñas se guardan con hash (BCrypt) y nunca aparecen en logs ni respuestas.
+   Al arrancar se crea un administrador inicial configurable por variables de entorno.
+
+### US-46 — Permisos del cliente
+
+**Como** cliente autenticado **quiero** acceder a mis funciones **para** comprar y gestionar mis entradas.
+
+**Criterios de aceptación**
+1. **Dado** un token de cliente, **cuando** busco eventos, compro, veo mis compras y entradas,
+   ingreso a la fila virtual, gestiono mis preferencias o solicito devoluciones propias,
+   **entonces** la operación se permite.
+2. **Dado** un token de cliente, **cuando** intento crear, publicar, suspender o cancelar eventos,
+   resolver devoluciones, consultar reportes o validar QR, **entonces** recibo 403.
+3. **Dado** un token de cliente, **cuando** intento ver compras, entradas o preferencias de otro
+   cliente, **entonces** se rechaza (403 o 404).
+
+### US-47 — Permisos del organizador
+
+**Como** organizador autenticado **quiero** gestionar mis eventos **para** publicarlos y seguir su desempeño.
+
+**Criterios de aceptación**
+1. **Dado** un token de organizador, **cuando** creo, configuro o publico mis propios eventos,
+   registro lugares o consulto los reportes de mis eventos, **entonces** la operación se permite.
+2. **Dado** un token de organizador, **cuando** intento suspender o cancelar eventos, resolver
+   devoluciones o comprar, **entonces** recibo 403.
+3. **Dado** un evento de otro organizador, **cuando** intento modificarlo, publicarlo o ver sus
+   reportes, **entonces** recibo 403.
+
+### US-48 — Permisos del administrador
+*Actualizada en la Entrega 2.*
+
+**Como** administrador autenticado **quiero** realizar las tareas operativas **para** mantener el sistema.
+
+**Criterios de aceptación**
+1. **Dado** un token de administrador, **cuando** suspendo, reanudo o cancelo cualquier evento,
+   apruebo o rechazo devoluciones o consulto el avance de los reintegros, **entonces** la operación se permite.
+2. **Dado** un token de administrador, **cuando** doy de alta un usuario organizador, administrador o
+   personal de acceso, **entonces** se crea (201); **dado** que intento crear un cliente por esta vía,
+   recibo 400 (los clientes se registran solos).
+3. **Dado** un usuario que no es administrador, **cuando** intenta dar de alta usuarios, **entonces** recibe 403.
+4. **Regla:** las acciones operativas del administrador quedan registradas en la auditoría
+   centralizada (EN-09).
+
+### US-49 — Permisos del personal de acceso
+
+**Como** personal de acceso autenticado **quiero** validar entradas **para** controlar el ingreso.
+
+**Criterios de aceptación**
+1. **Dado** un token de personal de acceso, **cuando** valido un QR (US-33, US-34), **entonces** la
+   operación se permite.
+2. **Dado** un token de personal de acceso, **cuando** intento comprar, administrar eventos o
+   resolver devoluciones, **entonces** recibo 403.
+
+### Criterios transversales a US-46 a US-49
+
+1. **Dado** una request a un endpoint protegido sin token, **cuando** llega al gateway, **entonces** recibo 401.
+2. **Dado** un token inválido, con firma falsa, de otro emisor o vencido, **cuando** llega al
+   gateway, **entonces** recibo 401.
+3. **Dado** un token válido cuyo rol no tiene permiso, **cuando** llega al gateway, **entonces** recibo 403.
+4. **Dado** un cliente que envía a mano `X-User-Role: ADMINISTRADOR`, **cuando** llega al gateway,
+   **entonces** ese encabezado se ignora y vale el rol del token.
+5. **Regla:** la matriz endpoint × rol se documenta en OpenAPI y se verifica con pruebas automáticas
+   (EN-13).
