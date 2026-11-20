@@ -16,6 +16,7 @@
         <module>compra-service</module>
         <module>inventario-service</module>
         <module>fila-virtual-service</module>
+        <module>notificaciones-service</module>
     </modules>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
