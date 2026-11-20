@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
 import org.example.catalogoservice.dto.EventoNotificacionResponse;
+import org.example.catalogoservice.dto.EventoModificacionRequest;
 import org.example.catalogoservice.service.EventoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/eventos")
@@ -112,8 +114,15 @@ public class EventoController {
     })
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<Evento> cancelarEvento(
-            @Parameter(description = "ID del evento", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(eventoService.cancelarEvento(id));
+            @Parameter(description = "ID del evento", required = true) @PathVariable Long id,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+        return ResponseEntity.ok(eventoService.cancelarEvento(id, correlation(correlationId)));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Evento> modificarEvento(@PathVariable Long id, @RequestBody EventoModificacionRequest request,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+        return ResponseEntity.ok(eventoService.modificarEvento(id, request, correlation(correlationId)));
     }
 
     @Operation(
@@ -144,5 +153,9 @@ public class EventoController {
     public ResponseEntity<Evento> reanudarEvento(
             @Parameter(description = "ID del evento", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(eventoService.reanudarEvento(id));
+    }
+
+    private String correlation(String correlationId) {
+        return correlationId == null || correlationId.isBlank() ? UUID.randomUUID().toString() : correlationId;
     }
 }

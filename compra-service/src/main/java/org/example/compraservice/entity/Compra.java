@@ -20,6 +20,9 @@ public class Compra {
     private Long clienteId;
 
     @Column(nullable = false)
+    private String emailCliente;
+
+    @Column(nullable = false)
     private Long eventoId;
 
     @Column(unique = true, nullable = false)

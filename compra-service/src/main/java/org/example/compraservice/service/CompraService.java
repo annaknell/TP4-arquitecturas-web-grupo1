@@ -60,6 +60,7 @@ public class CompraService {
         // Inicializar la Compra
         Compra compra = new Compra();
         compra.setClienteId(clienteId);
+        compra.setEmailCliente(email);
         compra.setEventoId(request.eventoId());
         compra.setIdempotencyKey(idempotencyKey);
         compra.setAsientos(request.asientos());
@@ -127,5 +128,15 @@ public class CompraService {
 
     public Compra obtenerPorId(Long id) {
         return compraRepository.findById(id).orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+    }
+
+    public List<CompradorNotificacionResponse> compradoresCompletadosPorEvento(Long eventoId) {
+        return compraRepository.findByEventoIdAndEstado(eventoId, "COMPLETADA").stream()
+                .filter(compra -> compra.getEmailCliente() != null && !compra.getEmailCliente().isBlank())
+                .collect(java.util.stream.Collectors.toMap(
+                        Compra::getEmailCliente,
+                        compra -> new CompradorNotificacionResponse(compra.getClienteId(), compra.getEmailCliente()),
+                        (primero, ignorado) -> primero
+                )).values().stream().toList();
     }
 }

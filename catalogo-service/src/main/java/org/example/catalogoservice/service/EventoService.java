@@ -4,6 +4,8 @@ import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
 import org.example.catalogoservice.entity.Lugar;
 import org.example.catalogoservice.dto.EventoNotificacionResponse;
+import org.example.catalogoservice.dto.EventoModificacionRequest;
+import org.example.catalogoservice.messaging.EventoNotificacionPublisher;
 import org.example.catalogoservice.repository.EventoRepository;
 import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
@@ -19,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.UUID;
 
 @Service
 public class EventoService {
@@ -43,6 +47,8 @@ public class EventoService {
 
     @Autowired
     private FilaVirtualClient filaVirtualClient;
+    @Autowired
+    private EventoNotificacionPublisher eventoNotificacionPublisher;
 
     public List<Evento> listarEventosPublicados() {
         return eventoRepository.findByEstado("PUBLICADO");
@@ -98,6 +104,11 @@ public class EventoService {
 
     @Transactional
     public Evento cancelarEvento(Long id) {
+        return cancelarEvento(id, UUID.randomUUID().toString());
+    }
+
+    @Transactional
+    public Evento cancelarEvento(Long id, String correlationId) {
         Evento evento = eventoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
 
@@ -112,7 +123,37 @@ public class EventoService {
         if (eventoCancelado.isAltaDemanda()) {
             filaVirtualClient.cancelarFila(eventoCancelado.getId());
         }
+        eventoNotificacionPublisher.publicarCancelacion(eventoCancelado, correlationId);
         return eventoCancelado;
+    }
+
+    @Transactional
+    public Evento modificarEvento(Long id, EventoModificacionRequest request, String correlationId) {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+        LinkedHashMap<String, Object> cambios = new LinkedHashMap<>();
+        if (request.fechaInicio() != null && !request.fechaInicio().equals(evento.getFechaInicio())) {
+            cambios.put("fechaAnterior", evento.getFechaInicio().toString());
+            cambios.put("fechaNueva", request.fechaInicio().toString());
+            evento.setFechaInicio(request.fechaInicio());
+        }
+        if (request.fechaFin() != null && !request.fechaFin().equals(evento.getFechaFin())) {
+            cambios.put("fechaFinAnterior", evento.getFechaFin() == null ? null : evento.getFechaFin().toString());
+            cambios.put("fechaFinNueva", request.fechaFin().toString());
+            evento.setFechaFin(request.fechaFin());
+        }
+        if (request.lugarId() != null && !request.lugarId().equals(evento.getLugar().getId())) {
+            cambios.put("lugarAnterior", evento.getLugar().getNombre());
+            Lugar lugarNuevo = lugarRepository.findById(request.lugarId())
+                    .orElseThrow(() -> new RuntimeException("Lugar no encontrado con ID: " + request.lugarId()));
+            evento.setLugar(lugarNuevo);
+            cambios.put("lugarNuevo", lugarNuevo.getNombre());
+        }
+        Evento actualizado = eventoRepository.save(evento);
+        if (!cambios.isEmpty()) {
+            eventoNotificacionPublisher.publicarModificacion(actualizado, correlationId, cambios);
+        }
+        return actualizado;
     }
 
     @Transactional

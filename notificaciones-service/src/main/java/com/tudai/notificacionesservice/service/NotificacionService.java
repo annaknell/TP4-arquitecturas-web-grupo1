@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.config.ReintentosProperties;
+import com.tudai.notificacionesservice.client.CompradoresClient;
 import com.tudai.notificacionesservice.entity.EventoRecibido;
 import com.tudai.notificacionesservice.entity.Notificacion;
 import com.tudai.notificacionesservice.notification.NotificadorEmail;
@@ -26,17 +27,20 @@ public class NotificacionService {
     private final ObjectMapper objectMapper;
     private final NotificadorEmail notificadorEmail;
     private final ReintentosProperties reintentosProperties;
+    private final CompradoresClient compradoresClient;
 
     public NotificacionService(EventoRecibidoRepository eventoRecibidoRepository,
                                NotificacionRepository notificacionRepository,
                                ObjectMapper objectMapper,
                                NotificadorEmail notificadorEmail,
-                               ReintentosProperties reintentosProperties) {
+                               ReintentosProperties reintentosProperties,
+                               CompradoresClient compradoresClient) {
         this.eventoRecibidoRepository = eventoRecibidoRepository;
         this.notificacionRepository = notificacionRepository;
         this.objectMapper = objectMapper;
         this.notificadorEmail = notificadorEmail;
         this.reintentosProperties = reintentosProperties;
+        this.compradoresClient = compradoresClient;
     }
 
     /**
@@ -45,13 +49,14 @@ public class NotificacionService {
      */
     @Transactional
     public void crearPendientesDesdeEventos() {
-        List<EventoRecibido> eventos = eventoRecibidoRepository.findByTipoAndEstado(
-                EventoRecibido.TipoEvento.COMPRA_COMPLETADA,
-                EventoRecibido.Estado.RECIBIDO
-        );
+        List<EventoRecibido> eventos = eventoRecibidoRepository.findByEstado(EventoRecibido.Estado.RECIBIDO);
 
         for (EventoRecibido evento : eventos) {
-            crearConfirmacionCompra(evento);
+            switch (evento.getTipo()) {
+                case COMPRA_COMPLETADA -> crearConfirmacionCompra(evento);
+                case EVENTO_CANCELADO -> crearAvisosEvento(evento, Notificacion.Tipo.CANCELACION_EVENTO);
+                case EVENTO_MODIFICADO -> crearAvisosEvento(evento, Notificacion.Tipo.MODIFICACION_EVENTO);
+            }
         }
     }
 
@@ -174,6 +179,40 @@ public class NotificacionService {
         eventoRecibidoRepository.save(evento);
     }
 
+    private void crearAvisosEvento(EventoRecibido evento, Notificacion.Tipo tipo) {
+        JsonNode payload = leerPayload(evento);
+        Long eventoId = payload.path("eventoId").asLong(0);
+        if (eventoId <= 0) {
+            throw new IllegalArgumentException("El evento no contiene un eventoId válido");
+        }
+        String nombreEvento = campoObligatorio(payload, "nombreEvento");
+        LocalDateTime ahora = LocalDateTime.now(ZoneOffset.UTC);
+        for (CompradoresClient.CompradorResponse comprador : compradoresClient.buscarPorEvento(eventoId)) {
+            if (comprador.email() == null || comprador.email().isBlank()
+                    || notificacionRepository.existsByEventoRecibidoAndDestinatarioAndCanal(
+                            evento, comprador.email(), Notificacion.Canal.EMAIL)) {
+                continue;
+            }
+            Notificacion notificacion = new Notificacion();
+            notificacion.setEventoRecibido(evento);
+            notificacion.setDestinatario(comprador.email());
+            notificacion.setCanal(Notificacion.Canal.EMAIL);
+            notificacion.setTipo(tipo);
+            notificacion.setAsunto((tipo == Notificacion.Tipo.CANCELACION_EVENTO ? "Cancelación" : "Modificación")
+                    + " del evento - " + nombreEvento);
+            notificacion.setContenido(construirContenidoEvento(payload, tipo));
+            notificacion.setEstado(Notificacion.Estado.PENDIENTE);
+            notificacion.setIntentos(0);
+            notificacion.setProximoIntentoEn(ahora);
+            notificacion.setCreadaEn(ahora);
+            notificacion.setActualizadaEn(ahora);
+            notificacionRepository.save(notificacion);
+        }
+        evento.setEstado(EventoRecibido.Estado.PROCESADO);
+        evento.setProcesadoEn(ahora);
+        eventoRecibidoRepository.save(evento);
+    }
+
     private JsonNode leerPayload(EventoRecibido evento) {
         try {
             return objectMapper.readTree(evento.getPayload());
@@ -209,6 +248,16 @@ public class NotificacionService {
         }
 
         return contenido.toString();
+    }
+
+    private String construirContenidoEvento(JsonNode payload, Notificacion.Tipo tipo) {
+        String nombreEvento = campoObligatorio(payload, "nombreEvento");
+        if (tipo == Notificacion.Tipo.CANCELACION_EVENTO) {
+            return "Hola,\n\nEl evento " + nombreEvento + " fue cancelado.\nMotivo: "
+                    + campoObligatorio(payload, "motivo");
+        }
+        return "Hola,\n\nEl evento " + nombreEvento + " fue modificado.\nCambios: "
+                + payload.path("cambios").toPrettyString();
     }
 
     private String campoObligatorio(JsonNode nodo, String nombreCampo) {

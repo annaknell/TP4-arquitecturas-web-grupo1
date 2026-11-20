@@ -4,7 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="" />
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/catalogo-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/CatalogoServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/CatalogoServiceApplicationTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/controller/CompraController.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/controller/CompraController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/entity/Compra.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/entity/Compra.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/repository/CompraRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/repository/CompraRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/service/CompraService.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/service/CompraService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/repository/EventoRecibidoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/repository/EventoRecibidoRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/test/java/com/tudai/notificacionesservice/service/NotificacionServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/test/java/com/tudai/notificacionesservice/service/NotificacionServiceTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -147,37 +161,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Spring Boot.PagosApplication.executor": "Run",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "copilot.chat.legacySessionMetadata.migrated": "true",
-    "git-widget-placeholder": "mateo-branch",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.jshint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.jshint": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "SDKs",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "run.configurations.included.in.services": "true",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.archetype.catalogs",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.PagosApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;copilot.chat.legacySessionMetadata.migrated&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;mateo-branch&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.archetype.catalogs&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.tudai.notificacionesservice.messaging" />
@@ -254,6 +268,13 @@
     <configuration name="PagosApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="pago-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.tudai.pagos.PagosApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RecomendacionesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="recomendaciones-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.recomendacionesservice.RecomendacionesServiceApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>

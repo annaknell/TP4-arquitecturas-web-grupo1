@@ -2,6 +2,7 @@ package com.tudai.notificacionesservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.config.ReintentosProperties;
+import com.tudai.notificacionesservice.client.CompradoresClient;
 import com.tudai.notificacionesservice.entity.Notificacion;
 import com.tudai.notificacionesservice.notification.NotificadorEmail;
 import com.tudai.notificacionesservice.repository.EventoRecibidoRepository;
@@ -35,6 +36,8 @@ class NotificacionServiceTest {
     private NotificacionRepository notificacionRepository;
     @Mock
     private NotificadorEmail notificadorEmail;
+    @Mock
+    private CompradoresClient compradoresClient;
 
     private NotificacionService service;
 
@@ -48,7 +51,8 @@ class NotificacionServiceTest {
                 notificacionRepository,
                 new ObjectMapper(),
                 notificadorEmail,
-                reintentos
+                reintentos,
+                compradoresClient
         );
     }
 

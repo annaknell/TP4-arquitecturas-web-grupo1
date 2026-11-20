@@ -8,6 +8,7 @@ import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
 import org.example.catalogoservice.repository.ParticipanteRepository;
 import org.example.catalogoservice.service.EventoService;
+import org.example.catalogoservice.messaging.EventoNotificacionPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,9 @@ class EventoServiceTest {
 
     @Mock
     private PagosClient pagosClient;
+
+    @Mock
+    private EventoNotificacionPublisher eventoNotificacionPublisher;
 
     @InjectMocks
     private EventoService eventoService;

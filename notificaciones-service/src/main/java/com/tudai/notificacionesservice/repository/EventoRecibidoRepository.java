@@ -16,4 +16,6 @@ public interface EventoRecibidoRepository extends JpaRepository<EventoRecibido, 
             EventoRecibido.TipoEvento tipo,
             EventoRecibido.Estado estado
     );
+
+    List<EventoRecibido> findByEstado(EventoRecibido.Estado estado);
 }
