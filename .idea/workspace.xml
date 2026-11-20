@@ -6,25 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/config/RabbitMqConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/config/RabbitMqConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/controller/ReintegroController.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/controller/ReintegroController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroCompraRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroCompraRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroDevolucionAprobadaRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroDevolucionAprobadaRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/dto/ReintegroRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/AsignacionReintegro.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/AsignacionReintegro.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/Reintegro.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/Reintegro.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/service/ReintegroService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/service/ReintegroService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/service/ReintegroTransaccionalService.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/service/ReintegroTransaccionalService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pago-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/config/RabbitMqConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/config/RabbitMqConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/entity/ReporteSector.java" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/entity/ReporteSector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/messaging/ReporteEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/messaging/ReporteEventListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/service/ReporteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/src/main/java/com/tudai/reportesservice/service/ReporteService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,61 +64,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.8112595900550714E-14" />
-      <entry key="MS500" value="0.0017848335643675648" />
-      <entry key="S2" value="0.21452868996415855" />
-      <entry key="S5" value="0.696163352441349" />
-      <entry key="S10" value="1.3710328962378273" />
-      <entry key="S30" value="3.705271025337404" />
-      <entry key="S60" value="5.6945838292038955" />
-      <entry key="M2" value="7.742807743275365" />
-      <entry key="M5" value="9.875563978889799" />
-      <entry key="M10" value="10.95547833242229" />
-      <entry key="M15" value="11.502231481933896" />
-      <entry key="M30" value="12.538121497370263" />
-      <entry key="H1" value="18.836110669256332" />
-      <entry key="H2" value="59.750999405632754" />
-      <entry key="H4" value="155.54820959132456" />
-      <entry key="D1" value="444.226820368592" />
-      <entry key="W1" value="703.1869786489689" />
+      <entry key="MS100" value="1.0000000000322926" />
+      <entry key="MS500" value="1.0079766572328936" />
+      <entry key="S2" value="1.3001132075632733" />
+      <entry key="S5" value="1.77386206239294" />
+      <entry key="S10" value="2.8927737213746783" />
+      <entry key="S30" value="7.525290176139328" />
+      <entry key="S60" value="11.558505161451633" />
+      <entry key="M2" value="15.432917194291637" />
+      <entry key="M5" value="19.255240840545135" />
+      <entry key="M10" value="21.073234668902455" />
+      <entry key="M15" value="21.891351776680537" />
+      <entry key="M30" value="23.212943961289405" />
+      <entry key="H1" value="29.61986647028206" />
+      <entry key="H2" value="70.4700704050177" />
+      <entry key="H4" value="166.20533517527772" />
+      <entry key="D1" value="455.06794997474395" />
+      <entry key="W1" value="714.1512478213136" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000011954622463" />
-      <entry key="S2" value="1.033066175490619" />
-      <entry key="S5" value="1.2557134588051948" />
-      <entry key="S10" value="1.5056880062671207" />
-      <entry key="S30" value="1.826338417019374" />
-      <entry key="S60" value="2.1355779279857297" />
-      <entry key="M2" value="2.6415499732031114" />
-      <entry key="M5" value="3.2892156273012323" />
-      <entry key="M10" value="3.6205888593017685" />
-      <entry key="M15" value="3.797411844240567" />
-      <entry key="M30" value="4.266951285361872" />
-      <entry key="H1" value="5.659057593678199" />
-      <entry key="H2" value="10.233836736174217" />
-      <entry key="H4" value="18.840616111946062" />
-      <entry key="D1" value="50.12901789767905" />
-      <entry key="W1" value="92.11867520408131" />
+      <entry key="MS100" value="2.488190783468224E-96" />
+      <entry key="MS500" value="7.571409861880035E-20" />
+      <entry key="S2" value="1.6842111808324022E-5" />
+      <entry key="S5" value="0.015096468696074911" />
+      <entry key="S10" value="0.18241682250016114" />
+      <entry key="S30" value="1.142263009373856" />
+      <entry key="S60" value="1.978795993442534" />
+      <entry key="M2" value="2.8821743675028713" />
+      <entry key="M5" value="3.9011308783284795" />
+      <entry key="M10" value="4.405483852027078" />
+      <entry key="M15" value="4.646975692890866" />
+      <entry key="M30" value="5.1832528920758945" />
+      <entry key="H1" value="6.6053186924742455" />
+      <entry key="H2" value="11.187614426788056" />
+      <entry key="H4" value="19.799308750988235" />
+      <entry key="D1" value="51.11110732372176" />
+      <entry key="W1" value="93.11400312198512" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="2.5944428542168463E-8" />
-      <entry key="MS500" value="0.03051822354081976" />
-      <entry key="S2" value="0.5493649617018528" />
-      <entry key="S5" value="1.4644894630759695" />
-      <entry key="S10" value="2.5346440701552346" />
-      <entry key="S30" value="5.345468077658897" />
-      <entry key="S60" value="7.703097186876258" />
-      <entry key="M2" value="10.298173002911987" />
-      <entry key="M5" value="13.119313467171319" />
-      <entry key="M10" value="14.550461236952323" />
-      <entry key="M15" value="15.281634687398933" />
-      <entry key="M30" value="16.79518096796643" />
-      <entry key="H1" value="24.4886948279385" />
-      <entry key="H2" value="69.97856086714378" />
-      <entry key="H4" value="174.38254021690722" />
-      <entry key="D1" value="494.3526458437863" />
-      <entry key="W1" value="795.304791540421" />
+      <entry key="MS100" value="0.9265880619200862" />
+      <entry key="MS500" value="0.9927115018278968" />
+      <entry key="S2" value="1.295073032498343" />
+      <entry key="S5" value="1.782187097717048" />
+      <entry key="S10" value="3.0387931395894636" />
+      <entry key="S30" value="8.564267209936087" />
+      <entry key="S60" value="13.433054000400105" />
+      <entry key="M2" value="18.230915765651964" />
+      <entry key="M5" value="23.107386808846517" />
+      <entry key="M10" value="25.450246658772286" />
+      <entry key="M15" value="26.518121526506313" />
+      <entry key="M30" value="28.385051915699012" />
+      <entry key="H1" value="36.21805145100511" />
+      <entry key="H2" value="81.65107731113838" />
+      <entry key="H4" value="185.99819201917154" />
+      <entry key="D1" value="506.1758360053712" />
+      <entry key="W1" value="807.2643843879262" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -168,37 +150,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.PagosApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;copilot.chat.legacySessionMetadata.migrated&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;mateo-branch&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.archetype.catalogs&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.PagosApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "git-widget-placeholder": "entrega-2-main",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.archetype.catalogs",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.tudai.notificacionesservice.messaging" />
@@ -314,5 +296,16 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

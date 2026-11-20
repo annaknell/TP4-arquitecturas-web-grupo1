@@ -53,15 +53,17 @@ springdoc:
     urls:
       - name: catalogo-service
         url: http://localhost:8082/v3/api-docs
-      - name: recomendaciones-service
-        url: http://localhost:8087/v3/api-docs
-      - name: compras-service
-        url: http://localhost:8084/v3/api-docs
       - name: inventario-service
         url: http://localhost:8083/v3/api-docs
+      - name: compras-service
+        url: http://localhost:8084/v3/api-docs
       - name: pagos-service
         url: http://localhost:8085/v3/api-docs
       - name: fila-virtual-service
         url: http://localhost:8086/v3/api-docs
+      - name: recomendaciones-service
+        url: http://localhost:8087/v3/api-docs
       - name: notificaciones-service
         url: http://localhost:8088/v3/api-docs
+      - name: reportes-service
+        url: http://localhost:8089/v3api-docs
