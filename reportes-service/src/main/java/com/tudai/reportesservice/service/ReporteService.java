@@ -8,6 +8,8 @@ import com.tudai.reportesservice.repository.ReporteEventoRepository;
 import com.tudai.reportesservice.repository.ReporteSectorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 @Service
 public class ReporteService {
     private final ReporteEventoRepository eventos;
@@ -17,6 +19,7 @@ public class ReporteService {
         sectores=s;
     }
     @Transactional
+    @CacheEvict(value = {"reportes-evento", "reportes-sectores", "reportes-listado"}, allEntries = true)
     public ReporteEvento configurar(Long id, UUID organizador, String nombre, String moneda, List<SectorConfig> datos){
         ReporteEvento e=eventos.findById(id).orElseGet(ReporteEvento::new);
         e.setEventoId(id);
@@ -41,25 +44,30 @@ public class ReporteService {
     }
 
     @Transactional
+    @CacheEvict(value = {"reportes-evento", "reportes-sectores", "reportes-listado"}, allEntries = true)
     public void venta(Long evento, Long sector, long importe){
         sector(evento,sector).registrarVenta(importe);
     }
 
     @Transactional
+    @CacheEvict(value = {"reportes-evento", "reportes-sectores", "reportes-listado"}, allEntries = true)
     public void reintegro(Long evento, Long sector, long importe, boolean aplicado){
         if(aplicado)sector(evento,sector).registrarReintegroAplicado(importe);
         else sector(evento,sector).registrarPendiente(importe);
     }
 
+    @Cacheable(value = "reportes-sectores", key = "#evento")
     public List<ReporteSectorResponse> sectores(Long evento){
         return sectores.findByEventoEventoId(evento).stream().map(this::sectorResponse).toList();
     }
 
+    @Cacheable("reportes-listado")
     public List<ReporteEventoResponse> listar(){
         return eventos.findAll().stream()
                 .map(evento -> resumen(evento.getEventoId()))
                 .toList();
     }
+    @Cacheable(value = "reportes-listado", key = "#organizadorId")
     public List<ReporteEventoResponse> listarPorOrganizador(UUID organizadorId) {
         return eventos.findAll().stream()
                 .filter(evento -> organizadorId.equals(evento.getOrganizadorId()))
@@ -67,6 +75,7 @@ public class ReporteService {
                 .toList();
     }
 
+    @Cacheable(value = "reportes-evento", key = "#id")
     public ReporteEventoResponse resumen(Long id){
         ReporteEvento e=evento(id);
         var ss=e.getSectores().stream().map(this::sectorResponse).toList();

@@ -14,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.*;
 import java.nio.charset.StandardCharsets;
 import com.tudai.pagos.dto.ReintegroRequest;
+import com.tudai.pagos.dto.AsignacionReintegroRequest;
+import com.tudai.pagos.messaging.ReporteReintegroPublisher;
 import com.tudai.pagos.util.HashRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +29,16 @@ public class ReintegroService {
     private final ReintegroRepository reintegroRepository;
     private final PagoService pagoService;
     private final ReintegroTransaccionalService transaccional;
+    private final ReporteReintegroPublisher reporteReintegroPublisher;
 
     public ReintegroService(ReintegroRepository reintegroRepository,
                             PagoService pagoService,
-                            ReintegroTransaccionalService transaccional) {
+                            ReintegroTransaccionalService transaccional,
+                            ReporteReintegroPublisher reporteReintegroPublisher) {
         this.reintegroRepository = reintegroRepository;
         this.pagoService = pagoService;
         this.transaccional = transaccional;
+        this.reporteReintegroPublisher = reporteReintegroPublisher;
     }
 
     public Reintegro getById(Long id) {
@@ -104,6 +109,20 @@ public class ReintegroService {
         return reintegrar(pagoId, clave, monto, motivo, null);
     }
 
+    public Reintegro reintegrar(Long pagoId, String clave, Integer monto, MotivoReintegro motivo,
+                                List<AsignacionReintegroRequest> asignaciones) {
+        Reintegro reintegro = reintegrar(pagoId, clave, monto, motivo, null);
+        if (asignaciones != null && !asignaciones.isEmpty() && reintegro.getAsignaciones().isEmpty()) {
+            long total = asignaciones.stream().mapToLong(AsignacionReintegroRequest::importeCentavos).sum();
+            if (total != monto.longValue() * 100L) throw new IllegalArgumentException("Las asignaciones no coinciden con el monto reintegrado");
+            asignaciones.forEach(a -> reintegro.agregarAsignacion(a.entradaId(), a.eventoId(), a.sectorId(), a.importeCentavos()));
+            Reintegro guardado = reintegroRepository.save(reintegro);
+            reporteReintegroPublisher.publicar(guardado);
+            return guardado;
+        }
+        return reintegro;
+    }
+
     private Reintegro reintegrar(Long pagoId, String clave, Integer monto,
                                  MotivoReintegro motivo, Long solicitudDevolucionId) {
         try {
@@ -132,11 +151,29 @@ public class ReintegroService {
         Pago pago = pagoService.getPagoCobradoByCompraId(compraId);
         return reintegrar(pago.getId(), claveDerivada(compraId, motivo), pago.getMonto(), motivo);
     }
+    public Reintegro reintegrarPorCompra(Long compraId, MotivoReintegro motivo,
+                                         List<AsignacionReintegroRequest> asignaciones) {
+        return aplicarAsignaciones(reintegrarPorCompra(compraId, motivo), asignaciones);
+    }
 
     /** Reintegro de una devolución individual ya aprobada (US-28). Clave derivada solo de la solicitud. */
     public Reintegro reintegrarDevolucionAprobada(Long solicitudDevolucionId, Long pagoId, Integer monto) {
         return reintegrar(pagoId, claveDerivadaDevolucion(solicitudDevolucionId),
                 monto, MotivoReintegro.DEVOLUCION, solicitudDevolucionId);
+    }
+    public Reintegro reintegrarDevolucionAprobada(Long solicitudDevolucionId, Long pagoId, Integer monto,
+                                                  List<AsignacionReintegroRequest> asignaciones) {
+        return aplicarAsignaciones(reintegrarDevolucionAprobada(solicitudDevolucionId, pagoId, monto), asignaciones);
+    }
+
+    private Reintegro aplicarAsignaciones(Reintegro reintegro, List<AsignacionReintegroRequest> asignaciones) {
+        if (asignaciones == null || asignaciones.isEmpty() || !reintegro.getAsignaciones().isEmpty()) return reintegro;
+        long total = asignaciones.stream().mapToLong(AsignacionReintegroRequest::importeCentavos).sum();
+        if (total != reintegro.getMonto().longValue() * 100L) throw new IllegalArgumentException("Las asignaciones no coinciden con el monto reintegrado");
+        asignaciones.forEach(a -> reintegro.agregarAsignacion(a.entradaId(), a.eventoId(), a.sectorId(), a.importeCentavos()));
+        Reintegro guardado = reintegroRepository.save(reintegro);
+        reporteReintegroPublisher.publicar(guardado);
+        return guardado;
     }
 
     static String claveDerivada(Long compraId, MotivoReintegro motivo) {

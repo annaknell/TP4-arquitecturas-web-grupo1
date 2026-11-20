@@ -6,6 +6,7 @@ import org.example.catalogoservice.entity.Lugar;
 import org.example.catalogoservice.dto.EventoNotificacionResponse;
 import org.example.catalogoservice.dto.EventoModificacionRequest;
 import org.example.catalogoservice.messaging.EventoNotificacionPublisher;
+import org.example.catalogoservice.messaging.ReporteEventoPublisher;
 import org.example.catalogoservice.repository.EventoRepository;
 import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
@@ -49,6 +50,8 @@ public class EventoService {
     private FilaVirtualClient filaVirtualClient;
     @Autowired
     private EventoNotificacionPublisher eventoNotificacionPublisher;
+    @Autowired
+    private ReporteEventoPublisher reporteEventoPublisher;
 
     public List<Evento> listarEventosPublicados() {
         return eventoRepository.findByEstado("PUBLICADO");
@@ -93,6 +96,8 @@ public class EventoService {
 
         evento.setEstado("PUBLICADO");
         Evento eventoPublicado = eventoRepository.save(evento);
+        reporteEventoPublisher.publicarConfiguracion(eventoPublicado,
+                eventoSectorRepository.findByEventoId(id), UUID.randomUUID().toString());
 
         sincronizarInventario(eventoPublicado);
         if (eventoPublicado.isAltaDemanda()) {

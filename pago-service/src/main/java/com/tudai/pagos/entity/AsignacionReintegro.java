@@ -34,6 +34,16 @@ public class AsignacionReintegro {
     @Column(name = "importe_centavos", nullable = false)
     private Long importeCentavos;
 
+    public AsignacionReintegro(Reintegro reintegro, Long entradaId, Long eventoId, Long sectorId, Long importeCentavos) {
+        this.reintegro = reintegro;
+        this.entradaId = entradaId;
+        this.eventoId = eventoId;
+        this.sectorId = sectorId;
+        this.importeCentavos = importeCentavos;
+    }
+
+    public AsignacionReintegro() { }
+
     public Long getEntradaId() { return entradaId; }
     public Long getEventoId() { return eventoId; }
     public Long getSectorId() { return sectorId; }

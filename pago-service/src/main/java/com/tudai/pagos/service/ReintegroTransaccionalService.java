@@ -12,6 +12,7 @@ import com.tudai.pagos.pasarela.ResultadoReintegro;
 import com.tudai.pagos.pasarela.SolicitudReintegro;
 import com.tudai.pagos.repository.ReintegroRepository;
 import com.tudai.pagos.util.HashRequest;
+import com.tudai.pagos.messaging.ReporteReintegroPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -35,13 +36,16 @@ public class ReintegroTransaccionalService {
     private final ReintegroRepository reintegroRepository;
     private final PagoService pagoService;
     private final PasarelaPagos pasarela;
+    private final ReporteReintegroPublisher reporteReintegroPublisher;
 
     public ReintegroTransaccionalService(ReintegroRepository reintegroRepository,
                                          PagoService pagoService,
-                                         PasarelaPagos pasarela) {
+                                         PasarelaPagos pasarela,
+                                         ReporteReintegroPublisher reporteReintegroPublisher) {
         this.reintegroRepository = reintegroRepository;
         this.pagoService = pagoService;
         this.pasarela = pasarela;
+        this.reporteReintegroPublisher = reporteReintegroPublisher;
     }
 
     @Transactional
@@ -110,6 +114,7 @@ public class ReintegroTransaccionalService {
         if (r.getEstadoReintegro() == EstadoReintegro.APROBADO) {
             pagoService.aplicarReintegro(pago);
         }
+        reporteReintegroPublisher.publicar(r);
         return r;
     }
 

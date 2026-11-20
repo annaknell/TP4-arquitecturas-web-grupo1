@@ -169,6 +169,12 @@ public class Reintegro {
     public void setVersion(Long version) {
         this.version = version;
     }
+    public java.util.List<AsignacionReintegro> getAsignaciones() {
+        return asignaciones;
+    }
+    public void agregarAsignacion(Long entradaId, Long eventoId, Long sectorId, Long importeCentavos) {
+        asignaciones.add(new AsignacionReintegro(this, entradaId, eventoId, sectorId, importeCentavos));
+    }
 
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;

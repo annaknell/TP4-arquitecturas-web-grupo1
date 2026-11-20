@@ -1,0 +1,43 @@
+{
+  "info": {
+    "name": "TicketYa Entrega 2 — Fila, Notificaciones y Reportes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gateway", "value": "http://localhost:8080" },
+    { "key": "jwt", "value": "" },
+    { "key": "eventoId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Reportes",
+      "item": [
+        {
+          "name": "Listar eventos (JWT)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": "{{gateway}}/api/reportes/eventos" }
+        },
+        {
+          "name": "Resumen de evento (JWT)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": "{{gateway}}/api/reportes/eventos/{{eventoId}}" }
+        },
+        {
+          "name": "Sectores de evento (JWT)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": "{{gateway}}/api/reportes/eventos/{{eventoId}}/sectores" }
+        }
+      ]
+    },
+    {
+      "name": "Fila virtual",
+      "item": [
+        {
+          "name": "Ingresar a fila",
+          "request": { "method": "POST", "header": [{ "key": "X-User-Id", "value": "1" }], "url": "{{gateway}}/api/fila/{{eventoId}}/ingresos" }
+        },
+        {
+          "name": "Consultar posición",
+          "request": { "method": "GET", "header": [{ "key": "X-User-Id", "value": "1" }], "url": "{{gateway}}/api/fila/{{eventoId}}/mi-posicion" }
+        }
+      ]
+    }
+  ]
+}

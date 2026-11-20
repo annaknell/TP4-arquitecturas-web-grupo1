@@ -67,6 +67,7 @@ import jakarta.persistence.*;
         }
         public void registrarReintegroAplicado(long importe){
             devueltas++;
+        importePendienteCentavos = Math.max(0, importePendienteCentavos - importe);
             importeReintegradoCentavos+=importe;
         }
         public void registrarPendiente(long importe){

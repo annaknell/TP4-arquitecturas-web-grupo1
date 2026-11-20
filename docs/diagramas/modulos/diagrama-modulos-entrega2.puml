@@ -1,0 +1,20 @@
+@startuml
+skinparam componentStyle rectangle
+component Catalogo
+component Compras
+component Pagos
+component Entradas
+component "Fila Virtual\n(Redis)" as Fila
+component "Notificaciones\n(BD propia)" as Notif
+component "Reportes\n(BD propia + Redis cache)" as Reportes
+queue RabbitMQ
+Catalogo --> Fila : abrir/pausar/cancelar
+Compras --> RabbitMQ : venta confirmada
+Catalogo --> RabbitMQ : evento configurado/modificado/cancelado
+Pagos --> RabbitMQ : reintegro pendiente/aplicado
+Entradas --> RabbitMQ : entrada devuelta
+RabbitMQ --> Notif
+RabbitMQ --> Reportes
+Compras --> Entradas
+Compras --> Pagos
+@enduml

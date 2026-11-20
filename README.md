@@ -1,5 +1,7 @@
 **Guía de Ejecución**
 
+La arquitectura y criterios de Fila Virtual, Notificaciones y Reportes de la entrega 2 están documentados en `docs/servicios-fila-notificaciones-reportes.md`.
+
 Requisitos Previos
 - Java SDK: 17 o superior.
 - Maven: Para la resolución de dependencias (pom.xml).
