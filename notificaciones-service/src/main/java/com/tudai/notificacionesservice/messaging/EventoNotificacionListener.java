@@ -14,10 +14,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
 
-/**
- * Recibe hechos de negocio y los persiste como inbox antes de que sean procesados
- * para generar y enviar notificaciones.
- */
 @Component
 public class EventoNotificacionListener {
 
@@ -29,10 +25,6 @@ public class EventoNotificacionListener {
         this.eventoRecibidoRepository = eventoRecibidoRepository;
     }
 
-    /**
-     * RabbitMQ confirma el mensaje solo cuando este metodo termina correctamente.
-     * Si la transaccion falla, la excepcion se propaga y el broker podra reenviarlo.
-     */
     @Transactional
     @RabbitListener(queues = "notificaciones.eventos")
     public void recibir(EventoNotificacionMessage mensaje) {

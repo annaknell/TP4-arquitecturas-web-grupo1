@@ -4,10 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Implementación temporal para desarrollo. Simula el envío dejando el contenido
- * del email en el log; no realiza llamadas a servicios externos.
- */
 @Component
 public class NotificadorEmailSimulado implements NotificadorEmail {
 

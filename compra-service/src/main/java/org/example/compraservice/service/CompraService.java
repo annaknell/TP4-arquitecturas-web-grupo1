@@ -5,6 +5,7 @@ import org.example.compraservice.client.*;
 import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
+import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.repository.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +30,8 @@ public class CompraService {
     private EntradaClient entradaClient;
     @Autowired
     private CompraCompletadaPublisher compraCompletadaPublisher;
+    @Autowired
+    private ReporteVentaPublisher reporteVentaPublisher;
 
     private static final int MAX_ENTRADAS_POR_CLIENTE = 4; // Límite de negocio
 
@@ -108,14 +112,19 @@ public class CompraService {
             }
 
             // PASO 4: Emitir Entradas
+            if (reserva.sectorId() == null) {
+                throw new IllegalStateException("Inventario no informó sectorId; no es posible registrar una venta auditable");
+            }
             List<EntradaRequest> entradasAEmitir = request.asientos().stream()
-                .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId())) // getId() porque Compra es entidad
+                .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId(), reserva.sectorId()))
                 .collect(Collectors.toList());
 
             List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
+            registrarLineasVenta(compra, entradasEmitidas, reserva);
             compra.addPaso("Entradas emitidas con éxito", "EJECUTADO");
             compra.setEstado("COMPLETADA");
             Compra compraCompletada = compraRepository.save(compra);
+            compraCompletada.getLineasVenta().forEach(linea -> reporteVentaPublisher.publicar(linea, correlationId));
             compraCompletadaPublisher.publicar(compraCompletada, correlationId, email, entradasEmitidas);
             return compraCompletada;
 
@@ -124,6 +133,31 @@ public class CompraService {
             compra.addPaso("Error crítico: " + e.getMessage(), "FALLO");
             return compraRepository.save(compra);
         }
+    }
+
+    private void registrarLineasVenta(Compra compra, List<EntradaResponse> entradas, ReservaResponse reserva) {
+        if (entradas == null || entradas.isEmpty()) {
+            throw new IllegalStateException("No se emitieron entradas para una compra confirmada");
+        }
+        long totalCentavos = importeCentavos(reserva.importeTotal(), compra.getPrecioTotal());
+        long base = totalCentavos / entradas.size();
+        long resto = totalCentavos % entradas.size();
+        for (int i = 0; i < entradas.size(); i++) {
+            EntradaResponse entrada = entradas.get(i);
+            long importe = base + (i < resto ? 1 : 0);
+            compra.getLineasVenta().add(new org.example.compraservice.entity.LineaVenta(
+                    compra, entrada.id(), compra.getEventoId(), entrada.sectorId(), entrada.asientoId(), importe, "ARS"));
+        }
+    }
+
+    private long importeCentavos(BigDecimal importeReserva, Double importeCompra) {
+        if (importeReserva != null) {
+            return importeReserva.movePointRight(2).longValueExact();
+        }
+        if (importeCompra == null) {
+            throw new IllegalStateException("La compra no tiene importe confirmado");
+        }
+        return BigDecimal.valueOf(importeCompra).movePointRight(2).longValueExact();
     }
 
     public Compra obtenerPorId(Long id) {

@@ -4,7 +4,6 @@ import com.tudai.notificacionesservice.service.NotificacionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Ejecuta periódicamente la generación y el envío de notificaciones. */
 @Component
 public class NotificacionScheduler {
 

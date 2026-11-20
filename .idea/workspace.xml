@@ -5,19 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/catalogo-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/CatalogoServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/CatalogoServiceApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/controller/CompraController.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/controller/CompraController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/client/FilaVirtualClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/client/FilaVirtualClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/dto/EntradaRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/dto/EntradaRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/dto/ReservaResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/dto/ReservaResponse.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/entity/Compra.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/entity/Compra.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/repository/CompraRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/repository/CompraRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/service/CompraService.java" beforeDir="false" afterPath="$PROJECT_DIR$/compra-service/src/main/java/org/example/compraservice/service/CompraService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/repository/EventoRecibidoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/repository/EventoRecibidoRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fila-virtual-service/src/main/java/com/tudai/filavirtualservice/controller/FilaVirtualController.java" beforeDir="false" afterPath="$PROJECT_DIR$/fila-virtual-service/src/main/java/com/tudai/filavirtualservice/controller/FilaVirtualController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fila-virtual-service/src/main/java/com/tudai/filavirtualservice/controller/FilaVirtualInternoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/fila-virtual-service/src/main/java/com/tudai/filavirtualservice/controller/FilaVirtualInternoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fila-virtual-service/src/test/java/com/tudai/filavirtualservice/controller/FilaVirtualControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/fila-virtual-service/src/test/java/com/tudai/filavirtualservice/controller/FilaVirtualControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventario-service/src/main/java/org/example/inventarioservice/client/FilaVirtualClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventario-service/src/main/java/org/example/inventarioservice/client/FilaVirtualClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/controller/NotificacionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/controller/NotificacionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/dto/NotificacionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/dto/NotificacionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/messaging/EventoNotificacionListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/messaging/EventoNotificacionListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/notification/NotificadorEmail.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/notification/NotificadorEmail.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/notification/NotificadorEmailSimulado.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/notification/NotificadorEmailSimulado.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/scheduler/NotificacionScheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/scheduler/NotificacionScheduler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/test/java/com/tudai/notificacionesservice/service/NotificacionServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/test/java/com/tudai/notificacionesservice/service/NotificacionServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/Reintegro.java" beforeDir="false" afterPath="$PROJECT_DIR$/pago-service/src/main/java/com/tudai/pagos/entity/Reintegro.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,61 +85,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0000041326872535" />
-      <entry key="S60" value="1.003514778972603" />
-      <entry key="M2" value="1.1026403939074854" />
-      <entry key="M5" value="1.7779519621286357" />
-      <entry key="M10" value="2.5821914306320606" />
-      <entry key="M15" value="3.3055186152283627" />
-      <entry key="M30" value="8.807680995968646" />
-      <entry key="H1" value="40.775588648264645" />
-      <entry key="H2" value="122.6727403805494" />
-      <entry key="H4" value="230.90298725499778" />
-      <entry key="D1" value="466.6863646798592" />
-      <entry key="W1" value="697.2383820798807" />
+      <entry key="MS100" value="1.8112595900550714E-14" />
+      <entry key="MS500" value="0.0017848335643675648" />
+      <entry key="S2" value="0.21452868996415855" />
+      <entry key="S5" value="0.696163352441349" />
+      <entry key="S10" value="1.3710328962378273" />
+      <entry key="S30" value="3.705271025337404" />
+      <entry key="S60" value="5.6945838292038955" />
+      <entry key="M2" value="7.742807743275365" />
+      <entry key="M5" value="9.875563978889799" />
+      <entry key="M10" value="10.95547833242229" />
+      <entry key="M15" value="11.502231481933896" />
+      <entry key="M30" value="12.538121497370263" />
+      <entry key="H1" value="18.836110669256332" />
+      <entry key="H2" value="59.750999405632754" />
+      <entry key="H4" value="155.54820959132456" />
+      <entry key="D1" value="444.226820368592" />
+      <entry key="W1" value="703.1869786489689" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="1.2721283659554981E-87" />
-      <entry key="S5" value="1.74506807993363E-35" />
-      <entry key="S10" value="4.177401201624796E-18" />
-      <entry key="S30" value="1.610529666606944E-6" />
-      <entry key="S60" value="0.0012690664547638723" />
-      <entry key="M2" value="0.03562395931487543" />
-      <entry key="M5" value="0.2636138463805677" />
-      <entry key="M10" value="0.530560181384898" />
-      <entry key="M15" value="0.7507116157121916" />
-      <entry key="M30" value="1.990574870381687" />
-      <entry key="H1" value="6.14208900425755" />
-      <entry key="H2" value="13.150609084834135" />
-      <entry key="H4" value="21.55730813159435" />
-      <entry key="D1" value="47.94200672829393" />
-      <entry key="W1" value="87.13450888499358" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0000011954622463" />
+      <entry key="S2" value="1.033066175490619" />
+      <entry key="S5" value="1.2557134588051948" />
+      <entry key="S10" value="1.5056880062671207" />
+      <entry key="S30" value="1.826338417019374" />
+      <entry key="S60" value="2.1355779279857297" />
+      <entry key="M2" value="2.6415499732031114" />
+      <entry key="M5" value="3.2892156273012323" />
+      <entry key="M10" value="3.6205888593017685" />
+      <entry key="M15" value="3.797411844240567" />
+      <entry key="M30" value="4.266951285361872" />
+      <entry key="H1" value="5.659057593678199" />
+      <entry key="H2" value="10.233836736174217" />
+      <entry key="H4" value="18.840616111946062" />
+      <entry key="D1" value="50.12901789767905" />
+      <entry key="W1" value="92.11867520408131" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.0012708416557050126" />
-      <entry key="MS500" value="0.2635228558226844" />
-      <entry key="S2" value="0.7164808251865499" />
-      <entry key="S5" value="0.8751486533250812" />
-      <entry key="S10" value="0.9354938018635298" />
-      <entry key="S30" value="0.9780238967706724" />
-      <entry key="S60" value="0.9936804281221256" />
-      <entry key="M2" value="1.1319828768749842" />
-      <entry key="M5" value="2.037121646295906" />
-      <entry key="M10" value="3.109326731498089" />
-      <entry key="M15" value="4.053005523955497" />
-      <entry key="M30" value="10.793060990224056" />
-      <entry key="H1" value="46.909082148405496" />
-      <entry key="H2" value="135.8140227942683" />
-      <entry key="H4" value="252.45237264314213" />
-      <entry key="D1" value="514.6251724521702" />
-      <entry key="W1" value="784.3720538885175" />
+      <entry key="MS100" value="2.5944428542168463E-8" />
+      <entry key="MS500" value="0.03051822354081976" />
+      <entry key="S2" value="0.5493649617018528" />
+      <entry key="S5" value="1.4644894630759695" />
+      <entry key="S10" value="2.5346440701552346" />
+      <entry key="S30" value="5.345468077658897" />
+      <entry key="S60" value="7.703097186876258" />
+      <entry key="M2" value="10.298173002911987" />
+      <entry key="M5" value="13.119313467171319" />
+      <entry key="M10" value="14.550461236952323" />
+      <entry key="M15" value="15.281634687398933" />
+      <entry key="M30" value="16.79518096796643" />
+      <entry key="H1" value="24.4886948279385" />
+      <entry key="H2" value="69.97856086714378" />
+      <entry key="H4" value="174.38254021690722" />
+      <entry key="D1" value="494.3526458437863" />
+      <entry key="W1" value="795.304791540421" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -275,6 +285,13 @@
     <configuration name="RecomendacionesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="recomendaciones-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.recomendacionesservice.RecomendacionesServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ReportesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="reportes-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.tudai.reportesservice.ReportesServiceApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>

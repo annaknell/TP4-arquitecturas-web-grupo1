@@ -5,7 +5,6 @@ import com.tudai.notificacionesservice.entity.Notificacion;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/** Datos operativos expuestos por la API de Notificaciones. */
 public record NotificacionResponse(
         Long id,
         UUID eventId,

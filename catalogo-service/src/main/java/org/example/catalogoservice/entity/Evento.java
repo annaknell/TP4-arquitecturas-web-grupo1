@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "eventos")
@@ -37,6 +38,13 @@ public class Evento {
     @Builder.Default
     @Column(name = "alta_demanda", nullable = false)
     private boolean altaDemanda = false;
+
+    /**
+     * Identidad del organizador dueño del evento. Es una referencia lógica al
+     * usuario de auth-service (no una FK entre bases de microservicios).
+     */
+    @Column(name = "organizador_id")
+    private UUID organizadorId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lugar_id", nullable = false)

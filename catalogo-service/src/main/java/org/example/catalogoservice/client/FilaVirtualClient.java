@@ -19,7 +19,7 @@ public class FilaVirtualClient {
 
     public void abrirFila(Long eventoId) {
         restClient.put()
-                .uri("/interno/fila/{eventoId}/configuracion", eventoId)
+                .uri("/api/interno/fila/{eventoId}/configuracion", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ConfiguracionFilaRequest(TAMANIO_TANDA_INICIAL, VENTANA_COMPRA_MINUTOS))
                 .retrieve()
@@ -40,7 +40,7 @@ public class FilaVirtualClient {
 
     private void cambiarEstado(Long eventoId, String estado) {
         restClient.put()
-                .uri("/interno/fila/{eventoId}/estado", eventoId)
+                .uri("/api/interno/fila/{eventoId}/estado", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new EstadoFilaRequest(estado))
                 .retrieve()

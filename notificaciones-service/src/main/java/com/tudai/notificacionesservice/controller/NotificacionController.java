@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/notificaciones")
+@RequestMapping("/api/notificaciones")
 @Tag(name = "Notificaciones", description = "Consulta y reintento manual de notificaciones")
 public class NotificacionController {
 
