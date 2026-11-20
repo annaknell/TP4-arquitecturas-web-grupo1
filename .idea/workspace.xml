@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/CorsConfigNotificacion.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/config/OpenApiConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/doNotAskNotifications.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/controller/NotificacionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/notificaciones-service/src/main/java/com/tudai/notificacionesservice/controller/NotificacionController.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1" value="3LYBFuavQb4S5xFL5ErkGwJahzC" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="30" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Record" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="entrega-2-main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;MateoBM711&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/annaknell/TP4-arquitecturas-web-grupo1.git&quot;,
+    &quot;accountId&quot;: &quot;62d2b690-d334-4853-b4cd-ec2fb9b7f520&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="6.427337461456801E-32" />
+      <entry key="MS500" value="8.267384380537097E-7" />
+      <entry key="S2" value="0.049928522274569336" />
+      <entry key="S5" value="0.45645456001751095" />
+      <entry key="S10" value="0.9552570168397786" />
+      <entry key="S30" value="1.563289035176713" />
+      <entry key="S60" value="1.768202658586005" />
+      <entry key="M2" value="1.88053044912587" />
+      <entry key="M5" value="1.9526737500409095" />
+      <entry key="M10" value="2.0824157941486137" />
+      <entry key="M15" value="2.5963223124817465" />
+      <entry key="M30" value="8.751480149226674" />
+      <entry key="H1" value="43.45203548138767" />
+      <entry key="H2" value="127.62662699854087" />
+      <entry key="H4" value="235.38146448074536" />
+      <entry key="D1" value="466.84822946204645" />
+      <entry key="W1" value="695.6992033863123" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0000000088663707" />
+      <entry key="M5" value="1.000624990251016" />
+      <entry key="M10" value="1.0336802453412517" />
+      <entry key="M15" value="1.1710466016016525" />
+      <entry key="M30" value="2.48615979107569" />
+      <entry key="H1" value="6.864222714411235" />
+      <entry key="H2" value="13.90219892249284" />
+      <entry key="H4" value="22.16477589410166" />
+      <entry key="D1" value="48.16456892801374" />
+      <entry key="W1" value="87.19218087082031" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="7.287503943992065E-8" />
+      <entry key="MS500" value="0.03736975751228844" />
+      <entry key="S2" value="0.48045440657472355" />
+      <entry key="S5" value="1.1403201372940652" />
+      <entry key="S10" value="1.7650753115488498" />
+      <entry key="S30" value="2.4885469555733533" />
+      <entry key="S60" value="2.7290100447737977" />
+      <entry key="M2" value="2.8604411348296486" />
+      <entry key="M5" value="2.945132104096822" />
+      <entry key="M10" value="3.1117249053681943" />
+      <entry key="M15" value="3.7635856067894182" />
+      <entry key="M30" value="11.231660135833756" />
+      <entry key="H1" value="50.30688200150236" />
+      <entry key="H2" value="141.51907556448845" />
+      <entry key="H4" value="257.53814771275717" />
+      <entry key="D1" value="515.0095932916565" />
+      <entry key="W1" value="782.8905478663755" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3LYBFe55dtc4JBHf7UK3Wi1uk2o" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="ensembleEnabled" value="false" />
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_id" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+        <option name="worktreeMode" value="WORKSPACE" />
+      </template>
+    </option>
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.PagosApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "git-widget-placeholder": "mateo-branch",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/bogad/TUDAI/2do AÑO/ARQUITECTURAS_WEB/TPE/TP4-arquitecturas-web-grupo1",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.archetype.catalogs",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.tudai.notificacionesservice.messaging" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.PagosApplication">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="pago-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="pago-service" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="api-gateway-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.apigatewayservice.ApiGatewayServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CatalogoServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="catalogo-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.catalogoservice.CatalogoServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CompraServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="compra-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.compraservice.CompraServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="EntradaServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="entrada-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.entradaservice.EntradaServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FilaVirtualServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="fila-virtual-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.tudai.filavirtualservice.FilaVirtualServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="InventarioApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="inventario-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.inventario.InventarioApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="InventarioServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="inventario-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.inventarioservice.InventarioServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NotificacionesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="notificaciones-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.tudai.notificacionesservice.NotificacionesServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PagosApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="pago-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.tudai.pagos.PagosApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-ac68fc9d2b05-intellij.indexing.shared.core-IU-263.7307.200" />
+        <option value="bundled-js-predefined-d6986cc7102b-56aff7b04f6f-JavaScript-IU-263.7307.200" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="" />
+      <created>1793621020101</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1793621020101</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
