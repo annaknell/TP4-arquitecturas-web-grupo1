@@ -106,6 +106,21 @@ class NotificacionServiceTest {
         verify(notificacionRepository).save(notificacion);
     }
 
+    @Test
+    void reintentoExitosoMarcaLaNotificacionComoEnviada() {
+        Notificacion notificacion = notificacionPendiente(1);
+        notificacion.setEstado(Notificacion.Estado.FALLIDA);
+        when(notificacionRepository.findByEstadoInAndProximoIntentoEnLessThanEqualAndIntentosLessThan(
+                any(), any(), anyInt())).thenReturn(List.of(notificacion));
+
+        service.procesarPendientes();
+
+        assertEquals(Notificacion.Estado.ENVIADA, notificacion.getEstado());
+        assertEquals(2, notificacion.getIntentos());
+        assertNotNull(notificacion.getEnviadaEn());
+        assertNull(notificacion.getProximoIntentoEn());
+    }
+
     private Notificacion notificacionPendiente(int intentos) {
         Notificacion notificacion = new Notificacion();
         notificacion.setDestinatario("cliente@example.com");

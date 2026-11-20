@@ -5,6 +5,7 @@ import com.tudai.notificacionesservice.dto.EventoNotificacionMessage;
 import com.tudai.notificacionesservice.repository.EventoRecibidoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,25 +37,30 @@ public class EventoNotificacionListener {
     @RabbitListener(queues = "notificaciones.eventos")
     public void recibir(EventoNotificacionMessage mensaje) {
         validar(mensaje);
+        MDC.put("correlationId", mensaje.correlationId());
+        try {
 
-        if (eventoRecibidoRepository.findByEventId(mensaje.eventId()).isPresent()) {
-            log.info("Evento duplicado ignorado: eventId={}, correlationId={}",
-                    mensaje.eventId(), mensaje.correlationId());
-            return;
+            if (eventoRecibidoRepository.findByEventId(mensaje.eventId()).isPresent()) {
+                log.info("Evento duplicado ignorado: eventId={}, correlationId={}",
+                        mensaje.eventId(), mensaje.correlationId());
+                return;
+            }
+
+            EventoRecibido evento = new EventoRecibido();
+            evento.setEventId(mensaje.eventId());
+            evento.setTipo(mensaje.eventType());
+            evento.setOrigen(mensaje.source());
+            evento.setCorrelacionId(mensaje.correlationId());
+            evento.setPayload(mensaje.payload().toString());
+            evento.setRecibidoEn(LocalDateTime.now(ZoneOffset.UTC));
+            evento.setEstado(EventoRecibido.Estado.RECIBIDO);
+
+            eventoRecibidoRepository.save(evento);
+            log.info("Evento recibido y persistido: eventId={}, tipo={}, correlationId={}",
+                    evento.getEventId(), evento.getTipo(), evento.getCorrelacionId());
+        } finally {
+            MDC.remove("correlationId");
         }
-
-        EventoRecibido evento = new EventoRecibido();
-        evento.setEventId(mensaje.eventId());
-        evento.setTipo(mensaje.eventType());
-        evento.setOrigen(mensaje.source());
-        evento.setCorrelacionId(mensaje.correlationId());
-        evento.setPayload(mensaje.payload().toString());
-        evento.setRecibidoEn(LocalDateTime.now(ZoneOffset.UTC));
-        evento.setEstado(EventoRecibido.Estado.RECIBIDO);
-
-        eventoRecibidoRepository.save(evento);
-        log.info("Evento recibido y persistido: eventId={}, tipo={}, correlationId={}",
-                evento.getEventId(), evento.getTipo(), evento.getCorrelacionId());
     }
 
     private void validar(EventoNotificacionMessage mensaje) {
