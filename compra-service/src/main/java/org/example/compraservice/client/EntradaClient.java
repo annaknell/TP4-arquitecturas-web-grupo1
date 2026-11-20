@@ -1,6 +1,7 @@
 package org.example.compraservice.client;
 
 import org.example.compraservice.dto.EntradaRequest;
+import org.example.compraservice.dto.EntradaResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,5 +11,5 @@ import java.util.List;
 public interface EntradaClient {
 
     @PostMapping("/emitir")
-    ResponseEntity<Void> emitirEntradas(@RequestBody List<EntradaRequest> entradas);
+    ResponseEntity<List<EntradaResponse>> emitirEntradas(@RequestBody List<EntradaRequest> entradas);
 }

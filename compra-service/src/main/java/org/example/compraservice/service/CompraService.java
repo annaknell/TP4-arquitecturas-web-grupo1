@@ -4,6 +4,7 @@ import feign.FeignException;
 import org.example.compraservice.client.*;
 import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
+import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.repository.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,11 +26,24 @@ public class CompraService {
     private PagosClient pagosClient;
     @Autowired
     private EntradaClient entradaClient;
+    @Autowired
+    private CompraCompletadaPublisher compraCompletadaPublisher;
 
     private static final int MAX_ENTRADAS_POR_CLIENTE = 4; // Límite de negocio
 
     @Transactional
     public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId) {
+        return procesarCompra(request, idempotencyKey, clienteId, UUID.randomUUID().toString(), null);
+    }
+
+    @Transactional
+    public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId, String correlationId) {
+        return procesarCompra(request, idempotencyKey, clienteId, correlationId, null);
+    }
+
+    @Transactional
+    public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId,
+                                 String correlationId, String email) {
 
         // 1. Verificar Idempotencia
         Optional<Compra> compraExistente = compraRepository.findByIdempotencyKey(idempotencyKey);
@@ -96,11 +111,12 @@ public class CompraService {
                 .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId())) // getId() porque Compra es entidad
                 .collect(Collectors.toList());
 
-            entradaClient.emitirEntradas(entradasAEmitir);
+            List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
             compra.addPaso("Entradas emitidas con éxito", "EJECUTADO");
             compra.setEstado("COMPLETADA");
-
-            return compraRepository.save(compra);
+            Compra compraCompletada = compraRepository.save(compra);
+            compraCompletadaPublisher.publicar(compraCompletada, correlationId, email, entradasEmitidas);
+            return compraCompletada;
 
         } catch (Exception e) {
             compra.setEstado("FALLO_SISTEMA");

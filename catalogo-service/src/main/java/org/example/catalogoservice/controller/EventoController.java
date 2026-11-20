@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
+import org.example.catalogoservice.dto.EventoNotificacionResponse;
 import org.example.catalogoservice.service.EventoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,11 @@ public class EventoController {
         return eventoService.obtenerEventoPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/interno/{id}/notificacion")
+    public ResponseEntity<EventoNotificacionResponse> obtenerEventoParaNotificacion(@PathVariable Long id) {
+        return ResponseEntity.ok(eventoService.obtenerParaNotificacion(id));
     }
 
     @Operation(

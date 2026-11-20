@@ -3,6 +3,7 @@ package org.example.catalogoservice.service;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
 import org.example.catalogoservice.entity.Lugar;
+import org.example.catalogoservice.dto.EventoNotificacionResponse;
 import org.example.catalogoservice.repository.EventoRepository;
 import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EventoService {
@@ -51,6 +54,19 @@ public class EventoService {
 
     public List<EventoSector> obtenerSectoresYPreciosPorEvento(Long eventoId) {
         return eventoSectorRepository.findByEventoId(eventoId);
+    }
+
+    @Transactional(readOnly = true)
+    public EventoNotificacionResponse obtenerParaNotificacion(Long eventoId) {
+        Evento evento = eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + eventoId));
+        Map<Long, String> sectores = eventoSectorRepository.findByEventoId(eventoId).stream()
+                .collect(Collectors.toMap(
+                        eventoSector -> eventoSector.getSector().getId(),
+                        eventoSector -> eventoSector.getSector().getNombre()
+                ));
+        return new EventoNotificacionResponse(evento.getId(), evento.getTitulo(), evento.getFechaInicio(),
+                evento.getLugar().getNombre(), sectores);
     }
 
     @Transactional

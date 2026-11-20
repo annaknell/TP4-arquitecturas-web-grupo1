@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/compras")
 @Tag(name = "Compras", description = "Inicio y consulta de órdenes de compra de entradas")
@@ -45,9 +47,14 @@ public class CompraController {
             @Parameter(description = "Clave única para garantizar la idempotencia de la compra", required = true)
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Parameter(description = "ID del cliente/usuario (etapa actual por header; en E2 vía JWT)", required = true)
-            @RequestHeader("X-User-Id") Long clienteId) {
+            @RequestHeader("X-User-Id") Long clienteId,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
-        Compra compra = compraService.procesarCompra(request, idempotencyKey, clienteId);
+        String correlation = correlationId == null || correlationId.isBlank()
+                ? UUID.randomUUID().toString()
+                : correlationId;
+        Compra compra = compraService.procesarCompra(request, idempotencyKey, clienteId, correlation, email);
 
         if (compra.getEstado().equals("COMPLETADA")) {
             return ResponseEntity.status(HttpStatus.CREATED).body(compra);
