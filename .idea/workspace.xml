@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="ajuste en el yml de api-gateway-service">
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="ajuste en el pom de reportes (dependecia para openapi)">
+      <change afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/CorsConfigGateway.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entrada-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/entrada-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entrada-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/entrada-service/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +53,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/annaknell/TP4-arquitecturas-web-grupo1.git&quot;,
-    &quot;accountId&quot;: &quot;62d2b690-d334-4853-b4cd-ec2fb9b7f520&quot;
+    &quot;accountId&quot;: &quot;1fc76ec8-cdb8-4e46-a605-7724730d89f1&quot;
   }
 }</component>
   <component name="MavenImportPreferences">
@@ -64,61 +69,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0002200720145844" />
-      <entry key="MS500" value="1.2279459252041427" />
-      <entry key="S2" value="3.2091756577257753" />
-      <entry key="S5" value="6.394853296819776" />
-      <entry key="S10" value="8.842150299430752" />
-      <entry key="S30" value="11.984228411735833" />
-      <entry key="S60" value="15.497842697817532" />
-      <entry key="M2" value="20.88248733963903" />
-      <entry key="M5" value="27.863441208826607" />
-      <entry key="M10" value="31.536037551791978" />
-      <entry key="M15" value="33.10185973442845" />
-      <entry key="M30" value="35.247103500058216" />
-      <entry key="H1" value="42.00168424645693" />
-      <entry key="H2" value="82.74145190647283" />
-      <entry key="H4" value="178.34906372559894" />
-      <entry key="D1" value="467.6774704066771" />
-      <entry key="W1" value="727.0637255466497" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0000000000000002" />
+      <entry key="S30" value="1.0000118636047672" />
+      <entry key="S60" value="1.0110903250611754" />
+      <entry key="M2" value="1.4199877377013297" />
+      <entry key="M5" value="6.6677591080132474" />
+      <entry key="M10" value="16.810143208542115" />
+      <entry key="M15" value="23.769425722339566" />
+      <entry key="M30" value="34.42560488251324" />
+      <entry key="H1" value="46.284003908491904" />
+      <entry key="H2" value="87.42903047636904" />
+      <entry key="H4" value="182.5823693276632" />
+      <entry key="D1" value="476.8647693711674" />
+      <entry key="W1" value="739.2187106234007" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="3.6400544728389743E-84" />
-      <entry key="S2" value="1.4024239755270992E-21" />
-      <entry key="S5" value="5.585582662524716E-9" />
-      <entry key="S10" value="1.109587212000714E-4" />
-      <entry key="S30" value="0.09678282585195948" />
-      <entry key="S60" value="0.5759928800663275" />
-      <entry key="M2" value="1.5549924969546793" />
-      <entry key="M5" value="3.0478510511809573" />
-      <entry key="M10" value="3.893993506593528" />
-      <entry key="M15" value="4.279944529218481" />
-      <entry key="M30" value="4.974349187432434" />
-      <entry key="H1" value="6.4708407398910985" />
-      <entry key="H2" value="11.073144255930108" />
-      <entry key="H4" value="19.697756379233336" />
-      <entry key="D1" value="51.067321437441365" />
-      <entry key="W1" value="93.1026033722068" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="8.705897221336685E-173" />
+      <entry key="S5" value="1.8375626997125276E-69" />
+      <entry key="S10" value="6.364265433992133E-35" />
+      <entry key="S30" value="8.041318160512342E-12" />
+      <entry key="S60" value="5.2502694040092444E-6" />
+      <entry key="M2" value="0.004694729072031021" />
+      <entry key="M5" value="0.29918969696673925" />
+      <entry key="M10" value="1.2200332598921246" />
+      <entry key="M15" value="1.9743422465511888" />
+      <entry key="M30" value="3.3785349626030867" />
+      <entry key="H1" value="5.332818288175839" />
+      <entry key="H2" value="10.052382259024359" />
+      <entry key="H4" value="18.767904308783145" />
+      <entry key="D1" value="50.657402294164896" />
+      <entry key="W1" value="92.99547171447688" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9728660551372793" />
-      <entry key="MS500" value="1.220628401735755" />
-      <entry key="S2" value="3.203592715728772" />
-      <entry key="S5" value="6.389990305941282" />
-      <entry key="S10" value="8.8387221498981" />
-      <entry key="S30" value="12.070699015247703" />
-      <entry key="S60" value="16.042648062627194" />
-      <entry key="M2" value="22.39162682255085" />
-      <entry key="M5" value="30.872842016754532" />
-      <entry key="M10" value="35.40477433452394" />
-      <entry key="M15" value="37.36313372521368" />
-      <entry key="M30" value="40.21072659090767" />
-      <entry key="H1" value="48.46552131979742" />
-      <entry key="H2" value="93.80804864873903" />
-      <entry key="H4" value="198.04039748872248" />
-      <entry key="D1" value="518.741572676898" />
-      <entry key="W1" value="820.165462379035" />
+      <entry key="MS100" value="0.9460576467255959" />
+      <entry key="MS500" value="0.9889709163809315" />
+      <entry key="S2" value="0.9972312513520695" />
+      <entry key="S5" value="0.9988915792636801" />
+      <entry key="S10" value="0.9994456359721026" />
+      <entry key="S30" value="0.9998270344019865" />
+      <entry key="S60" value="1.0109992546125381" />
+      <entry key="M2" value="1.4244373691485668" />
+      <entry key="M5" value="6.962955852971183" />
+      <entry key="M10" value="18.02205151816419" />
+      <entry key="M15" value="25.734978286373067" />
+      <entry key="M30" value="37.796743650889034" />
+      <entry key="H1" value="51.61098795496174" />
+      <entry key="H2" value="97.47543580133421" />
+      <entry key="H4" value="201.34413722852491" />
+      <entry key="D1" value="527.5189754402253" />
+      <entry key="W1" value="832.2133163794286" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -153,15 +158,30 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
+    "Spring Boot.CatalogoServiceApplication.executor": "Run",
+    "Spring Boot.CompraServiceApplication.executor": "Run",
+    "Spring Boot.EntradaServiceApplication.executor": "Run",
+    "Spring Boot.FilaVirtualServiceApplication.executor": "Run",
+    "Spring Boot.InventarioApplication.executor": "Run",
+    "Spring Boot.InventarioServiceApplication.executor": "Run",
+    "Spring Boot.NotificacionesServiceApplication.executor": "Run",
     "Spring Boot.PagosApplication.executor": "Run",
+    "Spring Boot.RecomendacionesServiceApplication.executor": "Run",
+    "Spring Boot.ReportesServiceApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "copilot.chat.legacySessionMetadata.migrated": "true",
-    "git-widget-placeholder": "entrega-2-main",
+    "git-widget-placeholder": "main",
+    "git.auto.fetch.suggestion.counter": "1",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
@@ -201,6 +221,13 @@
     <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="api-gateway-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.apigatewayservice.ApiGatewayServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AuthServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="auth-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.authservice.AuthServiceApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -279,8 +306,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-ac68fc9d2b05-intellij.indexing.shared.core-IU-263.7307.200" />
-        <option value="bundled-js-predefined-d6986cc7102b-56aff7b04f6f-JavaScript-IU-263.7307.200" />
+        <option value="bundled-jdk-30f59d01ecdd-a203e0a19954-intellij.indexing.shared.core-IU-262.10968.63" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.10968.63" />
       </set>
     </attachedChunks>
   </component>
@@ -310,6 +337,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ajuste en el yml de api-gateway-service" />
-    <option name="LAST_COMMIT_MESSAGE" value="ajuste en el yml de api-gateway-service" />
+    <MESSAGE value="ajuste en el pom de reportes (dependecia para openapi)" />
+    <option name="LAST_COMMIT_MESSAGE" value="ajuste en el pom de reportes (dependecia para openapi)" />
   </component>
 </project>

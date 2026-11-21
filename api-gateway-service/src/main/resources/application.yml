@@ -12,15 +12,15 @@ spring:
       server:
         webmvc:
           routes:
-            - id: catalogo-service
-              uri: ${CATALOGO_URL:http://localhost:8082}
-              predicates:
-                - Path=/api/eventos/**,/api/lugares/**
-
             - id: auth-service
               uri: ${AUTH_URL:http://localhost:8081}
               predicates:
                 - Path=/api/auth/**
+
+            - id: catalogo-service
+              uri: ${CATALOGO_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/eventos/**,/api/lugares/**
 
             - id: inventario-service
               uri: ${INVENTARIO_URL:http://localhost:8083}
@@ -37,15 +37,10 @@ spring:
               predicates:
                 - Path=/api/pagos/**,/reintegros/**
 
-            - id: entradas-service
-              uri: ${ENTRADAS_URL:http://localhost:8086}
-              predicates:
-                - Path=/api/entradas/**
-
             - id: fila-virtual-service
               uri: ${FILA_VIRTUAL_URL:http://localhost:8086}
               predicates:
-                - Path=/api/fila/**
+                - Path=/api/fila/**,/fila/**
 
             - id: recomendaciones-service
               uri: ${RECOMENDACIONES_URL:http://localhost:8087}
@@ -55,30 +50,110 @@ spring:
             - id: notificaciones-service
               uri: ${NOTIFICACIONES_URL:http://localhost:8088}
               predicates:
-                - Path=/api/notificaciones/**
+                - Path=/api/notificaciones/**,/notificaciones/**
 
             - id: reportes-service
               uri: ${REPORTES_URL:http://localhost:8089}
               predicates:
                 - Path=/api/reportes/**
 
+            - id: entradas-service
+              uri: ${ENTRADAS_URL:http://localhost:8090}
+              predicates:
+                - Path=/api/entradas/**
+
+            # rutas proxy de OpenAPI para que Swagger UI consuma siempre desde localhost:8080
+            - id: docs-auth
+              uri: ${AUTH_URL:http://localhost:8081}
+              predicates:
+                - Path=/v3/api-docs/auth
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-catalogo
+              uri: ${CATALOGO_URL:http://localhost:8082}
+              predicates:
+                - Path=/v3/api-docs/catalogo
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-inventario
+              uri: ${INVENTARIO_URL:http://localhost:8083}
+              predicates:
+                - Path=/v3/api-docs/inventario
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-compras
+              uri: ${COMPRAS_URL:http://localhost:8084}
+              predicates:
+                - Path=/v3/api-docs/compras
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-pagos
+              uri: ${PAGOS_URL:http://localhost:8085}
+              predicates:
+                - Path=/v3/api-docs/pagos
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-fila-virtual
+              uri: ${FILA_VIRTUAL_URL:http://localhost:8086}
+              predicates:
+                - Path=/v3/api-docs/fila-virtual
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-recomendaciones
+              uri: ${RECOMENDACIONES_URL:http://localhost:8087}
+              predicates:
+                - Path=/v3/api-docs/recomendaciones
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-notificaciones
+              uri: ${NOTIFICACIONES_URL:http://localhost:8088}
+              predicates:
+                - Path=/v3/api-docs/notificaciones
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-reportes
+              uri: ${REPORTES_URL:http://localhost:8089}
+              predicates:
+                - Path=/v3/api-docs/reportes
+              filters:
+                - SetPath=/v3/api-docs
+
+            - id: docs-entradas
+              uri: ${ENTRADAS_URL:http://localhost:8090}
+              predicates:
+                - Path=/v3/api-docs/entradas
+              filters:
+                - SetPath=/v3/api-docs
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
     urls:
+      - name: auth-service
+        url: http://localhost:8080/v3/api-docs/auth
       - name: catalogo-service
-        url: ${CATALOGO_URL:http://localhost:8082}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/catalogo
       - name: inventario-service
-        url: ${INVENTARIO_URL:http://localhost:8083}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/inventario
       - name: compras-service
-        url: ${COMPRAS_URL:http://localhost:8084}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/compras
       - name: pagos-service
-        url: ${PAGOS_URL:http://localhost:8085}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/pagos
       - name: fila-virtual-service
-        url: ${FILA_VIRTUAL_URL:http://localhost:8086}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/fila-virtual
       - name: recomendaciones-service
-        url: ${RECOMENDACIONES_URL:http://localhost:8087}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/recomendaciones
       - name: notificaciones-service
-        url: ${NOTIFICACIONES_URL:http://localhost:8088}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/notificaciones
       - name: reportes-service
-        url: ${REPORTES_URL:http://localhost:8089}/v3/api-docs
+        url: http://localhost:8080/v3/api-docs/reportes
+      - name: entradas-service
+        url: http://localhost:8080/v3/api-docs/entradas
