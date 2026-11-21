@@ -1,6 +1,9 @@
 server:
   port: 8080
 
+auth:
+  jwk-set-uri: ${AUTH_JWK_SET_URI:http://localhost:8081/api/auth/.well-known/jwks.json}
+
 spring:
   application:
     name: api-gateway

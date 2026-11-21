@@ -20,7 +20,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,7 +51,7 @@ class JwtServiceTest {
         jwtDecoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();
 
         usuario = new Usuario();
-        usuario.setId(UUID.randomUUID());
+        usuario.setId(1L);
         usuario.setEmail("juan.perez@mail.com");
         usuario.setNombre("Juan Pérez");
         usuario.setPassword("hashed");
@@ -68,7 +67,7 @@ class JwtServiceTest {
 
         Jwt jwt = jwtDecoder.decode(token);
         assertThat(jwt.getSubject()).isEqualTo("juan.perez@mail.com");
-        assertThat(jwt.getClaimAsString(JwtService.CLAIM_USER_ID)).isEqualTo(usuario.getId().toString());
+        assertThat(((Number) jwt.getClaim(JwtService.CLAIM_USER_ID)).longValue()).isEqualTo(usuario.getId());
         assertThat(jwt.getClaimAsString(JwtService.CLAIM_ROLE)).isEqualTo("CLIENTE");
         assertThat(jwt.getExpiresAt()).isAfter(jwt.getIssuedAt());
         assertThat(jwt.getExpiresAt().getEpochSecond() - jwt.getIssuedAt().getEpochSecond()).isEqualTo(3600L);
@@ -82,7 +81,7 @@ class JwtServiceTest {
         java.time.Instant emitido = java.time.Instant.now().minusSeconds(7200);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(usuario.getEmail())
-                .claim(JwtService.CLAIM_USER_ID, usuario.getId().toString())
+                .claim(JwtService.CLAIM_USER_ID, usuario.getId())
                 .claim(JwtService.CLAIM_ROLE, usuario.getRol().name())
                 .issuedAt(emitido)
                 .expiresAt(emitido.plusSeconds(3600))
