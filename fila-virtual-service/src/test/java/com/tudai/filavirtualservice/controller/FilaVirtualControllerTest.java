@@ -42,7 +42,7 @@ class FilaVirtualControllerTest {
         when(filaVirtualService.ingresar(10L, 7L)).thenReturn(
                 new IngresoFilaResponse("ticket-7", EstadoTicketFila.EN_ESPERA, Instant.parse("2026-11-16T12:00:00Z"), false));
 
-        mockMvc.perform(post("/fila/10/ingresos").header("X-User-Id", "7"))
+        mockMvc.perform(post("/api/fila/10/ingresos").header("X-User-Id", "7"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.ticketId").value("ticket-7"))
                 .andExpect(jsonPath("$.reingreso").value(false));
@@ -55,7 +55,7 @@ class FilaVirtualControllerTest {
         when(filaVirtualService.ingresar(10L, 7L)).thenReturn(
                 new IngresoFilaResponse("ticket-7", EstadoTicketFila.EN_ESPERA, Instant.parse("2026-11-16T12:00:00Z"), true));
 
-        mockMvc.perform(post("/fila/10/ingresos").header("X-User-Id", "7"))
+        mockMvc.perform(post("/api/fila/10/ingresos").header("X-User-Id", "7"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reingreso").value(true));
     }
@@ -65,7 +65,7 @@ class FilaVirtualControllerTest {
         when(filaVirtualService.consultarPosicion(10L, 7L)).thenReturn(
                 new PosicionFilaResponse("ticket-7", EstadoTicketFila.EN_ESPERA, 3L, 2L, null, 10, null));
 
-        mockMvc.perform(get("/fila/10/mi-posicion").header("X-User-Id", "7"))
+        mockMvc.perform(get("/api/fila/10/mi-posicion").header("X-User-Id", "7"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.posicion").value(3))
                 .andExpect(jsonPath("$.personasDelante").value(2));
@@ -77,7 +77,7 @@ class FilaVirtualControllerTest {
     void eventoNoHabilitadoDevuelveConflict() throws Exception {
         when(filaVirtualService.ingresar(10L, 7L)).thenThrow(new EventoNoHabilitadoException());
 
-        mockMvc.perform(post("/fila/10/ingresos").header("X-User-Id", "7"))
+        mockMvc.perform(post("/api/fila/10/ingresos").header("X-User-Id", "7"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("EVENTO_NO_HABILITADO"));
     }
@@ -86,7 +86,7 @@ class FilaVirtualControllerTest {
     void ticketInexistenteDevuelveNotFound() throws Exception {
         when(filaVirtualService.consultarPosicion(10L, 7L)).thenThrow(new TicketNoEncontradoException());
 
-        mockMvc.perform(get("/fila/10/mi-posicion").header("X-User-Id", "7"))
+        mockMvc.perform(get("/api/fila/10/mi-posicion").header("X-User-Id", "7"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.codigo").value("TICKET_NO_ENCONTRADO"));
     }

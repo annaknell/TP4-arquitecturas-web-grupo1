@@ -8,8 +8,10 @@ import org.example.compraservice.dto.PagoRequest;
 import org.example.compraservice.dto.PagoResponse;
 import org.example.compraservice.dto.ReservaRequest;
 import org.example.compraservice.dto.ReservaResponse;
+import org.example.compraservice.dto.EntradaResponse;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.repository.CompraRepository;
+import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.service.CompraService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,9 @@ class NoDobleVentaTest {
     @Mock
     private EntradaClient entradaClient;
 
+    @Mock
+    private CompraCompletadaPublisher compraCompletadaPublisher;
+
     @InjectMocks
     private CompraService compraService;
 
@@ -78,6 +83,9 @@ class NoDobleVentaTest {
         // 2. Pagos: Si la reserva pasó, el cobro se aprueba exitosamente
         when(pagosClient.cobrar(any(PagoRequest.class)))
             .thenReturn(ResponseEntity.ok(new PagoResponse(555L, "APROBADO")));
+        when(entradaClient.emitirEntradas(any()))
+            .thenReturn(ResponseEntity.ok(List.of(new EntradaResponse(800L, "QR-800", "EMITIDA", eventoId, 1L,
+                    asientoConflictivo, 1L, 1L))));
 
         // 3. Mocks de base de datos y repositorios
         when(compraRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());

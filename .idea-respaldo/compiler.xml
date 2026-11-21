@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="pago-service" />
+        <module name="notificaciones-service" />
+        <module name="fila-virtual-service" />
+      </profile>
+      <profile name="Annotation profile for TP4-arquitecturas-web-grupo1" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.48/lombok-1.18.48.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.48/lombok-1.18.48.jar" />
+        </processorPath>
+        <module name="entrada-service" />
+        <module name="catalogo-service" />
+        <module name="api-gateway-service" />
+        <module name="inventario-service" />
+        <module name="compra-service" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="notificaciones" target="17" />
+      <module name="pagos" target="1.5" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="api-gateway-service" options="-parameters" />
+      <module name="catalogo-service" options="-parameters" />
+      <module name="compra-service" options="-parameters" />
+      <module name="entrada-service" options="-parameters" />
+      <module name="fila-virtual-service" options="-parameters" />
+      <module name="inventario-service" options="-parameters" />
+      <module name="notificaciones" options="-parameters" />
+      <module name="notificaciones-service" options="-parameters" />
+      <module name="pago-service" options="-parameters" />
+      <module name="pagos" options="" />
+    </option>
+  </component>
+</project>

@@ -20,6 +20,9 @@ public class Compra {
     private Long clienteId;
 
     @Column(nullable = false)
+    private String emailCliente;
+
+    @Column(nullable = false)
     private Long eventoId;
 
     @Column(unique = true, nullable = false)
@@ -42,6 +45,10 @@ public class Compra {
     @ElementCollection
     @CollectionTable(name = "compra_asientos", joinColumns = @JoinColumn(name = "compra_id"))
     private List<Long> asientos = new ArrayList<>();
+
+    /** Precios y sectores congelados al confirmar la venta; nunca se recalculan desde catálogo. */
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LineaVenta> lineasVenta = new ArrayList<>();
 
     public void addPaso(String descripcion, String estadoPaso) {
         this.pasos.add(new PasoCompra(null, this, descripcion, estadoPaso, LocalDateTime.now()));

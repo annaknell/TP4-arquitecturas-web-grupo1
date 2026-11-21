@@ -16,7 +16,7 @@ public class FilaVirtualClient {
 
     public void marcarAgotada(Long eventoId) {
         restClient.put()
-                .uri("/interno/fila/{eventoId}/estado", eventoId)
+                .uri("/api/interno/fila/{eventoId}/estado", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new EstadoFilaRequest("AGOTADA"))
                 .retrieve()
@@ -25,7 +25,7 @@ public class FilaVirtualClient {
 
     public ResultadoAutorizacion validarYConsumir(Long eventoId, Long clienteId, String token) {
         ResultadoAutorizacion resultado = restClient.post()
-                .uri("/interno/fila/{eventoId}/autorizaciones/validar-y-consumir", eventoId)
+                .uri("/api/interno/fila/{eventoId}/autorizaciones/validar-y-consumir", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ValidarAutorizacionRequest(clienteId, token))
                 .retrieve()
@@ -35,7 +35,7 @@ public class FilaVirtualClient {
 
     public ResultadoAutorizacion restaurar(Long eventoId, Long clienteId, String token) {
         ResultadoAutorizacion resultado = restClient.post()
-                .uri("/interno/fila/{eventoId}/autorizaciones/restaurar", eventoId)
+                .uri("/api/interno/fila/{eventoId}/autorizaciones/restaurar", eventoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ValidarAutorizacionRequest(clienteId, token))
                 .retrieve()

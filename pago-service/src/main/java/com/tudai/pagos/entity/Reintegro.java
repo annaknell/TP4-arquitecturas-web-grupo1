@@ -5,6 +5,8 @@ import com.tudai.pagos.enums.MotivoReintegro;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Reintegro {
@@ -58,6 +60,9 @@ public class Reintegro {
 
     @Version
     private Long version;
+
+    @OneToMany(mappedBy = "reintegro", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AsignacionReintegro> asignaciones = new ArrayList<>();
 
     public Reintegro() {
     }
@@ -163,6 +168,12 @@ public class Reintegro {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+    public java.util.List<AsignacionReintegro> getAsignaciones() {
+        return asignaciones;
+    }
+    public void agregarAsignacion(Long entradaId, Long eventoId, Long sectorId, Long importeCentavos) {
+        asignaciones.add(new AsignacionReintegro(this, entradaId, eventoId, sectorId, importeCentavos));
     }
 
     public LocalDateTime getFechaCreacion() {

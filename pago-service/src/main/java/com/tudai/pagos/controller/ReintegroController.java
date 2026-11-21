@@ -141,7 +141,7 @@ public class ReintegroController {
             @Valid @RequestBody ReintegroRequest req) {
         UUID.fromString(clave);
         return ReintegroResponse.de(reintegroService.reintegrar(
-                req.pagoId(), clave, req.monto(), req.motivo()));
+                req.pagoId(), clave, req.monto(), req.motivo(), req.asignaciones()));
     }
 
     @Operation(
@@ -174,7 +174,7 @@ public class ReintegroController {
     public ReintegroResponse reintegrarPorCompra(
             @Parameter(description = "ID de la compra", required = true) @PathVariable Long compraId,
             @Valid @RequestBody ReintegroCompraRequest req) {
-        return ReintegroResponse.de(reintegroService.reintegrarPorCompra(compraId, req.motivo()));
+        return ReintegroResponse.de(reintegroService.reintegrarPorCompra(compraId, req.motivo(), req.asignaciones()));
     }
 
     @Operation(
@@ -210,6 +210,6 @@ public class ReintegroController {
     public ReintegroResponse reintegrarDevolucionAprobada(
             @Valid @RequestBody ReintegroDevolucionAprobadaRequest req) {
         return ReintegroResponse.de(reintegroService.reintegrarDevolucionAprobada(
-                req.solicitudDevolucionId(), req.pagoId(), req.monto()));
+                req.solicitudDevolucionId(), req.pagoId(), req.monto(), req.asignaciones()));
     }
 }

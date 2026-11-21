@@ -4,5 +4,6 @@ public record EntradaRequest(
     Long eventoId,
     Long asientoId,
     Long clienteId,
-    Long compraId
+    Long compraId,
+    Long sectorId
 ) {}

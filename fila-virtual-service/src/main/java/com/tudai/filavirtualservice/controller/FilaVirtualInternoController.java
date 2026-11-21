@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Endpoints privados: Catálogo los invoca directamente, sin pasar por el Gateway. */
 @RestController
-@RequestMapping("/interno/fila")
+@RequestMapping("/api/interno/fila")
 @Tag(
         name = "Fila Virtual (Interno)",
         description = "Endpoints internos invocados por Catálogo sin pasar por el Gateway (requieren restricción de red/acceso interno)"

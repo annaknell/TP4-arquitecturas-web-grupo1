@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/fila")
+@RequestMapping("/api/fila")
 @Tag(name = "Fila Virtual", description = "Ingreso a la fila virtual de un evento y consulta de posición del cliente")
 public class FilaVirtualController {
 

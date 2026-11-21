@@ -4,6 +4,8 @@ import feign.FeignException;
 import org.example.compraservice.client.*;
 import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
+import org.example.compraservice.messaging.CompraCompletadaPublisher;
+import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.repository.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,11 +28,26 @@ public class CompraService {
     private PagosClient pagosClient;
     @Autowired
     private EntradaClient entradaClient;
+    @Autowired
+    private CompraCompletadaPublisher compraCompletadaPublisher;
+    @Autowired
+    private ReporteVentaPublisher reporteVentaPublisher;
 
     private static final int MAX_ENTRADAS_POR_CLIENTE = 4; // Límite de negocio
 
     @Transactional
     public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId) {
+        return procesarCompra(request, idempotencyKey, clienteId, UUID.randomUUID().toString(), null);
+    }
+
+    @Transactional
+    public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId, String correlationId) {
+        return procesarCompra(request, idempotencyKey, clienteId, correlationId, null);
+    }
+
+    @Transactional
+    public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId,
+                                 String correlationId, String email) {
 
         // 1. Verificar Idempotencia
         Optional<Compra> compraExistente = compraRepository.findByIdempotencyKey(idempotencyKey);
@@ -45,6 +64,7 @@ public class CompraService {
         // Inicializar la Compra
         Compra compra = new Compra();
         compra.setClienteId(clienteId);
+        compra.setEmailCliente(email);
         compra.setEventoId(request.eventoId());
         compra.setIdempotencyKey(idempotencyKey);
         compra.setAsientos(request.asientos());
@@ -92,15 +112,21 @@ public class CompraService {
             }
 
             // PASO 4: Emitir Entradas
+            if (reserva.sectorId() == null) {
+                throw new IllegalStateException("Inventario no informó sectorId; no es posible registrar una venta auditable");
+            }
             List<EntradaRequest> entradasAEmitir = request.asientos().stream()
-                .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId())) // getId() porque Compra es entidad
+                .map(asientoId -> new EntradaRequest(request.eventoId(), asientoId, clienteId, compra.getId(), reserva.sectorId()))
                 .collect(Collectors.toList());
 
-            entradaClient.emitirEntradas(entradasAEmitir);
+            List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
+            registrarLineasVenta(compra, entradasEmitidas, reserva);
             compra.addPaso("Entradas emitidas con éxito", "EJECUTADO");
             compra.setEstado("COMPLETADA");
-
-            return compraRepository.save(compra);
+            Compra compraCompletada = compraRepository.save(compra);
+            compraCompletada.getLineasVenta().forEach(linea -> reporteVentaPublisher.publicar(linea, correlationId));
+            compraCompletadaPublisher.publicar(compraCompletada, correlationId, email, entradasEmitidas);
+            return compraCompletada;
 
         } catch (Exception e) {
             compra.setEstado("FALLO_SISTEMA");
@@ -109,7 +135,42 @@ public class CompraService {
         }
     }
 
+    private void registrarLineasVenta(Compra compra, List<EntradaResponse> entradas, ReservaResponse reserva) {
+        if (entradas == null || entradas.isEmpty()) {
+            throw new IllegalStateException("No se emitieron entradas para una compra confirmada");
+        }
+        long totalCentavos = importeCentavos(reserva.importeTotal(), compra.getPrecioTotal());
+        long base = totalCentavos / entradas.size();
+        long resto = totalCentavos % entradas.size();
+        for (int i = 0; i < entradas.size(); i++) {
+            EntradaResponse entrada = entradas.get(i);
+            long importe = base + (i < resto ? 1 : 0);
+            compra.getLineasVenta().add(new org.example.compraservice.entity.LineaVenta(
+                    compra, entrada.id(), compra.getEventoId(), entrada.sectorId(), entrada.asientoId(), importe, "ARS"));
+        }
+    }
+
+    private long importeCentavos(BigDecimal importeReserva, Double importeCompra) {
+        if (importeReserva != null) {
+            return importeReserva.movePointRight(2).longValueExact();
+        }
+        if (importeCompra == null) {
+            throw new IllegalStateException("La compra no tiene importe confirmado");
+        }
+        return BigDecimal.valueOf(importeCompra).movePointRight(2).longValueExact();
+    }
+
     public Compra obtenerPorId(Long id) {
         return compraRepository.findById(id).orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+    }
+
+    public List<CompradorNotificacionResponse> compradoresCompletadosPorEvento(Long eventoId) {
+        return compraRepository.findByEventoIdAndEstado(eventoId, "COMPLETADA").stream()
+                .filter(compra -> compra.getEmailCliente() != null && !compra.getEmailCliente().isBlank())
+                .collect(java.util.stream.Collectors.toMap(
+                        Compra::getEmailCliente,
+                        compra -> new CompradorNotificacionResponse(compra.getClienteId(), compra.getEmailCliente()),
+                        (primero, ignorado) -> primero
+                )).values().stream().toList();
     }
 }

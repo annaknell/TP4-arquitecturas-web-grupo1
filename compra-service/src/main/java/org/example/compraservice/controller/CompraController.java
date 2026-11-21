@@ -7,12 +7,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.compraservice.dto.CompraRequest;
+import org.example.compraservice.dto.CompradorNotificacionResponse;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.service.CompraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/compras")
@@ -45,9 +49,14 @@ public class CompraController {
             @Parameter(description = "Clave única para garantizar la idempotencia de la compra", required = true)
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Parameter(description = "ID del cliente/usuario (etapa actual por header; en E2 vía JWT)", required = true)
-            @RequestHeader("X-User-Id") Long clienteId) {
+            @RequestHeader("X-User-Id") Long clienteId,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
-        Compra compra = compraService.procesarCompra(request, idempotencyKey, clienteId);
+        String correlation = correlationId == null || correlationId.isBlank()
+                ? UUID.randomUUID().toString()
+                : correlationId;
+        Compra compra = compraService.procesarCompra(request, idempotencyKey, clienteId, correlation, email);
 
         if (compra.getEstado().equals("COMPLETADA")) {
             return ResponseEntity.status(HttpStatus.CREATED).body(compra);
@@ -70,5 +79,10 @@ public class CompraController {
     public ResponseEntity<Compra> obtenerCompra(
             @Parameter(description = "ID de la compra", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(compraService.obtenerPorId(id));
+    }
+
+    @GetMapping("/interno/{eventoId}/compradores")
+    public ResponseEntity<List<CompradorNotificacionResponse>> compradoresPorEvento(@PathVariable Long eventoId) {
+        return ResponseEntity.ok(compraService.compradoresCompletadosPorEvento(eventoId));
     }
 }
