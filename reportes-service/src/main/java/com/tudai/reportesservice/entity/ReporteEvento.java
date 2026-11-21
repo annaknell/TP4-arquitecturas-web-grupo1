@@ -7,14 +7,13 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 @Entity
 @Table(name = "reportes_evento")
 public class ReporteEvento {
     @Id
     private Long eventoId;
 
-    private UUID organizadorId;
+    private Long organizadorId;
     private String nombre;
     private String moneda = "ARS";
     private Instant actualizadoEn = Instant.now();
@@ -28,10 +27,10 @@ public class ReporteEvento {
     public void setEventoId(Long eventoId) {
         this.eventoId = eventoId;
     }
-    public UUID getOrganizadorId() {
+    public Long getOrganizadorId() {
         return organizadorId;
     }
-    public void setOrganizadorId(UUID organizadorId) {
+    public void setOrganizadorId(Long organizadorId) {
         this.organizadorId = organizadorId;
     }
     public String getNombre() {

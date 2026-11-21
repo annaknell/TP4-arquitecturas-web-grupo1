@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reportes")
@@ -44,12 +43,12 @@ public class ReporteController {
     @GetMapping("/eventos")
     public List<ReporteEventoResponse> listarEventos(
             @Parameter(hidden = true) Authentication authentication,
-            @Parameter(description = "UUID opcional del organizador a filtrar")
-            @RequestParam(required = false) UUID organizadorId) {
+            @Parameter(description = "ID numérico opcional del organizador a filtrar")
+            @RequestParam(required = false) Long organizadorId) {
         if (esAdministrador(authentication)) {
             return organizadorId == null ? service.listar() : service.listarPorOrganizador(organizadorId);
         }
-        UUID solicitante = UUID.fromString(authentication.getName());
+        Long solicitante = Long.valueOf(authentication.getName());
         if (organizadorId != null && !organizadorId.equals(solicitante)) {
             throw new AccessDeniedException("No puede consultar reportes de otro organizador");
         }
@@ -129,13 +128,13 @@ public class ReporteController {
         service.reintegro(request.eventoId(), request.sectorId(), request.importeCentavos(), request.aplicado());
     }
 
-    public record Config(UUID organizadorId, String nombre, String moneda, List<ReporteService.SectorConfig> sectores) { }
+    public record Config(Long organizadorId, String nombre, String moneda, List<ReporteService.SectorConfig> sectores) { }
     public record Movimiento(Long eventoId, Long sectorId, long importeCentavos) { }
     public record Reintegro(Long eventoId, Long sectorId, long importeCentavos, boolean aplicado) { }
 
     private void verificarAcceso(Long eventoId, Authentication authentication) {
         if (!esAdministrador(authentication)
-                && !service.evento(eventoId).getOrganizadorId().equals(UUID.fromString(authentication.getName()))) {
+                && !service.evento(eventoId).getOrganizadorId().equals(Long.valueOf(authentication.getName()))) {
             throw new AccessDeniedException("No puede consultar reportes de otro organizador");
         }
     }

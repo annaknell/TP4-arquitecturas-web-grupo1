@@ -26,7 +26,7 @@ public class ReporteEventListener {
         if ("VENTA_CONFIRMADA".equals(event.eventType())) {
             reportes.venta(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"));
         } else if ("EVENTO_CONFIGURADO".equals(event.eventType())) {
-            reportes.configurar(numero(p, "eventoId"), java.util.UUID.fromString((String) p.get("organizadorId")),
+            reportes.configurar(numero(p, "eventoId"), numero(p, "organizadorId"),
                     (String) p.get("nombre"), (String) p.get("moneda"), sectores(p));
         } else if ("REINTEGRO_REGISTRADO".equals(event.eventType())) {
             reportes.reintegro(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"), false);
