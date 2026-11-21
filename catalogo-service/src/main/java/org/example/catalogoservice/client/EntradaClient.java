@@ -13,7 +13,7 @@ public class EntradaClient {
 
     private final RestClient restClient;
 
-    public EntradaClient(@Value("http://localhost:8086") String entradaServiceUrl) {
+    public EntradaClient(@Value("${entrada-service.url:http://localhost:8086}") String entradaServiceUrl) {
         this.restClient = RestClient.builder()
             .baseUrl(entradaServiceUrl)
             .build();

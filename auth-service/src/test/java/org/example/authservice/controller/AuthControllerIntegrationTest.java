@@ -221,6 +221,15 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** Migración UUID → Long: un claim userId legacy debe dar 401, no un 500. */
+    @Test
+    @DisplayName("me: 401 con token legacy de userId UUID")
+    void meTokenUserIdLegacy() throws Exception {
+        String legacy = tokenConUserId(java.util.UUID.randomUUID().toString());
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + legacy))
+                .andExpect(status().isUnauthorized());
+    }
+
     // ------------------------------------------------------------------
     // Alta privilegiada POST /api/auth/users (solo ADMINISTRADOR)
     // ------------------------------------------------------------------
@@ -324,10 +333,23 @@ class AuthControllerIntegrationTest {
         Instant emitido = Instant.now().plusSeconds(offsetHoras * 3600L);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject("juan.perez@mail.com")
-                .claim(JwtService.CLAIM_USER_ID, java.util.UUID.randomUUID().toString())
+                .claim(JwtService.CLAIM_USER_ID, 1L)
                 .claim(JwtService.CLAIM_ROLE, "CLIENTE")
                 .issuedAt(emitido)
                 .expiresAt(emitido.plusSeconds(3600))
+                .build();
+        JwtEncoder encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwtRsaKey)));
+        return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    /** Token válido con un claim userId arbitrario (para simular formatos legacy). */
+    private String tokenConUserId(Object userId) {
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject("juan.perez@mail.com")
+                .claim(JwtService.CLAIM_USER_ID, userId)
+                .claim(JwtService.CLAIM_ROLE, "CLIENTE")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
         JwtEncoder encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwtRsaKey)));
         return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
@@ -345,7 +367,7 @@ class AuthControllerIntegrationTest {
         JwtEncoder encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(otra)));
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject("atacante@mail.com")
-                .claim(JwtService.CLAIM_USER_ID, java.util.UUID.randomUUID().toString())
+                .claim(JwtService.CLAIM_USER_ID, 1L)
                 .claim(JwtService.CLAIM_ROLE, "ADMINISTRADOR")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(3600))

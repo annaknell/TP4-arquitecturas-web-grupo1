@@ -19,8 +19,8 @@ public record LoginResponse(
         @Schema(description = "Vigencia del token en segundos", example = "3600")
         long expiresIn,
 
-        @Schema(description = "Identificador del usuario", example = "5f0c3a1e-8b7d-4c2a-9e1f-2a3b4c5d6e7f")
-        java.util.UUID userId,
+        @Schema(description = "Identificador del usuario", example = "1")
+        Long userId,
 
         @Schema(description = "Email del usuario", example = "juan.perez@mail.com")
         String email,

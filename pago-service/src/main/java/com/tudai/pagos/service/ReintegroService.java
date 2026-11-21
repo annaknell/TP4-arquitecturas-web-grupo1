@@ -106,12 +106,12 @@ public class ReintegroService {
     }
 
     public Reintegro reintegrar(Long pagoId, String clave, Integer monto, MotivoReintegro motivo) {
-        return reintegrar(pagoId, clave, monto, motivo, null);
+        return reintegrar(pagoId, clave, monto, motivo, (Long) null);
     }
 
     public Reintegro reintegrar(Long pagoId, String clave, Integer monto, MotivoReintegro motivo,
                                 List<AsignacionReintegroRequest> asignaciones) {
-        Reintegro reintegro = reintegrar(pagoId, clave, monto, motivo, null);
+        Reintegro reintegro = reintegrar(pagoId, clave, monto, motivo, (Long) null);
         if (asignaciones != null && !asignaciones.isEmpty() && reintegro.getAsignaciones().isEmpty()) {
             long total = asignaciones.stream().mapToLong(AsignacionReintegroRequest::importeCentavos).sum();
             if (total != monto.longValue() * 100L) throw new IllegalArgumentException("Las asignaciones no coinciden con el monto reintegrado");

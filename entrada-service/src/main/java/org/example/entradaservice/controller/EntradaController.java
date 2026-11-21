@@ -5,9 +5,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.entradaservice.dto.ValidarEntradaRequest;
+import org.example.entradaservice.dto.ValidarEntradaResponse;
 import org.example.entradaservice.entity.Entrada;
 import org.example.entradaservice.service.EntradaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/entradas")
-@Tag(name = "Entradas", description = "Emisión, consulta y cancelación de entradas")
+@Tag(name = "Entradas", description = "Emisión, consulta, cancelación y validación de entradas en la puerta")
 public class EntradaController {
 
     @Autowired
@@ -93,5 +96,26 @@ public class EntradaController {
     public ResponseEntity<List<Long>> cancelarEntradasPorEvento(
             @Parameter(description = "ID del evento", required = true) @PathVariable Long eventoId) {
         return ResponseEntity.ok(entradaService.cancelarEntradasPorEvento(eventoId));
+    }
+
+    @Operation(
+            summary = "Validar entrada en la puerta",
+            description = "Valida el código QR de una entrada para el evento indicado y la marca como usada. El cambio de estado es idempotente: un segundo intento con el mismo QR se rechaza como ya utilizada."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Acceso autorizado (o autorizado con advertencia de sector)"),
+            @ApiResponse(responseCode = "404", description = "Código QR inexistente"),
+            @ApiResponse(responseCode = "409", description = "QR ya utilizado, cancelado o reintegrado")
+    })
+    @PostMapping("/validar")
+    public ResponseEntity<ValidarEntradaResponse> validarEntrada(@RequestBody ValidarEntradaRequest request) {
+        ValidarEntradaResponse respuesta = entradaService.validar(request.getCodigoQr(), request.getEventoId());
+        if (respuesta.isAutorizado()) {
+            return ResponseEntity.ok(respuesta);
+        }
+        if ("INEXISTENTE".equals(respuesta.getMotivo())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(respuesta);
     }
 }

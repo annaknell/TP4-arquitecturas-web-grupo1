@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,4 +39,7 @@ public class Entrada {
 
     @Column(name = "compra_id", nullable = false)
     private Long compraId;
+
+    @Column(name = "usada_en")
+    private Instant usadaEn;
 }
