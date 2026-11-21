@@ -18,6 +18,8 @@
         <module>fila-virtual-service</module>
         <module>notificaciones-service</module>
         <module>reportes-service</module>
+        <module>auth-service</module>
+        <module>recomendaciones-service</module>
     </modules>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
