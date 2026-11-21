@@ -84,6 +84,7 @@ public class SecurityConfig {
                         // Entradas: el personal de acceso valida QR; el cliente consulta las propias
                         .requestMatchers(HttpMethod.POST, "/api/entradas/validar")
                         .hasAnyRole("PERSONAL_ACCESO", "ADMINISTRADOR")
+                        .requestMatchers("/api/entradas/devoluciones/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/entradas/**").hasAnyRole("CLIENTE", "ADMINISTRADOR")
 
                         // Fila virtual

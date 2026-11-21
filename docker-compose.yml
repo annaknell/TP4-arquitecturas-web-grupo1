@@ -110,6 +110,7 @@ services:
       ENTRADA_SERVICE_URL: http://entrada-service:8086
       FILA_VIRTUAL_SERVICE_URL: http://fila-virtual-service:8086
       PAGO_SERVICE_URL: http://pago-service:8085
+      INVENTARIO_SERVICE_URL: http://inventario-service:8083
     mem_limit: 420m
     restart: on-failure
     depends_on:
@@ -165,6 +166,10 @@ services:
     environment:
       <<: *mysqlCredenciales
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_entradas?createDatabaseIfNotExist=true
+      CATALOGO_SERVICE_URL: http://catalogo-service:8082
+      COMPRA_SERVICE_URL: http://compra-service:8084
+      PAGO_SERVICE_URL: http://pago-service:8085
+      INVENTARIO_SERVICE_URL: http://inventario-service:8083
     mem_limit: 420m
     restart: on-failure
     depends_on:
