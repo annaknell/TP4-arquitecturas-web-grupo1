@@ -8,7 +8,7 @@ WORKDIR /app
 # Cache de dependencias
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
-RUN ./mvnw -q dependency:go-offline
+RUN chmod +x mvnw && ./mvnw -q dependency:go-offline
 
 COPY src src
 RUN ./mvnw -q package -DskipTests
