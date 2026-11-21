@@ -72,7 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/lugares/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/eventos", "/api/lugares")
                         .hasAnyRole("ORGANIZADOR", "ADMINISTRADOR")
-                        .requestMatchers(HttpMethod.PATCH, "/api/eventos/*/suspender", "/api/eventos/*/reanudar")
+                        .requestMatchers(HttpMethod.PATCH, "/api/eventos/*/suspender", "/api/eventos/*/reanudar", "/api/eventos/*/cancelar")
                         .hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/eventos/**")
                         .hasAnyRole("ORGANIZADOR", "ADMINISTRADOR")
