@@ -499,32 +499,37 @@ sistema colapse.
 ## F08 — Control de acceso
 
 ### US-33 — Validar una entrada al escanear su QR
+*Actualizada en la Entrega 2.*
 
 **Como** personal de acceso **quiero** escanear el QR de una entrada **para** verificar su legitimidad.
 
 **Criterios de aceptación**
-1. **Dado** un QR existente, en estado válida y del evento en el que estoy controlando, **cuando** lo
-   escaneo, **entonces** la respuesta es **autorizado** con datos mínimos (sector o asiento) y sin
+1. **Dado** un QR existente, en estado emitida y del evento en el que estoy controlando, **cuando** lo
+   escaneo, **entonces** recibo 200 con **autorizado**, el sector o asiento y la hora de ingreso, sin
    datos personales del cliente.
-2. **Dado** un QR inexistente, **cuando** lo escaneo, **entonces** se rechaza con el motivo *inexistente*.
-3. **Dado** un QR de otro evento, **cuando** lo escaneo, **entonces** se rechaza con el motivo *otro evento*.
-4. **Dado** un QR de una entrada devuelta o cancelada, **cuando** lo escaneo, **entonces** se rechaza
-   con el motivo *devuelta* o *cancelada*.
-5. **Regla:** la operación recibe el QR y el evento; solo la puede usar el personal de acceso (US-49).
+2. **Dado** un QR inexistente, **cuando** lo escaneo, **entonces** recibo 404 con el motivo `INEXISTENTE`.
+3. **Dado** un QR de otro evento, **cuando** lo escaneo, **entonces** recibo 409 con el motivo
+   `EVENTO_EQUIVOCADO`.
+4. **Dado** un QR de una entrada devuelta o cancelada, **cuando** lo escaneo, **entonces** recibo 409
+   con el estado de la entrada como motivo.
+5. **Regla:** la operación recibe el código QR y el evento; solo la pueden usar el personal de acceso y
+   el administrador (US-49).
 
 ### US-34 — Marcar entrada como utilizada y rechazar el segundo uso
+*Actualizada en la Entrega 2.*
 
 **Como** personal de acceso **quiero** que cada QR ingrese una sola vez **para** evitar accesos duplicados.
 
 **Criterios de aceptación**
-1. **Dado** una entrada válida, **cuando** se autoriza su ingreso, **entonces** pasa a **utilizada**
-   con fecha, hora y puesto de acceso.
-2. **Dado** una entrada ya utilizada, **cuando** se escanea de nuevo, **entonces** se rechaza como
-   *ya utilizada*, se informa la hora del primer ingreso y no se modifica el primer registro.
+1. **Dado** una entrada emitida, **cuando** se autoriza su ingreso, **entonces** pasa a **usada** y se
+   guarda la fecha y hora del ingreso.
+2. **Dado** una entrada ya usada, **cuando** se escanea de nuevo, **entonces** recibo 409 con el motivo
+   `YA_USADA` y la hora del primer ingreso, y el primer registro no se modifica.
 3. **Dado** dos lectores que escanean el mismo QR al mismo tiempo, **cuando** se procesan,
-   **entonces** solo uno es autorizado (actualización atómica condicional).
+   **entonces** solo uno es autorizado: el cambio a usada es una actualización condicional atómica
+   (solo se aplica si la entrada sigue emitida).
 4. **Dado** cualquier validación, autorizada o rechazada, **cuando** termina, **entonces** queda
-   registrada en la auditoría centralizada (EN-09).
+   registrada en el log con su identificador de correlación.
 
 ---
 
@@ -584,32 +589,39 @@ eventos afines.
 ## F10 — Notificaciones
 
 ### US-38 — Notificar compra confirmada
+*Actualizada en la Entrega 2.*
 
 **Como** cliente **quiero** recibir una notificación al confirmarse mi compra **para** tener el
 comprobante de mis entradas.
 
 **Criterios de aceptación**
-1. **Dado** una compra aprobada, **cuando** se confirma, **entonces** se me envía un email o push que
-   identifica la compra y las entradas emitidas.
-2. **Dado** que el servicio de notificaciones falla, **cuando** se intenta enviar, **entonces** la
-   compra sigue confirmada (nunca se revierte), se reintenta y, si persiste, el mensaje pasa a la cola
-   de reenvío (EN-07).
-3. **Regla:** el envío es asíncrono (EN-03) y no demora la respuesta de la compra.
+1. **Dado** una compra completada, **cuando** se confirma, **entonces** se me envía un email con el
+   número de compra, el evento, la fecha, el lugar y cada entrada (sector, asiento y código QR).
+2. **Dado** que el envío del email falla, **cuando** se intenta, **entonces** la compra sigue confirmada
+   (nunca se revierte) y la notificación queda **fallida**, con hasta 3 reintentos automáticos con
+   espera creciente (30 s, 60 s, …).
+3. **Dado** una notificación fallida que agotó sus reintentos, **cuando** un administrador pide
+   reintentarla, **entonces** vuelve a pendiente y se reintenta; si no estaba fallida, se rechaza.
+4. **Dado** el mismo aviso de compra recibido dos veces, **cuando** se procesa, **entonces** se ignora
+   el duplicado y se envía un solo email.
+5. **Regla:** el envío es asíncrono (mensajería con RabbitMQ) y no demora la respuesta de la compra. El
+   email se simula y queda registrado en el log.
 
 ### US-39 — Notificar cambios y cancelaciones de eventos
+*Actualizada en la Entrega 2.*
 
 **Como** cliente **quiero** ser avisado si cambia o se cancela un evento al que voy a asistir **para**
 tomar decisiones a tiempo.
 
 **Criterios de aceptación**
-1. **Dado** un cambio relevante (US-02) en un evento, **cuando** se registra, **entonces** se
-   notifica a cada comprador con entradas vigentes, identificando el evento y el cambio.
-2. **Dado** un evento cancelado (US-06), **cuando** se procesa la cancelación, **entonces** se
-   notifica a cada comprador e informa además el proceso de reintegro.
+1. **Dado** un evento modificado (US-02), **cuando** se registra el cambio, **entonces** se notifica a
+   cada comprador con el nombre del evento y los cambios realizados.
+2. **Dado** un evento cancelado (US-06), **cuando** se procesa la cancelación, **entonces** se notifica
+   a cada comprador con el nombre del evento y el motivo de la cancelación.
 3. **Dado** un comprador con varias entradas, **cuando** se notifica, **entonces** recibe un solo
    mensaje (por comprador, no por entrada).
-4. **Dado** que el proceso de notificación se repite, **cuando** se reprocesa, **entonces** no se
-   generan mensajes duplicados.
+4. **Dado** que el aviso del evento llega o se procesa más de una vez, **cuando** se reprocesa,
+   **entonces** no se generan mensajes duplicados.
 
 ### US-40 — Notificar evento de artista favorito
 
@@ -630,43 +642,48 @@ tomar decisiones a tiempo.
 ## F11 — Reportes para organizadores
 
 ### US-41 — Consultar ventas y devoluciones por sector
+*Actualizada en la Entrega 2.*
 
 **Como** organizador **quiero** ver las entradas vendidas y devueltas por sector **para** seguir la
 evolución de mi evento.
 
 **Criterios de aceptación**
-1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo por sector la cantidad de
-   entradas vendidas y devueltas, y el total del evento.
-2. **Dado** un evento de otro organizador, **cuando** pido el reporte, **entonces** recibo 403 (o 404
-   para no revelar que existe).
-3. **Dado** que soy administrador, **cuando** pido el reporte de cualquier evento, **entonces** lo veo.
-4. **Regla:** los datos reflejan operaciones confirmadas; si se alimentan de eventos asíncronos puede
-   haber una demora de segundos.
+1. **Dado** que soy organizador, **cuando** listo los reportes, **entonces** veo solo los de mis eventos.
+2. **Dado** un evento propio, **cuando** pido su reporte, **entonces** veo por sector y en total las
+   entradas vendidas, devueltas y válidas.
+3. **Dado** un evento de otro organizador, **cuando** pido su reporte, **entonces** recibo 403.
+4. **Dado** que soy administrador, **cuando** pido reportes, **entonces** veo los de cualquier evento y
+   puedo filtrar por organizador.
+5. **Regla:** el reporte se alimenta de forma asíncrona con las ventas y reintegros confirmados, así
+   que puede tener una demora de segundos (consistencia eventual). Se guarda en caché 30 segundos y la
+   caché se invalida con cada venta o reintegro nuevo.
 
 ### US-42 — Consultar porcentaje de ocupación
+*Actualizada en la Entrega 2.*
 
 **Como** organizador **quiero** conocer la ocupación de mi evento **para** decidir acciones comerciales.
 
 **Criterios de aceptación**
-1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo la ocupación por sector y
-   total, identificando cada sector.
-2. **Regla:** ocupación = entradas válidas emitidas (vendidas − devueltas) ÷ capacidad. La capacidad
-   de un sector numerado es su cantidad de asientos y la de uno no numerado, su capacidad máxima.
+1. **Dado** un evento propio, **cuando** pido su reporte, **entonces** veo la capacidad y el porcentaje
+   de ocupación de cada sector y del evento completo.
+2. **Regla:** ocupación = entradas válidas (vendidas − devueltas) ÷ capacidad × 100. La capacidad total
+   es la suma de las capacidades de los sectores.
 3. **Ejemplo:** un sector de 200 lugares con 150 vendidas y 10 devueltas tiene 70 % de ocupación.
-4. **Dado** un evento ajeno, **cuando** pido el reporte, **entonces** recibo 403 o 404 (como en US-41).
+4. **Dado** un evento ajeno, **cuando** pido el reporte, **entonces** recibo 403 (como en US-41).
 
 ### US-43 — Consultar recaudación
+*Actualizada en la Entrega 2.*
 
 **Como** organizador **quiero** ver la recaudación de mi evento **para** evaluar su rendimiento financiero.
 
 **Criterios de aceptación**
-1. **Dado** un evento propio, **cuando** pido el reporte, **entonces** veo recaudación bruta, importe
-   reintegrado y recaudación neta, por evento y por sector.
-2. **Dado** reintegros pendientes, **cuando** pido el reporte, **entonces** se informan por separado
-   y no se descuentan de la recaudación neta hasta que se apliquen.
-3. **Regla:** solo se consideran ventas aprobadas y reintegros aplicados.
+1. **Dado** un evento propio, **cuando** pido su reporte, **entonces** veo por sector y en total el
+   importe bruto, el importe reintegrado, el importe pendiente de reintegro y el importe neto.
+2. **Regla:** neto = bruto − reintegrado. Los reintegros pendientes se muestran aparte y no se
+   descuentan hasta que se aplican.
+3. **Regla:** los importes se guardan en centavos para evitar errores de redondeo.
 4. **Dado** un evento ajeno, **cuando** pido el reporte, **entonces** recibo 403; solo el organizador
-   propietario (o un administrador) puede consultarlo.
+   propietario o un administrador pueden consultarlo.
 
 ---
 
@@ -757,7 +774,7 @@ Entrega 1 sin autenticación.
 
 **Criterios de aceptación**
 1. **Dado** un token de personal de acceso, **cuando** valido un QR (US-33, US-34), **entonces** la
-   operación se permite.
+   operación se permite. El administrador también puede validar QR.
 2. **Dado** un token de personal de acceso, **cuando** intento comprar, administrar eventos o
    resolver devoluciones, **entonces** recibo 403.
 
