@@ -19,7 +19,7 @@ import java.util.UUID;
  * <p>Claims incluidos:
  * <ul>
  *   <li>{@code sub}: email del usuario</li>
- *   <li>{@code userId}: identificador UUID</li>
+ *   <li>{@code userId}: identificador numérico del usuario (mismo tipo Long que usan los demás servicios)</li>
  *   <li>{@code role}: rol asignado (base de los permisos de US-46 a US-49 en los demás servicios)</li>
  *   <li>{@code iat} / {@code exp}: emisión y expiración estricta (1 hora por defecto)</li>
  * </ul></p>
@@ -59,7 +59,7 @@ public class JwtService {
                 .issuer("auth-service")
                 .subject(usuario.getEmail())
                 .id(UUID.randomUUID().toString())
-                .claim(CLAIM_USER_ID, usuario.getId().toString())
+                .claim(CLAIM_USER_ID, usuario.getId())
                 .claim(CLAIM_ROLE, usuario.getRol().name())
                 .issuedAt(now)
                 .expiresAt(expiresAt)

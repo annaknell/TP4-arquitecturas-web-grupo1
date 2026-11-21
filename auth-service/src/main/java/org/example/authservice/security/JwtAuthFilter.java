@@ -15,7 +15,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Valida el token Bearer de cada request, arma el SecurityContext y expone
@@ -47,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = header.substring(7).trim();
             try {
                 Jwt jwt = jwtDecoder.decode(token);
-                String userId = jwt.getClaimAsString(JwtService.CLAIM_USER_ID);
+                Object userIdClaim = jwt.getClaim(JwtService.CLAIM_USER_ID);
                 String role = jwt.getClaimAsString(JwtService.CLAIM_ROLE);
 
                 UsernamePasswordAuthenticationToken authentication =
@@ -56,10 +55,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 authentication.setDetails(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                request.setAttribute(ATTR_USER_ID, UUID.fromString(userId));
+                if (userIdClaim != null) {
+                    request.setAttribute(ATTR_USER_ID, Long.valueOf(userIdClaim.toString()));
+                }
                 request.setAttribute(ATTR_USER_ROLE, role);
-            } catch (JwtException ex) {
-                // Token inválido o expirado: no se autentica y el EntryPoint responde 401.
+            } catch (JwtException | NumberFormatException ex) {
+                // Token inválido, expirado o con un claim userId no numérico (p. ej. un UUID
+                // emitido antes de la migración a Long): no se autentica y el EntryPoint
+                // responde 401 en lugar de propagar un 500.
                 SecurityContextHolder.clearContext();
             }
         }

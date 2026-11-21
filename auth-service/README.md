@@ -14,7 +14,7 @@ Microservicio de **Identidad y Seguridad** (arquitectura de microservicios, Spri
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | POST | `/api/auth/register` | público | Auto-registro; siempre crea rol `CLIENTE` |
-| POST | `/api/auth/login` | público | Emite JWT RS256 con expiración de **1 hora** (claims `sub`, `userId`, `role`) |
+| POST | `/api/auth/login` | público | Emite JWT RS256 con expiración de **1 hora** (claims `sub`, `userId` numérico, `role`) |
 | GET | `/api/auth/me` | Bearer token | Datos del usuario autenticado |
 | POST | `/api/auth/users` | `ADMINISTRADOR` | Alta de `ORGANIZADOR`, `ADMINISTRADOR` o `PERSONAL_ACCESO` |
 | GET | `/api/auth/.well-known/jwks.json` | público | Clave pública (JWKS) para que el API Gateway valide firma y vencimiento |
@@ -30,8 +30,35 @@ Swagger UI: <http://localhost:8081/swagger-ui.html>
 
 ## Integración con el API Gateway
 
-1. Agregar ruta al `docker-compose` general / `application.yml` del gateway apuntando a `http://localhost:8081` con `Path=/api/auth/**`.
-2. El gateway valida el JWT decodificando la clave desde el JWKS (`http://localhost:8081/api/auth/.well-known/jwks.json`) y luego propaga `X-User-Id` y `X-User-Role` a los demás microservicios (claims `userId` y `role`).
+El gateway es el **único punto expuesto** y se encarga de toda la seguridad de borde:
+
+1. Valida firma y vencimiento del JWT contra el JWKS de este servicio. En Docker usa
+   `AUTH_JWK_SET_URI=http://auth-service:8081/api/auth/.well-known/jwks.json` (en local,
+   el default `http://localhost:8081/...`). No comparte secretos con los demás servicios.
+2. Aplica la matriz de autorización por rol (`ROLE_<rol>` a partir del claim `role`) antes de rutear.
+3. Bloquea los endpoints internos (`/api/eventos/interno/**`, `/api/compras/interno/**`,
+   emisión de entradas, cobros, reintegros, etc.).
+4. **Descarta** los headers `X-User-Id`, `X-User-Role` y `X-User-Email` que envíe el cliente
+   y los **reinyecta desde los claims validados** (`userId`, `role`, `sub`). Así ningún
+   cliente puede suplantar identidad armando headers a mano.
+
+Este servicio solo emite y valida tokens para sus propios endpoints; los microservicios
+de negocio siguen recibiendo la identidad en el formato que ya consumen (`X-User-Id` como `Long`).
+
+## Migración de identificadores: UUID → Long
+
+Los IDs de `Usuario` (y el claim `userId` del JWT) pasaron de `UUID` a `Long` para
+coincidir con lo que esperan `compra-service` y `fila-virtual-service`
+(`@RequestHeader("X-User-Id") Long clienteId`).
+
+- **Base de datos existente:** el cambio de tipo de la columna `usuarios.id` no es
+  automático. En un entorno con datos, respaldar y dropear/recrear la tabla `usuarios`
+  (o migrar los IDs a enteros con una migración explícita). Con `ddl-auto=create-drop`
+  en tests no hace falta ninguna acción.
+- **Tokens ya emitidos:** los tokens con `userId` como UUID dejan de ser válidos para
+  la identidad actual; hay que hacer `login` nuevamente para obtener un token con
+  `userId` numérico. Un claim no numérico devuelve `401` (no un `500`).
+- **Swagger:** los ejemplos de `id` / `userId` ahora muestran un número (p. ej. `1`).
 
 ## Ejecutar
 
@@ -51,7 +78,7 @@ docker run -p 8081:8081 \
   auth-service
 ```
 
-> Si no se configuran claves RSA, se genera un par efímero (solo para desarrollo: al reiniciar, los tokens previos dejan de ser válidos).
+> Si no se configuran claves RSA, se genera un par efímero (solo para desarrollo: al reiniciar, los tokens previos dejan de ser válidos y el gateway debe volver a leer el JWKS). Para producción, configurar `AUTH_JWT_PRIVATE_KEY` / `AUTH_JWT_PUBLIC_KEY` con un par estable.
 
 ## Snippet para `docker-compose.yml` general
 
