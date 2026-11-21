@@ -31,7 +31,7 @@ public class ReporteEventoPublisher {
                     "nombre", eventoSector.getSector().getNombre(), "capacidad", capacidad);
         }).toList();
         Map<String, Object> payload = Map.of("eventoId", evento.getId(),
-                "organizadorId", evento.getOrganizadorId().toString(), "nombre", evento.getTitulo(),
+                "organizadorId", evento.getOrganizadorId(), "nombre", evento.getTitulo(),
                 "moneda", "ARS", "sectores", detalleSectores);
         Map<String, Object> mensaje = Map.of("eventId", UUID.randomUUID(),
                 "eventType", "EVENTO_CONFIGURADO", "occurredAt", OffsetDateTime.now(ZoneOffset.UTC),

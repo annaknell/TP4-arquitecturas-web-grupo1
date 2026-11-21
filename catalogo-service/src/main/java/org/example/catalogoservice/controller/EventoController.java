@@ -11,10 +11,12 @@ import org.example.catalogoservice.dto.EventoNotificacionResponse;
 import org.example.catalogoservice.dto.EventoModificacionRequest;
 import org.example.catalogoservice.service.EventoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,13 +29,29 @@ public class EventoController {
     private EventoService eventoService;
 
     @Operation(
-            summary = "Listar eventos publicados",
-            description = "Devuelve la lista de eventos actualmente publicados y disponibles para consulta."
+            summary = "Listar o buscar eventos publicados",
+            description = "Sin parámetros lista todos los publicados. Con parámetros filtra por texto, ciudad, participante, organizador y rango de fechas, y ordena por fecha, precio o relevancia."
     )
-    @ApiResponse(responseCode = "200", description = "Listado de eventos publicados obtenido correctamente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado de eventos obtenido correctamente"),
+            @ApiResponse(responseCode = "400", description = "Criterio de orden inválido")
+    })
     @GetMapping
-    public ResponseEntity<List<Evento>> listarEventos() {
-        return ResponseEntity.ok(eventoService.listarEventosPublicados());
+    public ResponseEntity<List<Evento>> listarEventos(
+            @Parameter(description = "Texto a buscar en el título o en los participantes") @RequestParam(required = false) String texto,
+            @Parameter(description = "Ciudad del evento") @RequestParam(required = false) String ciudad,
+            @Parameter(description = "Parte del nombre de un participante") @RequestParam(required = false) String participante,
+            @Parameter(description = "ID del organizador") @RequestParam(required = false) Long organizadorId,
+            @Parameter(description = "Fecha desde (ISO-8601)") @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
+            @Parameter(description = "Fecha hasta (ISO-8601)") @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
+            @Parameter(description = "Orden: fecha, precio o relevancia") @RequestParam(required = false) String orden) {
+        boolean sinFiltros = texto == null && ciudad == null && participante == null
+                && organizadorId == null && desde == null && hasta == null && orden == null;
+        return ResponseEntity.ok(sinFiltros
+                ? eventoService.listarEventosPublicados()
+                : eventoService.buscar(texto, ciudad, participante, organizadorId, desde, hasta, orden));
     }
 
     @Operation(
