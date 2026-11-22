@@ -268,6 +268,43 @@ class MatrizDeRolesTest {
         pasaLaSeguridad(put("/api/entradas/1/cancelar").with(ADMINISTRADOR));
     }
 
+    // devoluciones (US-26, US-27)
+
+    @Test
+    @DisplayName("POST /api/entradas/{id}/devolucion: CLIENTE y ADMINISTRADOR (US-26)")
+    void solicitarDevolucion() throws Exception {
+        mockMvc.perform(post("/api/entradas/1/devolucion"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/entradas/1/devolucion").with(ORGANIZADOR))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/entradas/1/devolucion").with(PERSONAL_ACCESO))
+                .andExpect(status().isForbidden());
+        pasaLaSeguridad(post("/api/entradas/1/devolucion").with(CLIENTE));
+        pasaLaSeguridad(post("/api/entradas/1/devolucion").with(ADMINISTRADOR));
+    }
+
+    @Test
+    @DisplayName("Listar, aprobar y rechazar devoluciones: solo ADMINISTRADOR (US-27)")
+    void resolverDevoluciones() throws Exception {
+        mockMvc.perform(get("/api/entradas/devoluciones"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/entradas/devoluciones").with(CLIENTE))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/entradas/devoluciones").with(ORGANIZADOR))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/entradas/devoluciones").with(PERSONAL_ACCESO))
+                .andExpect(status().isForbidden());
+        pasaLaSeguridad(get("/api/entradas/devoluciones").with(ADMINISTRADOR));
+
+        mockMvc.perform(patch("/api/entradas/devoluciones/1/aprobar").with(CLIENTE))
+                .andExpect(status().isForbidden());
+        pasaLaSeguridad(patch("/api/entradas/devoluciones/1/aprobar").with(ADMINISTRADOR));
+
+        mockMvc.perform(patch("/api/entradas/devoluciones/1/rechazar").with(CLIENTE))
+                .andExpect(status().isForbidden());
+        pasaLaSeguridad(patch("/api/entradas/devoluciones/1/rechazar").with(ADMINISTRADOR));
+    }
+
     // control de acceso con QR (US-33, US-34, US-49)
 
     @Test
@@ -454,6 +491,9 @@ class MatrizDeRolesTest {
         mockMvc.perform(put("/api/interno/fila/1/configuracion").with(ADMINISTRADOR))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/compras/interno/1/compradores").with(ADMINISTRADOR))
+                .andExpect(status().isForbidden());
+        // lista emails de clientes: solo lo usa notificaciones-service
+        mockMvc.perform(get("/api/preferencias/interno/destinatarios?artista=X&ciudad=Y").with(CLIENTE))
                 .andExpect(status().isForbidden());
     }
 }
