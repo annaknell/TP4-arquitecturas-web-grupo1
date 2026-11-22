@@ -2,6 +2,7 @@ package org.example.catalogoservice.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -13,9 +14,11 @@ public class PagosClient {
 
     private final RestClient restClient;
 
-    public PagosClient(@Value("${pago-service.url:http://localhost:8085}") String pagoServiceUrl) {
+    public PagosClient(@Value("${pago-service.url:http://localhost:8085}") String pagoServiceUrl,
+                       ClientHttpRequestInterceptor correlationIdInterceptor) {
         this.restClient = RestClient.builder()
             .baseUrl(pagoServiceUrl)
+            .requestInterceptor(correlationIdInterceptor)
             .build();
     }
 

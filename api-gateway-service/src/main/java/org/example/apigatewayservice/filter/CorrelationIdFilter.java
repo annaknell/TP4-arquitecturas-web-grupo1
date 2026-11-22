@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationIdFilter extends OncePerRequestFilter {
+
     public static final String HEADER = "X-Correlation-Id";
     public static final String MDC_KEY = "correlationId";
     private static final Pattern VALID_ID = Pattern.compile("^[A-Za-z0-9._-]{1,100}$");
