@@ -32,11 +32,13 @@ public class NotificacionController {
 
     @Operation(
             summary = "Buscar notificación por ID",
-            description = "Devuelve el detalle de una notificación según su identificador."
+            description = "Devuelve el detalle de una notificación según su identificador.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Notificación encontrada"),
-            @ApiResponse(responseCode = "404", description = "Notificación no encontrada")
+            @ApiResponse(responseCode = "404", description = "Notificación no encontrada"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/{id}")
     public ResponseEntity<NotificacionResponse> buscarPorId(
@@ -49,9 +51,11 @@ public class NotificacionController {
 
     @Operation(
             summary = "Listar notificaciones",
-            description = "Obtiene el listado de notificaciones, opcionalmente filtrado por estado."
+            description = "Obtiene el listado de notificaciones, opcionalmente filtrado por estado.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponse(responseCode = "200", description = "Listado de notificaciones obtenido correctamente")
+    @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido")
+    @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     @GetMapping
     public List<NotificacionResponse> listar(
             @Parameter(description = "Estado opcional para filtrar las notificaciones")
@@ -64,12 +68,14 @@ public class NotificacionController {
 
     @Operation(
             summary = "Reintentar envío de notificación",
-            description = "Ejecuta un reintento manual para la notificación indicada."
+            description = "Ejecuta un reintento manual para la notificación indicada.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintento procesado correctamente"),
             @ApiResponse(responseCode = "404", description = "Notificación no encontrada"),
-            @ApiResponse(responseCode = "409", description = "La notificación no puede reintentarse en su estado actual")
+            @ApiResponse(responseCode = "409", description = "La notificación no puede reintentarse en su estado actual"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping("/{id}/reintentar")
     public ResponseEntity<NotificacionResponse> reintentar(

@@ -23,11 +23,13 @@ public class RecomendacionController {
 
     @Operation(
             summary = "Obtener recomendación por ID de evento",
-            description = "Retorna las recomendaciones asociadas al `eventoId` indicado."
+            description = "Retorna las recomendaciones asociadas al `eventoId` indicado.\n\n**Roles:** CLIENTE."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Recomendación encontrada"),
-            @ApiResponse(responseCode = "404", description = "No se encontraron recomendaciones para el evento")
+            @ApiResponse(responseCode = "404", description = "No se encontraron recomendaciones para el evento"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/evento/{eventoId}")
     public ResponseEntity<Recomendacion> obtenerPorEventoId(
@@ -39,11 +41,13 @@ public class RecomendacionController {
 
     @Operation(
             summary = "Guardar recomendación",
-            description = "Registra una nueva recomendación en el servicio."
+            description = "Registra una nueva recomendación en el servicio.\n\n**Roles:** CLIENTE."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Recomendación creada exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de recomendación inválidos")
+            @ApiResponse(responseCode = "400", description = "Datos de recomendación inválidos"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping
     public ResponseEntity<Recomendacion> guardarRecomendacion(@RequestBody Recomendacion recomendacion) {
