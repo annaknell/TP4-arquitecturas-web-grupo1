@@ -11,8 +11,9 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         String role = jwt.getClaimAsString("role");
+        Object userId = jwt.getClaim("userId");
         return new JwtAuthenticationToken(jwt,
                 List.of(new SimpleGrantedAuthority("ROLE_" + role)),
-                jwt.getClaimAsString("userId"));
+                userId == null ? null : userId.toString());
     }
 }

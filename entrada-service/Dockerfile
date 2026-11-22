@@ -11,5 +11,5 @@ WORKDIR /app
 RUN useradd --system --uid 1001 ticketya
 USER ticketya
 COPY --from=build /app/target/entrada-service-*.jar app.jar
-EXPOSE 8086
+EXPOSE 8090
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

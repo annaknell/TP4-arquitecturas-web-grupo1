@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.entradaservice.dto.ValidarEntradaRequest;
 import org.example.entradaservice.dto.ValidarEntradaResponse;
 import org.example.entradaservice.entity.Entrada;
+import org.example.entradaservice.entity.SolicitudDevolucion;
 import org.example.entradaservice.service.EntradaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -118,4 +119,63 @@ public class EntradaController {
         }
         return ResponseEntity.status(HttpStatus.CONFLICT).body(respuesta);
     }
+
+    @Operation(
+            summary = "Solicitar la devolución de una entrada",
+            description = "Registra una solicitud PENDIENTE si faltan más de 72 horas para el evento."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Solicitud registrada"),
+            @ApiResponse(responseCode = "403", description = "La entrada no pertenece al cliente"),
+            @ApiResponse(responseCode = "409", description = "Entrada no devolvible, fuera de plazo o con otra devolución en curso")
+    })
+    @PostMapping("/{id}/devolucion")
+    public ResponseEntity<SolicitudDevolucion> solicitarDevolucion(
+            @Parameter(description = "ID de la entrada", required = true) @PathVariable Long id,
+            @Parameter(description = "ID del cliente dueño de la entrada", required = true) @RequestParam Long clienteId) {
+        return ResponseEntity.ok(entradaService.solicitarDevolucion(id, clienteId));
+    }
+
+    @Operation(
+            summary = "Listar solicitudes de devolución",
+            description = "Devuelve todas las solicitudes o las de un estado puntual (PENDIENTE, APROBADA, RECHAZADA)."
+    )
+    @ApiResponse(responseCode = "200", description = "Solicitudes obtenidas correctamente")
+    @GetMapping("/devoluciones")
+    public ResponseEntity<List<SolicitudDevolucion>> listarDevoluciones(
+            @Parameter(description = "Estado por el que filtrar") @RequestParam(required = false) String estado) {
+        return ResponseEntity.ok(entradaService.listarDevoluciones(estado));
+    }
+
+    @Operation(
+            summary = "Aprobar una devolución",
+            description = "Reintegra el importe de la entrada y libera el lugar en el inventario."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Devolución aprobada"),
+            @ApiResponse(responseCode = "404", description = "Solicitud no encontrada"),
+            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta")
+    })
+    @PatchMapping("/devoluciones/{id}/aprobar")
+    public ResponseEntity<SolicitudDevolucion> aprobarDevolucion(
+            @Parameter(description = "ID de la solicitud", required = true) @PathVariable Long id) {
+        return ResponseEntity.ok(entradaService.resolverDevolucion(id, true, null));
+    }
+
+    @Operation(
+            summary = "Rechazar una devolución",
+            description = "Marca la solicitud como RECHAZADA indicando el motivo."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Devolución rechazada"),
+            @ApiResponse(responseCode = "404", description = "Solicitud no encontrada"),
+            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta")
+    })
+    @PatchMapping("/devoluciones/{id}/rechazar")
+    public ResponseEntity<SolicitudDevolucion> rechazarDevolucion(
+            @Parameter(description = "ID de la solicitud", required = true) @PathVariable Long id,
+            @Parameter(description = "Motivo del rechazo", required = true) @RequestParam String motivo) {
+        return ResponseEntity.ok(entradaService.resolverDevolucion(id, false, motivo));
+    }
+
 }

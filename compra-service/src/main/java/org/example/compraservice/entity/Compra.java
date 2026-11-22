@@ -30,6 +30,7 @@ public class Compra {
 
     private Long reservaId;
     private Long pagoId;
+    private Long sectorId;
 
     @Column(nullable = false)
     private Double precioTotal;

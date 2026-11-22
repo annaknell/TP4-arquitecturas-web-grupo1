@@ -2,6 +2,7 @@ package org.example.catalogoservice.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -13,8 +14,12 @@ public class FilaVirtualClient {
 
     private final RestClient restClient;
 
-    public FilaVirtualClient(@Value("${fila-virtual-service.url:http://localhost:8086}") String filaVirtualServiceUrl) {
-        this.restClient = RestClient.builder().baseUrl(filaVirtualServiceUrl).build();
+    public FilaVirtualClient(@Value("${fila-virtual-service.url:http://localhost:8086}") String filaVirtualServiceUrl,
+                             ClientHttpRequestInterceptor correlationIdInterceptor) {
+        this.restClient = RestClient.builder()
+                .baseUrl(filaVirtualServiceUrl)
+                .requestInterceptor(correlationIdInterceptor)
+                .build();
     }
 
     public void abrirFila(Long eventoId) {

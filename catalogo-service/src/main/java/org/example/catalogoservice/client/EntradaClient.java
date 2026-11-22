@@ -2,6 +2,7 @@ package org.example.catalogoservice.client;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -13,9 +14,11 @@ public class EntradaClient {
 
     private final RestClient restClient;
 
-    public EntradaClient(@Value("${entrada-service.url:http://localhost:8086}") String entradaServiceUrl) {
+    public EntradaClient(@Value("${entrada-service.url:http://localhost:8086}") String entradaServiceUrl,
+                         ClientHttpRequestInterceptor correlationIdInterceptor) {
         this.restClient = RestClient.builder()
             .baseUrl(entradaServiceUrl)
+            .requestInterceptor(correlationIdInterceptor)
             .build();
     }
     public List<Long> cancelarEntradasPorEvento(Long eventoId) {

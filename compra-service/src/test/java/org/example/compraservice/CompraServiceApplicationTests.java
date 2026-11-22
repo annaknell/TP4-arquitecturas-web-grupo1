@@ -12,6 +12,7 @@ import org.example.compraservice.dto.EventoNotificacionResponse;
 import org.example.compraservice.entity.Compra;
 import org.example.compraservice.repository.CompraRepository;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
+import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.service.CompraService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,9 @@ class CompraServiceTest {
 
     @Mock
     private CompraCompletadaPublisher compraCompletadaPublisher;
+
+    @Mock
+    private ReporteVentaPublisher reporteVentaPublisher;
 
     @InjectMocks
     private CompraService compraService;
@@ -110,7 +114,8 @@ class CompraServiceTest {
             return compra;
         });
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
-                .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO")));
+                .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
+                        new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
         when(pagosClient.cobrar(any()))
                 .thenReturn(ResponseEntity.ok(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO")));
         when(entradaClient.emitirEntradas(any()))

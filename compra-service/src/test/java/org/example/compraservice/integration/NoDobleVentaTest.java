@@ -53,6 +53,9 @@ class NoDobleVentaTest {
     @Mock
     private CompraCompletadaPublisher compraCompletadaPublisher;
 
+    @Mock
+    private org.example.compraservice.messaging.ReporteVentaPublisher reporteVentaPublisher;
+
     @InjectMocks
     private CompraService compraService;
 
@@ -74,7 +77,8 @@ class NoDobleVentaTest {
         AtomicInteger llamadasInventario = new AtomicInteger(0);
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class))).thenAnswer(invocation -> {
             if (llamadasInventario.getAndIncrement() == 0) {
-                return ResponseEntity.ok(new ReservaResponse(99L, "RESERVADO"));
+                return ResponseEntity.ok(new ReservaResponse(99L, "RESERVADO", eventoId, 1L, 1,
+                        new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000")));
             } else {
                 throw new RuntimeException("El asiento 101 ya se encuentra reservado por otro usuario");
             }

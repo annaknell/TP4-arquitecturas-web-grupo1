@@ -20,7 +20,7 @@ public class ReporteService {
     }
     @Transactional
     @CacheEvict(value = {"reportes-evento", "reportes-sectores", "reportes-listado"}, allEntries = true)
-    public ReporteEvento configurar(Long id, UUID organizador, String nombre, String moneda, List<SectorConfig> datos){
+    public ReporteEvento configurar(Long id, Long organizador, String nombre, String moneda, List<SectorConfig> datos){
         ReporteEvento e=eventos.findById(id).orElseGet(ReporteEvento::new);
         e.setEventoId(id);
         e.setOrganizadorId(organizador);
@@ -68,7 +68,7 @@ public class ReporteService {
                 .toList();
     }
     @Cacheable(value = "reportes-listado", key = "#organizadorId")
-    public List<ReporteEventoResponse> listarPorOrganizador(UUID organizadorId) {
+    public List<ReporteEventoResponse> listarPorOrganizador(Long organizadorId) {
         return eventos.findAll().stream()
                 .filter(evento -> organizadorId.equals(evento.getOrganizadorId()))
                 .map(evento -> resumen(evento.getEventoId()))

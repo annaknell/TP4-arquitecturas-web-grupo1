@@ -1,6 +1,6 @@
 package com.tudai.pagos.service;
 
-import com.tudai.pagos.config.TraceIdFilter;
+import com.tudai.pagos.config.CorrelationIdFilter;
 import com.tudai.pagos.entity.Reintegro;
 import com.tudai.pagos.enums.EstadoReintegro;
 import com.tudai.pagos.repository.ReintegroRepository;
@@ -52,7 +52,7 @@ public class ReintegroScheduler {
     @Scheduled(fixedDelayString = "${reintegros.reintento.intervalo-ms:30000}")
     public void reintentarPendientes() {
         // no hay request HTTP: se genera un traceId por corrida para poder seguirla en los logs
-        MDC.put(TraceIdFilter.MDC_KEY, "scheduler-" + UUID.randomUUID());
+        MDC.put(CorrelationIdFilter.MDC_KEY, "scheduler-" + UUID.randomUUID());
         try {
             LocalDateTime limite = LocalDateTime.now().minusSeconds(antiguedadMinimaSeg);
             List<Reintegro> candidatos = reintegroRepository.findByEstadoReintegroInAndFechaActualizacionBefore(REINTENTABLES, limite);
@@ -66,7 +66,7 @@ public class ReintegroScheduler {
                 }
             }
         } finally {
-            MDC.remove(TraceIdFilter.MDC_KEY);
+            MDC.remove(CorrelationIdFilter.MDC_KEY);
         }
     }
 }

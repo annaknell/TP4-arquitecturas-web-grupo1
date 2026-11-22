@@ -110,6 +110,7 @@ services:
       ENTRADA_SERVICE_URL: http://entrada-service:8086
       FILA_VIRTUAL_SERVICE_URL: http://fila-virtual-service:8086
       PAGO_SERVICE_URL: http://pago-service:8085
+      INVENTARIO_SERVICE_URL: http://inventario-service:8083
     mem_limit: 420m
     restart: on-failure
     depends_on:
@@ -165,6 +166,10 @@ services:
     environment:
       <<: *mysqlCredenciales
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_entradas?createDatabaseIfNotExist=true
+      CATALOGO_SERVICE_URL: http://catalogo-service:8082
+      COMPRA_SERVICE_URL: http://compra-service:8084
+      PAGO_SERVICE_URL: http://pago-service:8085
+      INVENTARIO_SERVICE_URL: http://inventario-service:8083
     mem_limit: 420m
     restart: on-failure
     depends_on:
@@ -229,6 +234,48 @@ services:
       auth-service:
         condition: service_started
 
+  # ---------------------------------------------------------------------------
+  # Trazabilidad (US-38): logs centralizados con Loki + Promtail + Grafana.
+  # En Grafana (http://localhost:3000) buscar por {correlation_id="abc-123"}
+  # o simplemente por el texto del cid en el explorador de Loki.
+  # ---------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:2.9.8
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - datos-loki:/loki
+    mem_limit: 512m
+    restart: on-failure
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    command: ["-config.file=/etc/promtail/promtail-config.yml"]
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    mem_limit: 256m
+    restart: on-failure
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/loki.yml:ro
+      - datos-grafana:/var/lib/grafana
+    mem_limit: 512m
+    restart: on-failure
+    depends_on:
+      - loki
+
 volumes:
   datos-mysql:
   datos-mongo:
+  datos-loki:
+  datos-grafana:

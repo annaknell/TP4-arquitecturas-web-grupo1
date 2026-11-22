@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
         type = SecuritySchemeType.HTTP,
         scheme = "bearer",
         bearerFormat = "JWT",
-        description = "Token JWT con claims userId (UUID) y role (ADMINISTRADOR u ORGANIZADOR)."
+        description = "Token JWT con claims userId (numérico) y role (ADMINISTRADOR u ORGANIZADOR)."
 )
 public class OpenApiConfig {
 }

@@ -4,6 +4,7 @@ import com.tudai.reportesservice.config.RabbitMqConfig;
 import com.tudai.reportesservice.entity.EventoProcesado;
 import com.tudai.reportesservice.repository.EventoProcesadoRepository;
 import com.tudai.reportesservice.service.ReporteService;
+import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,19 +22,25 @@ public class ReporteEventListener {
     @Transactional
     @RabbitListener(queues = RabbitMqConfig.QUEUE)
     public void recibir(ReporteEvent event) {
-        if (event == null || event.eventId() == null || procesados.existsById(event.eventId())) return;
-        var p = event.payload();
-        if ("VENTA_CONFIRMADA".equals(event.eventType())) {
-            reportes.venta(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"));
-        } else if ("EVENTO_CONFIGURADO".equals(event.eventType())) {
-            reportes.configurar(numero(p, "eventoId"), java.util.UUID.fromString((String) p.get("organizadorId")),
-                    (String) p.get("nombre"), (String) p.get("moneda"), sectores(p));
-        } else if ("REINTEGRO_REGISTRADO".equals(event.eventType())) {
-            reportes.reintegro(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"), false);
-        } else if ("REINTEGRO_APLICADO".equals(event.eventType())) {
-            reportes.reintegro(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"), true);
+        if (event == null) return;
+        MDC.put("correlationId", event.correlationId() == null ? "-" : event.correlationId());
+        try {
+            if (event.eventId() == null || procesados.existsById(event.eventId())) return;
+            var p = event.payload();
+            if ("VENTA_CONFIRMADA".equals(event.eventType())) {
+                reportes.venta(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"));
+            } else if ("EVENTO_CONFIGURADO".equals(event.eventType())) {
+                reportes.configurar(numero(p, "eventoId"), numero(p, "organizadorId"),
+                        (String) p.get("nombre"), (String) p.get("moneda"), sectores(p));
+            } else if ("REINTEGRO_REGISTRADO".equals(event.eventType())) {
+                reportes.reintegro(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"), false);
+            } else if ("REINTEGRO_APLICADO".equals(event.eventType())) {
+                reportes.reintegro(numero(p, "eventoId"), numero(p, "sectorId"), numero(p, "importeCentavos"), true);
+            }
+            procesados.save(new EventoProcesado(event.eventId()));
+        } finally {
+            MDC.remove("correlationId");
         }
-        procesados.save(new EventoProcesado(event.eventId()));
     }
 
     private long numero(java.util.Map<String, Object> payload, String campo) {
