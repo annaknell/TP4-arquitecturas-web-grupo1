@@ -481,18 +481,23 @@ sistema colapse.
 1. **Dado** una fila abierta con clientes en espera, **cuando** se habilita una tanda, **entonces**
    pasan a **habilitados** los primeros N clientes en orden estricto de llegada (N configurable; 10
    por defecto) y cada uno recibe una autorización de compra única.
-2. **Dado** un cliente habilitado, **cuando** reserva dentro de su ventana de 10 minutos,
+2. **Dado** una fila abierta, **cuando** vence la ventana de compra de la tanda anterior, **entonces**
+   el sistema habilita automáticamente la siguiente tanda (revisa las filas abiertas cada 30
+   segundos), sin que nadie tenga que hacerlo a mano.
+3. **Dado** una tanda cuya ventana de compra todavía no venció, **cuando** el sistema revisa la fila,
+   **entonces** no habilita una tanda nueva.
+4. **Dado** un cliente habilitado, **cuando** reserva dentro de su ventana de 10 minutos,
    **entonces** la autorización se consume (es de un solo uso) y la reserva continúa (US-17).
-3. **Dado** que la reserva falla después de consumir la autorización (por ejemplo, el asiento ya no
+5. **Dado** que la reserva falla después de consumir la autorización (por ejemplo, el asiento ya no
    está libre), **cuando** se rechaza, **entonces** la autorización se restaura para que el cliente
    pueda reintentar dentro de su ventana.
-4. **Dado** un cliente habilitado que no reserva a tiempo, **cuando** vence su ventana, **entonces**
+6. **Dado** un cliente habilitado que no reserva a tiempo, **cuando** vence su ventana, **entonces**
    pasa a **vencido** (el sistema revisa los vencimientos cada 30 segundos) y pierde el turno; puede
    volver a ingresar al final de la fila.
-5. **Dado** un evento que se suspende, se cancela o se agota, **cuando** cambia su estado,
-   **entonces** la fila pasa a pausada, cancelada o agotada, no admite ingresos ni habilita tandas y
-   se informa a los clientes en espera. Al reanudar el evento, la fila se reabre.
-6. **Regla:** el avance de la fila no bloquea el flujo de compra.
+7. **Dado** un evento que se suspende, se cancela o se agota, **cuando** cambia su estado,
+   **entonces** la fila pasa a pausada, cancelada o agotada, no admite ingresos ni habilita tandas
+   (las filas agotadas o canceladas dejan de avanzar). Al reanudar el evento, la fila se reabre.
+8. **Regla:** el avance de la fila es automático y no bloquea el flujo de compra.
 
 ---
 
@@ -624,18 +629,25 @@ tomar decisiones a tiempo.
    **entonces** no se generan mensajes duplicados.
 
 ### US-40 — Notificar evento de artista favorito
+*Actualizada en la Entrega 2.*
 
 **Como** cliente **quiero** enterarme cuando un artista favorito publica un evento en mi ciudad
 **para** no perder la oportunidad de comprar.
 
 **Criterios de aceptación**
 1. **Dado** que tengo un artista favorito y una ciudad de interés configurados (US-35), **cuando** se
-   publica (US-04) un evento con ese artista en un lugar de esa ciudad, **entonces** se me notifica.
+   publica (US-04) un evento con ese artista en un lugar de esa ciudad, **entonces** recibo un email
+   "<artista> se presenta en <ciudad>" con el nombre del evento, la fecha y el lugar.
 2. **Dado** un cliente que no tiene configurados ese artista y esa ciudad, **cuando** se publica el
-   evento, **entonces** no se le notifica.
-3. **Dado** un evento no publicado, **cuando** cambia de datos, **entonces** no se notifica.
-4. **Dado** un evento ya notificado, **cuando** el proceso se repite, **entonces** se envía una sola
-   notificación por cliente y evento.
+   evento, **entonces** no se le notifica. La coincidencia de artista y ciudad no distingue
+   mayúsculas de minúsculas.
+3. **Dado** un evento que ya está publicado, **cuando** se intenta publicarlo de nuevo, **entonces**
+   no se vuelve a enviar el aviso.
+4. **Dado** que el aviso de publicación llega o se procesa más de una vez, **cuando** se reprocesa,
+   **entonces** cada cliente recibe una sola notificación por evento.
+5. **Regla:** el aviso es asíncrono: catálogo publica el evento "evento publicado" por RabbitMQ y
+   notificaciones consulta a preferencias qué clientes tienen ese artista y esa ciudad (endpoint
+   interno, bloqueado en el gateway). Los reintentos ante fallas del email son los de US-38.
 
 ---
 
