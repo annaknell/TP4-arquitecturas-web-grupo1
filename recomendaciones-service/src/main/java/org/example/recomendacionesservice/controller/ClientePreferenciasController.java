@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.recomendacionesservice.entity.ClientePreferencias;
+import org.example.recomendacionesservice.dto.DestinatarioNotificacionResponse;
 import org.example.recomendacionesservice.service.ClientePreferenciasService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,8 +46,19 @@ public class ClientePreferenciasController {
             @ApiResponse(responseCode = "400", description = "Datos de preferencias inválidos")
     })
     @PostMapping
-    public ResponseEntity<ClientePreferencias> guardarPreferencias(@RequestBody ClientePreferencias preferencias) {
+    public ResponseEntity<ClientePreferencias> guardarPreferencias(
+            @RequestBody ClientePreferencias preferencias,
+            @RequestHeader(value = "X-User-Email", required = false) String email) {
+        if (email != null && !email.isBlank()) {
+            preferencias.setEmail(email);
+        }
         ClientePreferencias guardadas = cpService.guardarPreferencias(preferencias);
         return ResponseEntity.status(201).body(guardadas);
+    }
+
+    @GetMapping("/interno/destinatarios")
+    public ResponseEntity<java.util.List<DestinatarioNotificacionResponse>> buscarDestinatarios(
+            @RequestParam String artista, @RequestParam String ciudad) {
+        return ResponseEntity.ok(cpService.buscarDestinatarios(artista, ciudad));
     }
 }

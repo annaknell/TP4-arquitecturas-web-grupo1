@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EventoRecibido {
 
     public enum TipoEvento {
-        COMPRA_COMPLETADA, EVENTO_CANCELADO, EVENTO_MODIFICADO
+        COMPRA_COMPLETADA, EVENTO_CANCELADO, EVENTO_MODIFICADO, EVENTO_PUBLICADO
     }
     public enum Estado {
         PENDIENTE, RECIBIDO, PROCESADO, ERROR

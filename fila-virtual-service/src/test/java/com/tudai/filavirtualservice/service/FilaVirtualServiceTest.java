@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.anyList;
 
 import com.tudai.filavirtualservice.domain.EstadoTicketFila;
@@ -14,6 +15,7 @@ import com.tudai.filavirtualservice.exception.EventoNoHabilitadoException;
 import com.tudai.filavirtualservice.exception.TicketNoEncontradoException;
 import com.tudai.filavirtualservice.redis.FilaVirtualRedisRepository;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -103,5 +105,30 @@ class FilaVirtualServiceTest {
         when(repository.vencerAutorizacionesPendientes()).thenReturn(2);
 
         assertEquals(2, service.vencerAutorizacionesPendientes());
+    }
+
+    @Test
+    void habilitaUnaTandaAutomaticaSoloParaEventosConVentanaVencida() {
+        when(repository.eventosConFilaActiva()).thenReturn(Set.of(10L));
+        when(repository.obtenerTamanioTanda(10L)).thenReturn(2);
+        when(repository.habilitarSiguienteTandaSiCorresponde(org.mockito.ArgumentMatchers.eq(10L),
+                org.mockito.ArgumentMatchers.eq(2), anyList()))
+                .thenReturn(new FilaVirtualRedisRepository.ResultadoTanda(false, java.util.List.of(
+                        new FilaVirtualRedisRepository.HabilitacionCreada(7L, "ticket-7", "token-7", 1_700_000_600_000L))));
+
+        assertEquals(1, service.habilitarTandasVencidas());
+        verify(repository).habilitarSiguienteTandaSiCorresponde(org.mockito.ArgumentMatchers.eq(10L),
+                org.mockito.ArgumentMatchers.eq(2), anyList());
+    }
+
+    @Test
+    void noCuentaUnaTandaQueAunPermaneceActiva() {
+        when(repository.eventosConFilaActiva()).thenReturn(Set.of(10L));
+        when(repository.obtenerTamanioTanda(10L)).thenReturn(2);
+        when(repository.habilitarSiguienteTandaSiCorresponde(org.mockito.ArgumentMatchers.eq(10L),
+                org.mockito.ArgumentMatchers.eq(2), anyList()))
+                .thenReturn(new FilaVirtualRedisRepository.ResultadoTanda(false, java.util.List.of()));
+
+        assertEquals(0, service.habilitarTandasVencidas());
     }
 }

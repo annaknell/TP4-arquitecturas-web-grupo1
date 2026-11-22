@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -30,6 +31,21 @@ public class EventoNotificacionPublisher {
     public void publicarModificacion(Evento evento, String correlationId, Map<String, Object> cambios) {
         publicar("EVENTO_MODIFICADO", correlationId, Map.of(
                 "eventoId", evento.getId(), "nombreEvento", evento.getTitulo(), "cambios", cambios
+        ));
+    }
+
+    public void publicarEvento(Evento evento, String correlationId) {
+        List<String> artistas = evento.getParticipantes().stream()
+                .map(participante -> participante.getNombre())
+                .filter(nombre -> nombre != null && !nombre.isBlank())
+                .toList();
+        publicar("EVENTO_PUBLICADO", correlationId, Map.of(
+                "eventoId", evento.getId(),
+                "nombreEvento", evento.getTitulo(),
+                "fechaEvento", evento.getFechaInicio().toString(),
+                "lugar", evento.getLugar().getNombre(),
+                "ciudad", evento.getLugar().getCiudad(),
+                "artistas", artistas
         ));
     }
 
