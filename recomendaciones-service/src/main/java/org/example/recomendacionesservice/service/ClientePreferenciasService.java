@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.List;
+import org.example.recomendacionesservice.dto.DestinatarioNotificacionResponse;
 
 @Service
 public class ClientePreferenciasService {
@@ -25,5 +27,15 @@ public class ClientePreferenciasService {
         }
 
         return cpRepository.save(preferencias);
+    }
+
+    public List<DestinatarioNotificacionResponse> buscarDestinatarios(String artista, String ciudad) {
+        return cpRepository
+                .findByArtistasFavoritosContainingIgnoreCaseAndCiudadesFrecuentesContainingIgnoreCase(artista, ciudad)
+                .stream()
+                .filter(preferencia -> preferencia.getEmail() != null && !preferencia.getEmail().isBlank())
+                .map(preferencia -> new DestinatarioNotificacionResponse(
+                        preferencia.getClienteId(), preferencia.getEmail()))
+                .toList();
     }
 }

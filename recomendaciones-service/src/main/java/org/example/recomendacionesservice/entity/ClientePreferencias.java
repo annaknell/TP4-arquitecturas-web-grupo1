@@ -14,7 +14,14 @@ public class ClientePreferencias {
     @Id
     private String id;
     private Long clienteId;
+    private String email;
     private List<String> tiposEventoFavoritos;
     private List<String> artistasFavoritos;
     private List<String> ciudadesFrecuentes;
+
+    /** Compatibilidad con las preferencias creadas antes de almacenar el email. */
+    public ClientePreferencias(String id, Long clienteId, List<String> tiposEventoFavoritos,
+                               List<String> artistasFavoritos, List<String> ciudadesFrecuentes) {
+        this(id, clienteId, null, tiposEventoFavoritos, artistasFavoritos, ciudadesFrecuentes);
+    }
 }

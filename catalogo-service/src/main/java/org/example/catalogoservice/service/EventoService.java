@@ -168,8 +168,13 @@ public class EventoService {
         Evento evento = eventoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
 
+        if ("PUBLICADO".equals(evento.getEstado())) {
+            return evento;
+        }
+
         evento.setEstado("PUBLICADO");
         Evento eventoPublicado = eventoRepository.save(evento);
+        eventoNotificacionPublisher.publicarEvento(eventoPublicado, UUID.randomUUID().toString());
         reporteEventoPublisher.publicarConfiguracion(eventoPublicado,
                 eventoSectorRepository.findByEventoId(id), UUID.randomUUID().toString());
 

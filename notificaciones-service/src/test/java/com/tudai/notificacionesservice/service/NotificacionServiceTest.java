@@ -3,6 +3,8 @@ package com.tudai.notificacionesservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.config.ReintentosProperties;
 import com.tudai.notificacionesservice.client.CompradoresClient;
+import com.tudai.notificacionesservice.client.PreferenciasClient;
+import com.tudai.notificacionesservice.entity.EventoRecibido;
 import com.tudai.notificacionesservice.entity.Notificacion;
 import com.tudai.notificacionesservice.notification.NotificadorEmail;
 import com.tudai.notificacionesservice.repository.EventoRecibidoRepository;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class NotificacionServiceTest {
@@ -38,6 +41,8 @@ class NotificacionServiceTest {
     private NotificadorEmail notificadorEmail;
     @Mock
     private CompradoresClient compradoresClient;
+    @Mock
+    private PreferenciasClient preferenciasClient;
 
     private NotificacionService service;
 
@@ -52,7 +57,8 @@ class NotificacionServiceTest {
                 new ObjectMapper(),
                 notificadorEmail,
                 reintentos,
-                compradoresClient
+                compradoresClient,
+                preferenciasClient
         );
     }
 
@@ -119,6 +125,33 @@ class NotificacionServiceTest {
         assertEquals(2, notificacion.getIntentos());
         assertNotNull(notificacion.getEnviadaEn());
         assertNull(notificacion.getProximoIntentoEn());
+    }
+
+    @Test
+    void creaUnAvisoParaCadaDestinatarioQueCoincideConArtistaYCiudad() throws Exception {
+        EventoRecibido evento = new EventoRecibido();
+        evento.setTipo(EventoRecibido.TipoEvento.EVENTO_PUBLICADO);
+        com.fasterxml.jackson.databind.node.ObjectNode payload = new ObjectMapper().createObjectNode()
+                .put("nombreEvento", "Recital")
+                .put("ciudad", "Tandil")
+                .put("fechaEvento", "2026-12-20T21:00:00")
+                .put("lugar", "Teatro");
+        payload.putArray("artistas").add("Banda A");
+        evento.setPayload(payload.toString());
+        when(eventoRecibidoRepository.findByEstado(EventoRecibido.Estado.RECIBIDO)).thenReturn(List.of(evento));
+        when(preferenciasClient.buscarDestinatarios("Banda A", "Tandil"))
+                .thenReturn(List.of(new PreferenciasClient.DestinatarioPreferencia(1L, "fan@example.com")));
+        when(notificacionRepository.existsByEventoRecibidoAndDestinatarioAndCanal(
+                evento, "fan@example.com", Notificacion.Canal.EMAIL)).thenReturn(false);
+
+        service.crearPendientesDesdeEventos();
+
+        org.mockito.ArgumentCaptor<Notificacion> captor = org.mockito.ArgumentCaptor.forClass(Notificacion.class);
+        verify(notificacionRepository).save(captor.capture());
+        assertEquals(Notificacion.Tipo.ARTISTA_FAVORITO_EN_CIUDAD, captor.getValue().getTipo());
+        assertEquals("fan@example.com", captor.getValue().getDestinatario());
+        assertEquals(EventoRecibido.Estado.PROCESADO, evento.getEstado());
+        verify(eventoRecibidoRepository, times(1)).save(evento);
     }
 
     private Notificacion notificacionPendiente(int intentos) {

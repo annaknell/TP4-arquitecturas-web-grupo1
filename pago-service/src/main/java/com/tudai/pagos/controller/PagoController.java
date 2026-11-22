@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -34,9 +35,11 @@ public class PagoController {
 
     @Operation(
             summary = "Listar todos los pagos",
-            description = "Retorna el listado completo de pagos registrados."
+            description = "Retorna el listado completo de pagos registrados.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponse(responseCode = "200", description = "Listado de pagos obtenido correctamente")
+    @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido")
+    @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     @GetMapping
     public List<PagoResponse> getAllPagos() {
         return pagoService.getPagos().stream().map(PagoResponse::de).toList();
@@ -44,11 +47,13 @@ public class PagoController {
 
     @Operation(
             summary = "Obtener pago por ID",
-            description = "Devuelve el detalle de un pago según su identificador."
+            description = "Devuelve el detalle de un pago según su identificador.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pago encontrado"),
-            @ApiResponse(responseCode = "404", description = "Pago no encontrado")
+            @ApiResponse(responseCode = "404", description = "Pago no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/{id}")
     public PagoResponse getPagoById(
@@ -58,11 +63,13 @@ public class PagoController {
 
     @Operation(
             summary = "Listar pagos por cliente",
-            description = "Obtiene todos los pagos asociados a un cliente."
+            description = "Obtiene todos los pagos asociados a un cliente.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagos del cliente obtenidos correctamente"),
-            @ApiResponse(responseCode = "404", description = "Cliente sin pagos o no encontrado")
+            @ApiResponse(responseCode = "404", description = "Cliente sin pagos o no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/cliente/{id}")
     public List<PagoResponse> getPagosByClienteId(
@@ -72,11 +79,13 @@ public class PagoController {
 
     @Operation(
             summary = "Listar pagos por compra",
-            description = "Obtiene los pagos registrados para una compra específica."
+            description = "Obtiene los pagos registrados para una compra específica.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagos de la compra obtenidos correctamente"),
-            @ApiResponse(responseCode = "404", description = "Compra sin pagos o no encontrada")
+            @ApiResponse(responseCode = "404", description = "Compra sin pagos o no encontrada"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/compra/{compraId}")
     public List<PagoResponse> getPagosByCompraId(
@@ -89,9 +98,12 @@ public class PagoController {
             description = """
                     Ejecuta un cobro de forma idempotente. Si no se envía `Idempotency-Key`, se genera un UUID automáticamente;
                     si se reutiliza la misma clave con otro payload puede devolverse conflicto/error de negocio (`422`/`409`).
+
+                    **Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos.
                     """,
             security = @SecurityRequirement(name = "IdempotencyKeyHeader")
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Pago procesado y registrado (aprobado, rechazado, incierto o reintento)"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida"),

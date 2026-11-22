@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.config.ReintentosProperties;
 import com.tudai.notificacionesservice.client.CompradoresClient;
+import com.tudai.notificacionesservice.client.PreferenciasClient;
 import com.tudai.notificacionesservice.entity.EventoRecibido;
 import com.tudai.notificacionesservice.entity.Notificacion;
 import com.tudai.notificacionesservice.notification.NotificadorEmail;
@@ -28,19 +29,22 @@ public class NotificacionService {
     private final NotificadorEmail notificadorEmail;
     private final ReintentosProperties reintentosProperties;
     private final CompradoresClient compradoresClient;
+    private final PreferenciasClient preferenciasClient;
 
     public NotificacionService(EventoRecibidoRepository eventoRecibidoRepository,
                                NotificacionRepository notificacionRepository,
                                ObjectMapper objectMapper,
                                NotificadorEmail notificadorEmail,
                                ReintentosProperties reintentosProperties,
-                               CompradoresClient compradoresClient) {
+                               CompradoresClient compradoresClient,
+                               PreferenciasClient preferenciasClient) {
         this.eventoRecibidoRepository = eventoRecibidoRepository;
         this.notificacionRepository = notificacionRepository;
         this.objectMapper = objectMapper;
         this.notificadorEmail = notificadorEmail;
         this.reintentosProperties = reintentosProperties;
         this.compradoresClient = compradoresClient;
+        this.preferenciasClient = preferenciasClient;
     }
 
     /**
@@ -56,6 +60,7 @@ public class NotificacionService {
                 case COMPRA_COMPLETADA -> crearConfirmacionCompra(evento);
                 case EVENTO_CANCELADO -> crearAvisosEvento(evento, Notificacion.Tipo.CANCELACION_EVENTO);
                 case EVENTO_MODIFICADO -> crearAvisosEvento(evento, Notificacion.Tipo.MODIFICACION_EVENTO);
+                case EVENTO_PUBLICADO -> crearAvisosArtistaFavorito(evento);
             }
         }
     }
@@ -207,6 +212,49 @@ public class NotificacionService {
             notificacion.setCreadaEn(ahora);
             notificacion.setActualizadaEn(ahora);
             notificacionRepository.save(notificacion);
+        }
+        evento.setEstado(EventoRecibido.Estado.PROCESADO);
+        evento.setProcesadoEn(ahora);
+        eventoRecibidoRepository.save(evento);
+    }
+
+    private void crearAvisosArtistaFavorito(EventoRecibido evento) {
+        JsonNode payload = leerPayload(evento);
+        String nombreEvento = campoObligatorio(payload, "nombreEvento");
+        String ciudad = campoObligatorio(payload, "ciudad");
+        JsonNode artistas = payload.path("artistas");
+        if (!artistas.isArray()) {
+            throw new IllegalArgumentException("El evento publicado no contiene artistas");
+        }
+
+        LocalDateTime ahora = LocalDateTime.now(ZoneOffset.UTC);
+        for (JsonNode artista : artistas) {
+            String nombreArtista = artista.asText("").trim();
+            if (nombreArtista.isBlank()) continue;
+            for (PreferenciasClient.DestinatarioPreferencia destinatario
+                    : preferenciasClient.buscarDestinatarios(nombreArtista, ciudad)) {
+                String email = destinatario.email();
+                if (email == null || email.isBlank() || notificacionRepository
+                        .existsByEventoRecibidoAndDestinatarioAndCanal(evento, email, Notificacion.Canal.EMAIL)) {
+                    continue;
+                }
+                Notificacion notificacion = new Notificacion();
+                notificacion.setEventoRecibido(evento);
+                notificacion.setDestinatario(email);
+                notificacion.setCanal(Notificacion.Canal.EMAIL);
+                notificacion.setTipo(Notificacion.Tipo.ARTISTA_FAVORITO_EN_CIUDAD);
+                notificacion.setAsunto(nombreArtista + " se presenta en " + ciudad);
+                notificacion.setContenido("Hola,\n\n" + nombreArtista + " se presenta en " + ciudad
+                        + ".\nEvento: " + nombreEvento
+                        + "\nFecha: " + campoObligatorio(payload, "fechaEvento")
+                        + "\nLugar: " + campoObligatorio(payload, "lugar"));
+                notificacion.setEstado(Notificacion.Estado.PENDIENTE);
+                notificacion.setIntentos(0);
+                notificacion.setProximoIntentoEn(ahora);
+                notificacion.setCreadaEn(ahora);
+                notificacion.setActualizadaEn(ahora);
+                notificacionRepository.save(notificacion);
+            }
         }
         evento.setEstado(EventoRecibido.Estado.PROCESADO);
         evento.setProcesadoEn(ahora);

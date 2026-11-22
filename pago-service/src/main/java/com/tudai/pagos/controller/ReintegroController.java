@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,11 @@ public class ReintegroController {
 
     @Operation(
             summary = "Listar reintegros",
-            description = "Devuelve todos los reintegros, opcionalmente filtrados por `estado`."
+            description = "Devuelve todos los reintegros, opcionalmente filtrados por `estado`.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponse(responseCode = "200", description = "Listado de reintegros obtenido correctamente")
+    @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido")
+    @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     @GetMapping
     public List<ReintegroResponse> getAll(
             @Parameter(description = "Estado opcional para filtrar reintegros") @RequestParam(required = false) EstadoReintegro estado) {
@@ -39,11 +42,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Resumen de reintegros por compra",
-            description = "Retorna el resumen de reintegros asociados a `compraId`."
+            description = "Retorna el resumen de reintegros asociados a `compraId`.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Resumen obtenido correctamente"),
-            @ApiResponse(responseCode = "404", description = "Compra o reintegros no encontrados")
+            @ApiResponse(responseCode = "404", description = "Compra o reintegros no encontrados"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/resumen")
     public ResumenReintegrosResponse resumen(
@@ -53,11 +58,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Resumen de reintegros por evento",
-            description = "Retorna el resumen consolidado de reintegros para el `eventoId` indicado."
+            description = "Retorna el resumen consolidado de reintegros para el `eventoId` indicado.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Resumen por evento obtenido correctamente"),
-            @ApiResponse(responseCode = "404", description = "Evento no encontrado")
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/eventos/{eventoId}/resumen")
     public ResumenReintegrosEventoResponse resumenPorEvento(
@@ -67,11 +74,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Obtener reintegro por ID",
-            description = "Devuelve el detalle de un reintegro según su identificador."
+            description = "Devuelve el detalle de un reintegro según su identificador.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintegro encontrado"),
-            @ApiResponse(responseCode = "404", description = "Reintegro no encontrado")
+            @ApiResponse(responseCode = "404", description = "Reintegro no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/{id}")
     public ReintegroResponse getById(
@@ -81,11 +90,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Listar reintegros por compra",
-            description = "Obtiene los reintegros registrados para una compra."
+            description = "Obtiene los reintegros registrados para una compra.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintegros de la compra obtenidos correctamente"),
-            @ApiResponse(responseCode = "404", description = "Compra no encontrada")
+            @ApiResponse(responseCode = "404", description = "Compra no encontrada"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/compra/{compraId}")
     public List<ReintegroResponse> getByCompraId(
@@ -95,11 +106,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Obtener reintegro por solicitud de devolución",
-            description = "Busca un reintegro vinculado a `solicitudDevolucionId`."
+            description = "Busca un reintegro vinculado a `solicitudDevolucionId`.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintegro encontrado"),
-            @ApiResponse(responseCode = "404", description = "Reintegro no encontrado")
+            @ApiResponse(responseCode = "404", description = "Reintegro no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/devolucion/{solicitudDevolucionId}")
     public ReintegroResponse getBySolicitudDevolucionId(
@@ -110,11 +123,13 @@ public class ReintegroController {
 
     @Operation(
             summary = "Listar reintegros por pago",
-            description = "Obtiene todos los reintegros asociados a `pagoId`."
+            description = "Obtiene todos los reintegros asociados a `pagoId`.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintegros del pago obtenidos correctamente"),
-            @ApiResponse(responseCode = "404", description = "Pago no encontrado")
+            @ApiResponse(responseCode = "404", description = "Pago no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/pago/{pagoId}")
     public List<ReintegroResponse> getByPagoId(
@@ -124,9 +139,10 @@ public class ReintegroController {
 
     @Operation(
             summary = "Registrar/ejecutar un reintegro",
-            description = "Inicia un reintegro sobre un pago existente exigiendo una `Idempotency-Key` con formato UUID válido.",
+            description = "Inicia un reintegro sobre un pago existente exigiendo una `Idempotency-Key` con formato UUID válido.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos.",
             security = @SecurityRequirement(name = "IdempotencyKeyHeader")
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reintegro creado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida o `Idempotency-Key` sin formato UUID válido"),
@@ -146,8 +162,9 @@ public class ReintegroController {
 
     @Operation(
             summary = "Reintentar un reintegro",
-            description = "Reintenta procesar un reintegro previamente fallido o pendiente."
+            description = "Reintenta procesar un reintegro previamente fallido o pendiente.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintento procesado"),
             @ApiResponse(responseCode = "404", description = "Reintegro no encontrado"),
@@ -161,8 +178,9 @@ public class ReintegroController {
 
     @Operation(
             summary = "Reintegrar por compra",
-            description = "Genera un reintegro asociado a la compra indicada con el motivo especificado."
+            description = "Genera un reintegro asociado a la compra indicada con el motivo especificado.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reintegro por compra generado"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida"),
@@ -179,8 +197,9 @@ public class ReintegroController {
 
     @Operation(
             summary = "Registrar reintegros pendientes por cancelación de evento",
-            description = "Registra reintegros pendientes para las compras indicadas a raíz de la cancelación de un evento."
+            description = "Registra reintegros pendientes para las compras indicadas a raíz de la cancelación de un evento.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reintegros pendientes registrados correctamente"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida")
@@ -198,8 +217,9 @@ public class ReintegroController {
 
     @Operation(
             summary = "Reintegrar devolución aprobada",
-            description = "Ejecuta el reintegro correspondiente a una solicitud de devolución aprobada."
+            description = "Ejecuta el reintegro correspondiente a una solicitud de devolución aprobada.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reintegro por devolución aprobada registrado"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida"),

@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 title = "API de Inventario - TicketYa",
-                version = "v1",
+                version = "v2",
                 description = """
                         Consulta de disponibilidad, reservas temporales, confirmación/liberación y aprovisionamiento de inventario.
-                        Requisitos de seguridad: canalización vía API Gateway, CORS restringido al origen del Gateway,
-                        validación de datos (`@Valid`) y restricción de endpoints internos/orquestación a servicios autorizados.
+
+                        **Seguridad (Entrega 2):** desde afuera, a través del API Gateway (puerto 8080), solo es accesible
+                        la consulta de disponibilidad, que es pública. El resto de los endpoints son [Interno]: los usan
+                        compras y catálogo directamente, y el gateway los bloquea para clientes externos (401/403).
                         """
         )
 )

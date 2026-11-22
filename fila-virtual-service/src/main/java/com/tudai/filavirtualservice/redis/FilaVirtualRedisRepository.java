@@ -5,6 +5,7 @@ import com.tudai.filavirtualservice.domain.EstadoEventoFila;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
@@ -55,16 +56,24 @@ public class FilaVirtualRedisRepository {
             if estadoEvento ~= 'ABIERTA' then
                 return {'EVENTO_NO_HABILITADO'}
             end
+            local ahora = redis.call('TIME')
+            local ahoraMillis = ahora[1] * 1000 + math.floor(ahora[2] / 1000)
+            if ARGV[2] == 'AUTOMATICA' then
+                local proximaTandaEn = tonumber(redis.call('HGET', KEYS[1], 'proximaTandaEn'))
+                if proximaTandaEn and proximaTandaEn > ahoraMillis then
+                    return {'TANDA_AUN_ACTIVA'}
+                end
+            end
             local ventanaSegundos = tonumber(redis.call('HGET', KEYS[1], 'ventanaCompraSegundos'))
             local clientes = redis.call('ZRANGE', KEYS[2], 0, tonumber(ARGV[1]) - 1)
             if #clientes == 0 then
                 return {'SIN_PERSONAS'}
             end
-            local ahora = redis.call('TIME')
-            local venceEn = ahora[1] * 1000 + math.floor(ahora[2] / 1000) + ventanaSegundos * 1000
+            local venceEn = ahoraMillis + ventanaSegundos * 1000
+            redis.call('HSET', KEYS[1], 'proximaTandaEn', venceEn)
             local respuesta = {'HABILITADOS'}
             for indice, clienteId in ipairs(clientes) do
-                local token = ARGV[indice + 1]
+                local token = ARGV[indice + 2]
                 local ticketKey = KEYS[3] .. clienteId
                 local ticketId = redis.call('HGET', ticketKey, 'ticketId')
                 redis.call('HSET', ticketKey,
@@ -211,8 +220,21 @@ public class FilaVirtualRedisRepository {
     }
 
     public ResultadoTanda habilitarSiguienteTanda(Long eventoId, int tamanioTanda, List<String> tokens) {
+        return habilitarTanda(eventoId, tamanioTanda, tokens, false);
+    }
+
+    /**
+     * Habilita una tanda solo cuando la ventana de la tanda anterior ya venció.
+     * La comprobación y la actualización de la próxima ventana ocurren en el mismo script Redis.
+     */
+    public ResultadoTanda habilitarSiguienteTandaSiCorresponde(Long eventoId, int tamanioTanda, List<String> tokens) {
+        return habilitarTanda(eventoId, tamanioTanda, tokens, true);
+    }
+
+    private ResultadoTanda habilitarTanda(Long eventoId, int tamanioTanda, List<String> tokens, boolean automatica) {
         java.util.ArrayList<String> argumentos = new java.util.ArrayList<>();
         argumentos.add(Integer.toString(tamanioTanda));
+        argumentos.add(automatica ? "AUTOMATICA" : "MANUAL");
         argumentos.addAll(tokens);
         argumentos.add(eventoId.toString());
         List resultado = redis.execute(HABILITAR_TANDA_SCRIPT,
@@ -225,7 +247,7 @@ public class FilaVirtualRedisRepository {
         if ("EVENTO_NO_HABILITADO".equals(texto(resultado.getFirst()))) {
             return ResultadoTanda.deEventoNoHabilitado();
         }
-        if ("SIN_PERSONAS".equals(texto(resultado.getFirst()))) {
+        if ("SIN_PERSONAS".equals(texto(resultado.getFirst())) || "TANDA_AUN_ACTIVA".equals(texto(resultado.getFirst()))) {
             return new ResultadoTanda(false, List.of());
         }
         java.util.ArrayList<HabilitacionCreada> habilitaciones = new java.util.ArrayList<>();
@@ -250,10 +272,22 @@ public class FilaVirtualRedisRepository {
                 Integer.toString(configuracion.tamanioTanda()));
         redis.opsForHash().put(FilaRedisKeys.configuracion(configuracion.eventoId()), FilaRedisFields.VENTANA_COMPRA_SEGUNDOS,
                 Long.toString(configuracion.ventanaCompra().toSeconds()));
+        redis.opsForSet().add(FilaRedisKeys.eventosConFilaActiva(), configuracion.eventoId().toString());
     }
 
     public void actualizarEstado(Long eventoId, EstadoEventoFila estado) {
         redis.opsForHash().put(FilaRedisKeys.configuracion(eventoId), FilaRedisFields.ESTADO, estado.name());
+        if (estado == EstadoEventoFila.AGOTADA || estado == EstadoEventoFila.CANCELADA) {
+            redis.opsForSet().remove(FilaRedisKeys.eventosConFilaActiva(), eventoId.toString());
+        }
+    }
+
+    public Set<Long> eventosConFilaActiva() {
+        Set<String> eventos = redis.opsForSet().members(FilaRedisKeys.eventosConFilaActiva());
+        if (eventos == null || eventos.isEmpty()) {
+            return Set.of();
+        }
+        return eventos.stream().map(Long::valueOf).collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
     private static Long numeroOpcional(Object valor) {

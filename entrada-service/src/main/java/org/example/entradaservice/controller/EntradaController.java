@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import org.example.entradaservice.dto.ValidarEntradaRequest;
 import org.example.entradaservice.dto.ValidarEntradaResponse;
 import org.example.entradaservice.entity.Entrada;
@@ -27,8 +28,9 @@ public class EntradaController {
 
     @Operation(
             summary = "Emitir entradas",
-            description = "Genera y emite una o más entradas a partir de la lista recibida."
+            description = "Genera y emite una o más entradas a partir de la lista recibida.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Entradas emitidas correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
@@ -41,11 +43,13 @@ public class EntradaController {
 
     @Operation(
             summary = "Obtener entrada por ID",
-            description = "Devuelve el detalle de una entrada según su identificador."
+            description = "Devuelve el detalle de una entrada según su identificador.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Entrada encontrada"),
-            @ApiResponse(responseCode = "404", description = "Entrada no encontrada")
+            @ApiResponse(responseCode = "404", description = "Entrada no encontrada"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/{id}")
     public ResponseEntity<Entrada> obtenerEntradaPorId(
@@ -56,11 +60,13 @@ public class EntradaController {
 
     @Operation(
             summary = "Listar entradas por cliente",
-            description = "Obtiene todas las entradas asociadas a un cliente específico."
+            description = "Obtiene todas las entradas asociadas a un cliente específico.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Listado de entradas del cliente obtenido correctamente"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<Entrada>> listarEntradasPorCliente(
@@ -71,12 +77,14 @@ public class EntradaController {
 
     @Operation(
             summary = "Cancelar una entrada",
-            description = "Cancela una entrada específica identificada por su ID."
+            description = "Cancela una entrada específica identificada por su ID.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Entrada cancelada correctamente"),
             @ApiResponse(responseCode = "404", description = "Entrada no encontrada"),
-            @ApiResponse(responseCode = "409", description = "La entrada no puede cancelarse en su estado actual")
+            @ApiResponse(responseCode = "409", description = "La entrada no puede cancelarse en su estado actual"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PutMapping("/{id}/cancelar")
     public ResponseEntity<Entrada> cancelarEntrada(
@@ -87,8 +95,9 @@ public class EntradaController {
 
     @Operation(
             summary = "Cancelar entradas por evento",
-            description = "Cancela las entradas asociadas a un evento y retorna los IDs de las entradas afectadas."
+            description = "Cancela las entradas asociadas a un evento y retorna los IDs de las entradas afectadas.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Entradas del evento procesadas correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado")
@@ -101,12 +110,14 @@ public class EntradaController {
 
     @Operation(
             summary = "Validar entrada en la puerta",
-            description = "Valida el código QR de una entrada para el evento indicado y la marca como usada. El cambio de estado es idempotente: un segundo intento con el mismo QR se rechaza como ya utilizada."
+            description = "Valida el código QR de una entrada para el evento indicado y la marca como usada. El cambio de estado es idempotente: un segundo intento con el mismo QR se rechaza como ya utilizada.\n\n**Roles:** PERSONAL_ACCESO, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Acceso autorizado (o autorizado con advertencia de sector)"),
             @ApiResponse(responseCode = "404", description = "Código QR inexistente"),
-            @ApiResponse(responseCode = "409", description = "QR ya utilizado, cancelado o reintegrado")
+            @ApiResponse(responseCode = "409", description = "QR ya utilizado, cancelado o reintegrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping("/validar")
     public ResponseEntity<ValidarEntradaResponse> validarEntrada(@RequestBody ValidarEntradaRequest request) {
@@ -122,12 +133,14 @@ public class EntradaController {
 
     @Operation(
             summary = "Solicitar la devolución de una entrada",
-            description = "Registra una solicitud PENDIENTE si faltan más de 72 horas para el evento."
+            description = "Registra una solicitud PENDIENTE si faltan más de 72 horas para el evento.\n\n**Roles:** CLIENTE, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Solicitud registrada"),
             @ApiResponse(responseCode = "403", description = "La entrada no pertenece al cliente"),
-            @ApiResponse(responseCode = "409", description = "Entrada no devolvible, fuera de plazo o con otra devolución en curso")
+            @ApiResponse(responseCode = "409", description = "Entrada no devolvible, fuera de plazo o con otra devolución en curso"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping("/{id}/devolucion")
     public ResponseEntity<SolicitudDevolucion> solicitarDevolucion(
@@ -138,9 +151,11 @@ public class EntradaController {
 
     @Operation(
             summary = "Listar solicitudes de devolución",
-            description = "Devuelve todas las solicitudes o las de un estado puntual (PENDIENTE, APROBADA, RECHAZADA)."
+            description = "Devuelve todas las solicitudes o las de un estado puntual (PENDIENTE, APROBADA, RECHAZADA).\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponse(responseCode = "200", description = "Solicitudes obtenidas correctamente")
+    @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido")
+    @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     @GetMapping("/devoluciones")
     public ResponseEntity<List<SolicitudDevolucion>> listarDevoluciones(
             @Parameter(description = "Estado por el que filtrar") @RequestParam(required = false) String estado) {
@@ -149,12 +164,14 @@ public class EntradaController {
 
     @Operation(
             summary = "Aprobar una devolución",
-            description = "Reintegra el importe de la entrada y libera el lugar en el inventario."
+            description = "Reintegra el importe de la entrada y libera el lugar en el inventario.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Devolución aprobada"),
             @ApiResponse(responseCode = "404", description = "Solicitud no encontrada"),
-            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta")
+            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/devoluciones/{id}/aprobar")
     public ResponseEntity<SolicitudDevolucion> aprobarDevolucion(
@@ -164,12 +181,14 @@ public class EntradaController {
 
     @Operation(
             summary = "Rechazar una devolución",
-            description = "Marca la solicitud como RECHAZADA indicando el motivo."
+            description = "Marca la solicitud como RECHAZADA indicando el motivo.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Devolución rechazada"),
             @ApiResponse(responseCode = "404", description = "Solicitud no encontrada"),
-            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta")
+            @ApiResponse(responseCode = "409", description = "La solicitud ya fue resuelta"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/devoluciones/{id}/rechazar")
     public ResponseEntity<SolicitudDevolucion> rechazarDevolucion(

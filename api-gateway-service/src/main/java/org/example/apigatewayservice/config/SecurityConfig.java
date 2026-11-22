@@ -58,7 +58,7 @@ public class SecurityConfig {
 
                         // Endpoints internos: no se exponen por el gateway
                         .requestMatchers("/api/interno/**").denyAll()
-                        .requestMatchers("/api/eventos/interno/**", "/api/compras/interno/**").denyAll()
+                        .requestMatchers("/api/eventos/interno/**", "/api/compras/interno/**", "/api/preferencias/interno/**").denyAll()
                         .requestMatchers(HttpMethod.POST, "/api/entradas/emitir", "/api/entradas/eventos/*/cancelar").denyAll()
                         .requestMatchers(HttpMethod.POST, "/api/pagos/cobrar").denyAll()
                         .requestMatchers(HttpMethod.POST, "/reintegros/**").denyAll()
@@ -73,7 +73,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/lugares/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/eventos", "/api/lugares")
                         .hasAnyRole("ORGANIZADOR", "ADMINISTRADOR")
-                        .requestMatchers(HttpMethod.PATCH, "/api/eventos/*/suspender", "/api/eventos/*/reanudar")
+                        .requestMatchers(HttpMethod.PATCH, "/api/eventos/*/suspender", "/api/eventos/*/reanudar", "/api/eventos/*/cancelar")
                         .hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/eventos/**")
                         .hasAnyRole("ORGANIZADOR", "ADMINISTRADOR")
