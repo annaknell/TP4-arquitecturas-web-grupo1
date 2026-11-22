@@ -1,6 +1,6 @@
 package com.tudai.pagos.controller;
 
-import com.tudai.pagos.config.TraceIdFilter;
+import com.tudai.pagos.config.CorrelationIdFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,7 +28,7 @@ public class PagosExceptionHandler {
     private static ResponseEntity<ErrorBody> responder(int status, String code, String message) {
         String msg = (message == null || message.isBlank()) ? "Error" : message;
         return ResponseEntity.status(status).body(
-                new ErrorBody(String.valueOf(status), code, msg, MDC.get(TraceIdFilter.MDC_KEY)));
+                new ErrorBody(String.valueOf(status), code, msg, MDC.get(CorrelationIdFilter.MDC_KEY)));
     }
 
     @ExceptionHandler({IllegalArgumentException.class,

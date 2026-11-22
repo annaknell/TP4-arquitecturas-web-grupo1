@@ -5,6 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,21 +18,32 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
-/** Garantiza un único identificador de trazabilidad para toda petición que atraviesa el Gateway. */
+
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String HEADER = "X-Correlation-Id";
+    public static final String MDC_KEY = "correlationId";
+    private static final Pattern VALID_ID = Pattern.compile("^[A-Za-z0-9._-]{1,100}$");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String correlationId = request.getHeader(HEADER);
-        if (correlationId == null || correlationId.isBlank()) {
+        if (correlationId == null || !VALID_ID.matcher(correlationId).matches()) {
             correlationId = UUID.randomUUID().toString();
         }
+
+        MDC.put(MDC_KEY, correlationId);
         response.setHeader(HEADER, correlationId);
-        filterChain.doFilter(new CorrelationRequestWrapper(request, correlationId), response);
+
+        try {
+            filterChain.doFilter(new CorrelationRequestWrapper(request, correlationId), response);
+        } finally {
+            MDC.remove(MDC_KEY);
+        }
     }
 
     private static final class CorrelationRequestWrapper extends HttpServletRequestWrapper {
@@ -48,8 +62,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         @Override
         public Enumeration<String> getHeaders(String name) {
             return HEADER.equalsIgnoreCase(name)
-                    ? Collections.enumeration(List.of(headers.get(HEADER)))
-                    : super.getHeaders(name);
+                ? Collections.enumeration(List.of(headers.get(HEADER)))
+                : super.getHeaders(name);
         }
 
         @Override
