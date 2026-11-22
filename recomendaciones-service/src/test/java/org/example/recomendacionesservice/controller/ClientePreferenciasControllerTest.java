@@ -9,7 +9,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,7 +24,7 @@ public class ClientePreferenciasControllerTest {
     private ClientePreferenciasService pService;
 
     @Test
-    void obtenerPorClienteIdDeberiaRetornarPreferencias() throws Exception{
+    void obtenerPorClienteIdDeberiaRetornarPreferencias() throws Exception {
         Long clienteId = 1L;
         ClientePreferencias preferencias = new ClientePreferencias(
                 "123",
@@ -35,7 +34,10 @@ public class ClientePreferenciasControllerTest {
                 List.of("Tandil")
         );
 
-        when(pService.obtenerPorClienteId(clienteId)).thenReturn(Optional.of(preferencias));
-        mockMvc.perform(get("/api/preferencias/cliente/{clienteId}", clienteId)).andExpect(status().isOk()).andExpect(jsonPath("$.clienteId").value(1)).andExpect(jsonPath("$.ciudadesFrecuentes[0]").value("Tandil"));
+        when(pService.obtenerPorClienteId(clienteId)).thenReturn(List.of(preferencias));
+        mockMvc.perform(get("/api/preferencias/cliente/{clienteId}", clienteId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].clienteId").value(1))
+                .andExpect(jsonPath("$[0].ciudadesFrecuentes[0]").value("Tandil"));
     }
 }

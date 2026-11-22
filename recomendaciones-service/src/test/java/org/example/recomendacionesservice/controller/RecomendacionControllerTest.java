@@ -1,6 +1,7 @@
 package org.example.recomendacionesservice.controller;
 
 import org.example.recomendacionesservice.entity.Recomendacion;
+import org.example.recomendacionesservice.service.RecomendacionMotorService;
 import org.example.recomendacionesservice.service.RecomendacionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class RecomendacionControllerTest {
 
     @MockitoBean
     private RecomendacionService rService;
+
+    @MockitoBean
+    private RecomendacionMotorService recomendacionMotorService;
 
     @Test
     void obtenerPorEventoIdDeberiaRetornarRecomendacion() throws Exception {

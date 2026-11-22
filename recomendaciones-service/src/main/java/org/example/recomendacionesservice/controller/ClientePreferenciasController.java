@@ -10,6 +10,8 @@ import org.example.recomendacionesservice.service.ClientePreferenciasService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/preferencias")
 @Tag(name = "Preferencias de Cliente", description = "Consulta y registro de preferencias de eventos por cliente")
@@ -29,11 +31,13 @@ public class ClientePreferenciasController {
             @ApiResponse(responseCode = "404", description = "No se encontraron preferencias para el cliente")
     })
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<ClientePreferencias> obtenerPorClienteId(
+    public ResponseEntity<List<ClientePreferencias>> obtenerPorClienteId(
             @Parameter(description = "ID del cliente", required = true) @PathVariable Long clienteId) {
-        return cpService.obtenerPorClienteId(clienteId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        List<ClientePreferencias> preferencias = cpService.obtenerPorClienteId(clienteId);
+        if (preferencias.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(preferencias);
     }
 
     @Operation(

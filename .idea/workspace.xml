@@ -4,14 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="ajuste en el pom de reportes (dependecia para openapi)">
-      <change afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/CorsConfigGateway.java" afterDir="false" />
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)">
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/client/CatalogoClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/config/RabbitMqConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/dto/EventoCatalogoDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/dto/ParticipanteDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/entity/CompraRegistrada.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/messaging/CompraCompletadaListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/CompraRegistradaRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/RecomendacionMotorService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/org/example/apigatewayservice/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entrada-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/entrada-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entrada-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/entrada-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/RecomendacionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/RecomendacionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/ClientePreferenciasRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/ClientePreferenciasRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/controller/ClientePreferenciasControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/controller/ClientePreferenciasControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/service/ClientePreferenciasServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/service/ClientePreferenciasServiceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,61 +81,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0000000000000002" />
-      <entry key="S30" value="1.0000118636047672" />
-      <entry key="S60" value="1.0110903250611754" />
-      <entry key="M2" value="1.4199877377013297" />
-      <entry key="M5" value="6.6677591080132474" />
-      <entry key="M10" value="16.810143208542115" />
-      <entry key="M15" value="23.769425722339566" />
-      <entry key="M30" value="34.42560488251324" />
-      <entry key="H1" value="46.284003908491904" />
-      <entry key="H2" value="87.42903047636904" />
-      <entry key="H4" value="182.5823693276632" />
-      <entry key="D1" value="476.8647693711674" />
-      <entry key="W1" value="739.2187106234007" />
+      <entry key="MS100" value="3.051825240361821E-88" />
+      <entry key="MS500" value="3.1398719141474117E-18" />
+      <entry key="S2" value="4.209475469442932E-5" />
+      <entry key="S5" value="0.017770154069560205" />
+      <entry key="S10" value="0.133304844401015" />
+      <entry key="S30" value="0.5169751090301554" />
+      <entry key="S60" value="0.82158007902802" />
+      <entry key="M2" value="1.3032427592141609" />
+      <entry key="M5" value="2.065335688970748" />
+      <entry key="M10" value="2.9526613517225693" />
+      <entry key="M15" value="4.253072789967522" />
+      <entry key="M30" value="11.039129022098983" />
+      <entry key="H1" value="28.155372688843045" />
+      <entry key="H2" value="68.24773398764587" />
+      <entry key="H4" value="159.66901625092342" />
+      <entry key="D1" value="484.6761423969323" />
+      <entry key="W1" value="767.3829508326494" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="8.705897221336685E-173" />
-      <entry key="S5" value="1.8375626997125276E-69" />
-      <entry key="S10" value="6.364265433992133E-35" />
-      <entry key="S30" value="8.041318160512342E-12" />
-      <entry key="S60" value="5.2502694040092444E-6" />
-      <entry key="M2" value="0.004694729072031021" />
-      <entry key="M5" value="0.29918969696673925" />
-      <entry key="M10" value="1.2200332598921246" />
-      <entry key="M15" value="1.9743422465511888" />
-      <entry key="M30" value="3.3785349626030867" />
-      <entry key="H1" value="5.332818288175839" />
-      <entry key="H2" value="10.052382259024359" />
-      <entry key="H4" value="18.767904308783145" />
-      <entry key="D1" value="50.657402294164896" />
-      <entry key="W1" value="92.99547171447688" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0000000000000224" />
+      <entry key="S5" value="1.00000449412343" />
+      <entry key="S10" value="1.0029362450252783" />
+      <entry key="S30" value="1.2689448191881425" />
+      <entry key="S60" value="1.9538868602816621" />
+      <entry key="M2" value="2.9013620336145007" />
+      <entry key="M5" value="3.960260706334606" />
+      <entry key="M10" value="4.706995135860714" />
+      <entry key="M15" value="5.446209868738607" />
+      <entry key="M30" value="7.576200197689809" />
+      <entry key="H1" value="10.828698630415857" />
+      <entry key="H2" value="16.185731801982683" />
+      <entry key="H4" value="25.470090986412544" />
+      <entry key="D1" value="60.80563490321731" />
+      <entry key="W1" value="105.25485333712568" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9460576467255959" />
-      <entry key="MS500" value="0.9889709163809315" />
-      <entry key="S2" value="0.9972312513520695" />
-      <entry key="S5" value="0.9988915792636801" />
-      <entry key="S10" value="0.9994456359721026" />
-      <entry key="S30" value="0.9998270344019865" />
-      <entry key="S60" value="1.0109992546125381" />
-      <entry key="M2" value="1.4244373691485668" />
-      <entry key="M5" value="6.962955852971183" />
-      <entry key="M10" value="18.02205151816419" />
-      <entry key="M15" value="25.734978286373067" />
-      <entry key="M30" value="37.796743650889034" />
-      <entry key="H1" value="51.61098795496174" />
-      <entry key="H2" value="97.47543580133421" />
-      <entry key="H4" value="201.34413722852491" />
-      <entry key="D1" value="527.5189754402253" />
-      <entry key="W1" value="832.2133163794286" />
+      <entry key="MS100" value="1.2671335354771717E-6" />
+      <entry key="MS500" value="0.06615527467969579" />
+      <entry key="S2" value="0.5071825263574501" />
+      <entry key="S5" value="0.7770710144439885" />
+      <entry key="S10" value="0.9977382418460884" />
+      <entry key="S30" value="1.7180206217004945" />
+      <entry key="S60" value="2.7255105078597963" />
+      <entry key="M2" value="4.168475347782825" />
+      <entry key="M5" value="6.005636077947344" />
+      <entry key="M10" value="7.6467805744487" />
+      <entry key="M15" value="9.688222449742947" />
+      <entry key="M30" value="18.605973514365893" />
+      <entry key="H1" value="38.976294071217175" />
+      <entry key="H2" value="84.42657738967279" />
+      <entry key="H4" value="185.13258034674948" />
+      <entry key="D1" value="545.4783685919426" />
+      <entry key="W1" value="872.6368897136771" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -157,6 +169,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.java in recomendaciones-service.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
@@ -167,6 +180,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
+    "Spring Boot.AuthServiceApplication.executor": "Run",
     "Spring Boot.CatalogoServiceApplication.executor": "Run",
     "Spring Boot.CompraServiceApplication.executor": "Run",
     "Spring Boot.EntradaServiceApplication.executor": "Run",
@@ -206,7 +220,15 @@
       <recent name="com.tudai.notificacionesservice.messaging" />
     </key>
   </component>
-  <component name="RunManager" selected="Spring Boot.PagosApplication">
+  <component name="RunManager" selected="JUnit.java in recomendaciones-service">
+    <configuration name="java in recomendaciones-service" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="recomendaciones-service" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/recomendaciones-service/src/test/java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <module name="pago-service" />
       <method v="2">
@@ -302,6 +324,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.java in recomendaciones-service" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -338,6 +365,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ajuste en el yml de api-gateway-service" />
     <MESSAGE value="ajuste en el pom de reportes (dependecia para openapi)" />
-    <option name="LAST_COMMIT_MESSAGE" value="ajuste en el pom de reportes (dependecia para openapi)" />
+    <MESSAGE value="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)" />
+    <option name="LAST_COMMIT_MESSAGE" value="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)" />
   </component>
 </project>

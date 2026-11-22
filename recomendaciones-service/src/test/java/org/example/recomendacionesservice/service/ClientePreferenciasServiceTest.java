@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,16 +17,17 @@ import static org.mockito.Mockito.*;
 public class ClientePreferenciasServiceTest {
     @Mock
     private ClientePreferenciasRepository cpRepository;
+
     @InjectMocks
     private ClientePreferenciasService cpService;
+
     @BeforeEach
-    void setUp(){
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void guardarPreferenciasDeberiaGuardarExitosamente() {
-        // Arrange
         ClientePreferencias preferencias = new ClientePreferencias(
                 "123",
                 1L,
@@ -36,6 +36,7 @@ public class ClientePreferenciasServiceTest {
                 List.of("Tandil")
         );
 
+        when(cpRepository.findAllByClienteId(1L)).thenReturn(List.of());
         when(cpRepository.save(any(ClientePreferencias.class))).thenReturn(preferencias);
 
         ClientePreferencias resultado = cpService.guardarPreferencias(preferencias);
@@ -57,12 +58,12 @@ public class ClientePreferenciasServiceTest {
                 List.of("Buenos Aires")
         );
 
-        when(cpRepository.findByClienteId(clienteId)).thenReturn(Optional.of(preferencias));
+        when(cpRepository.findAllByClienteId(clienteId)).thenReturn(List.of(preferencias));
 
-        Optional<ClientePreferencias> resultado = cpService.obtenerPorClienteId(clienteId);
+        List<ClientePreferencias> resultado = cpService.obtenerPorClienteId(clienteId);
 
-        assertTrue(resultado.isPresent());
-        assertEquals(clienteId, resultado.get().getClienteId());
-        verify(cpRepository, times(1)).findByClienteId(clienteId);
+        assertFalse(resultado.isEmpty());
+        assertEquals(clienteId, resultado.get(0).getClienteId());
+        verify(cpRepository, times(1)).findAllByClienteId(clienteId);
     }
 }

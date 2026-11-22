@@ -5,20 +5,25 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.recomendacionesservice.dto.EventoCatalogoDto;
 import org.example.recomendacionesservice.entity.Recomendacion;
+import org.example.recomendacionesservice.service.RecomendacionMotorService;
 import org.example.recomendacionesservice.service.RecomendacionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/recomendaciones")
 @Tag(name = "Recomendaciones", description = "Consulta y registro de recomendaciones asociadas a eventos")
 public class RecomendacionController {
     private final RecomendacionService rService;
-
-    public RecomendacionController(RecomendacionService recomendacionService) {
+    private final RecomendacionMotorService rMotorService;
+    public RecomendacionController(RecomendacionService recomendacionService, RecomendacionMotorService recomendacionMotorService) {
         this.rService = recomendacionService;
+        this.rMotorService = recomendacionMotorService;
     }
 
     @Operation(
@@ -49,5 +54,17 @@ public class RecomendacionController {
     public ResponseEntity<Recomendacion> guardarRecomendacion(@RequestBody Recomendacion recomendacion) {
         Recomendacion guardada = rService.guardarRecomendacion(recomendacion);
         return ResponseEntity.status(HttpStatus.CREATED).body(guardada);
+    }
+
+    @Operation(
+            summary = "Obtener recomendaciones reales para un cliente",
+            description = "Sugiere eventos publicados no comprados aún, priorizando lo comprado por usuarios con compras similares."
+    )
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<EventoCatalogoDto>> recomendarParaCliente(
+            @PathVariable Long clienteId,
+            @RequestParam(required = false) Long eventoId,
+            @RequestParam(defaultValue = "10") int limite) {
+        return ResponseEntity.ok(rMotorService.recomendarParaCliente(clienteId, eventoId, limite));
     }
 }

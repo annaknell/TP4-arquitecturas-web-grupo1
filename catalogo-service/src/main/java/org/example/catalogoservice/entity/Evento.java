@@ -32,7 +32,7 @@ public class Evento {
     private LocalDateTime fechaFin;
 
     @Column(name = "estado", nullable = false)
-    private String estado; // ej. "PROGRAMADO", "EN_VENTA", "FINALIZADO", "CANCELADO"
+    private String estado;
 
     @Builder.Default
     @Column(name = "alta_demanda", nullable = false)
