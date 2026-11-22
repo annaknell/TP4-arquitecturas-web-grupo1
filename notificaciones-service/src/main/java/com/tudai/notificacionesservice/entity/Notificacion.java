@@ -28,7 +28,8 @@ public class Notificacion {
     public enum Tipo {
         CONFIRMACION_COMPRA,
         CANCELACION_EVENTO,
-        MODIFICACION_EVENTO
+        MODIFICACION_EVENTO,
+        ARTISTA_FAVORITO_EN_CIUDAD
     }
 
     public enum Estado {
