@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -34,6 +36,8 @@ import java.util.Set;
  */
 public class IdentityHeadersFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(IdentityHeadersFilter.class);
+
     public static final String HEADER_USER_ID = "X-User-Id";
     public static final String HEADER_USER_ROLE = "X-User-Role";
     public static final String HEADER_USER_EMAIL = "X-User-Email";
@@ -50,11 +54,13 @@ public class IdentityHeadersFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         Map<String, String> identity = new LinkedHashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = null;
 
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-            Object userId = jwt.getClaim("userId");
-            if (userId != null) {
-                identity.put(HEADER_USER_ID, userId.toString());
+            Object userIdClaim = jwt.getClaim("userId");
+            if (userIdClaim != null) {
+                userId = userIdClaim.toString();
+                identity.put(HEADER_USER_ID, userId);
             }
             String role = jwt.getClaimAsString("role");
             if (role != null && !role.isBlank()) {
@@ -66,7 +72,18 @@ public class IdentityHeadersFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(new IdentityRequestWrapper(request, identity), response);
+        long inicio = System.currentTimeMillis();
+        try {
+            filterChain.doFilter(new IdentityRequestWrapper(request, identity), response);
+        } finally {
+            // Log de acceso (US-38): el usuario es el del JWT validado, nunca el
+            // header que pudo enviar el cliente. CorrelationIdFilter ya puso el
+            // cid en el MDC y lo limpia después de este filtro.
+            log.info("{} {} | usuario={} | status={} | {}ms",
+                    request.getMethod(), request.getRequestURI(),
+                    userId == null ? "-" : userId,
+                    response.getStatus(), System.currentTimeMillis() - inicio);
+        }
     }
 
     private static final class IdentityRequestWrapper extends HttpServletRequestWrapper {

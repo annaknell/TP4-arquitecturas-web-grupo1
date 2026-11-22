@@ -157,3 +157,7 @@ springdoc:
         url: http://localhost:8080/v3/api-docs/reportes
       - name: entradas-service
         url: http://localhost:8080/v3/api-docs/entradas
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [cid=%X{correlationId:-}] [%15.15t] %-40.40logger{36} : %m%n"
