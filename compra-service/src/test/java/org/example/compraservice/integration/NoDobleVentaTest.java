@@ -101,7 +101,8 @@ class NoDobleVentaTest {
             executor.execute(() -> {
                 try {
                     latch.await(); // Disparo sincronizado
-                    CompraRequest request = new CompraRequest(eventoId, List.of(asientoConflictivo), 5000.0);
+                    CompraRequest request = new CompraRequest(eventoId, null,
+                            List.of(asientoConflictivo), null, 5000.0, null);
                     Compra resultado = compraService.procesarCompra(request, "idemp-conc-" + idFinal, idFinal);
 
                     if ("COMPLETADA".equals(resultado.getEstado())) {
