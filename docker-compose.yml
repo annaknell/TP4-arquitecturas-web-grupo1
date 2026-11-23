@@ -217,6 +217,7 @@ services:
       <<: [*mysqlCredenciales, *rabbitCredenciales]
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_notificaciones?createDatabaseIfNotExist=true
       COMPRA_SERVICE_URL: http://compra-service:8084
+      RECOMENDACIONES_SERVICE_URL: http://recomendaciones-service:8087
     mem_limit: 420m
     restart: on-failure
     depends_on:

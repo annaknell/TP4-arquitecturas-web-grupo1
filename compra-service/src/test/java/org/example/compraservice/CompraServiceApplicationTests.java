@@ -4,9 +4,12 @@ import feign.FeignException;
 import org.example.compraservice.client.EntradaClient;
 import org.example.compraservice.client.CatalogoClient;
 import org.example.compraservice.client.InventarioClient;
+import org.example.compraservice.client.PagosClient;
 import org.example.compraservice.client.PagosClientResiliente;
+import org.example.compraservice.client.ReintegrosClient;
 import org.example.compraservice.dto.CompraRequest;
 import org.example.compraservice.dto.EntradaRequest;
+import org.example.compraservice.dto.LiberacionRequest;
 import org.example.compraservice.dto.ReservaRequest;
 import org.example.compraservice.dto.ReservaResponse;
 import org.example.compraservice.dto.EntradaResponse;
@@ -45,7 +48,13 @@ class CompraServiceTest {
     private InventarioClient inventarioClient;
 
     @Mock
+    private PagosClient pagosClient;
+
+    @Mock
     private PagosClientResiliente pagosClientResiliente;
+
+    @Mock
+    private ReintegrosClient reintegrosClient;
 
     @Mock
     private EntradaClient entradaClient;
@@ -222,6 +231,71 @@ class CompraServiceTest {
                 () -> new CompraRequest(15L, null, null, 3, 5000.0, null));
         assertThrows(IllegalArgumentException.class,
                 () -> new CompraRequest(15L, null, List.of(101L), 0, 5000.0, null));
+    }
+
+    @Test
+    @DisplayName("Reserva vencida: reintegra por compra con el motivo RESERVA_VENCIDA")
+    void reintegrarAnteReservaVencida() {
+        Long clienteId = 1L;
+        CompraRequest request = new CompraRequest(15L, null, List.of(101L), null, 5000.0, null);
+
+        when(compraRepository.findByIdempotencyKey("key-vencida")).thenReturn(Optional.empty());
+        when(compraRepository.save(any(Compra.class))).thenAnswer(invocation -> {
+            Compra compra = invocation.getArgument(0);
+            if (compra.getId() == null) {
+                compra.setId(123L);
+            }
+            return compra;
+        });
+        when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
+                .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
+                        new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
+        when(pagosClientResiliente.cobrar(any(), any(), any(), any()))
+                .thenReturn(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO"));
+        when(inventarioClient.confirmarReserva(10L)).thenThrow(mock(FeignException.class));
+
+        Compra resultado = compraService.procesarCompra(request, "key-vencida", clienteId);
+
+        assertEquals("RESERVA_VENCIDA", resultado.getEstado());
+        verify(reintegrosClient).reintegrarPorCompra(eq(123L), argThat(body ->
+                "RESERVA_VENCIDA".equals(body.get("motivo"))));
+        verify(entradaClient, never()).emitirEntradas(any());
+    }
+
+    @Test
+    @DisplayName("Fallo de emisión: reintegra, libera vendidos y deja la compra REINTEGRADA")
+    void compensarFalloDeEmision() {
+        Long clienteId = 1L;
+        CompraRequest request = new CompraRequest(15L, null, List.of(101L), null, 5000.0, null);
+
+        when(compraRepository.findByIdempotencyKey("key-emision")).thenReturn(Optional.empty());
+        when(compraRepository.save(any(Compra.class))).thenAnswer(invocation -> {
+            Compra compra = invocation.getArgument(0);
+            if (compra.getId() == null) {
+                compra.setId(123L);
+            }
+            return compra;
+        });
+        when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
+                .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
+                        new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
+        when(pagosClientResiliente.cobrar(any(), any(), any(), any()))
+                .thenReturn(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO"));
+        when(entradaClient.emitirEntradas(any())).thenThrow(new RuntimeException("Entradas caídas"));
+
+        Compra resultado = compraService.procesarCompra(request, "key-emision", clienteId);
+
+        assertEquals("REINTEGRADA", resultado.getEstado());
+        verify(reintegrosClient).reintegrarPorCompra(eq(123L), argThat(body ->
+                "FALLO_EMISION".equals(body.get("motivo"))));
+        ArgumentCaptor<LiberacionRequest> liberacionCaptor = ArgumentCaptor.forClass(LiberacionRequest.class);
+        verify(inventarioClient).liberarVendidos(liberacionCaptor.capture());
+        LiberacionRequest liberacion = liberacionCaptor.getValue();
+        assertEquals(15L, liberacion.eventId());
+        assertEquals(1L, liberacion.sectorId());
+        assertEquals(List.of(101L), liberacion.asientos());
+        assertTrue(resultado.getLineasVenta().isEmpty());
+        verify(compraCompletadaPublisher, never()).publicar(any(), anyString(), any(), any());
     }
 
     @Test

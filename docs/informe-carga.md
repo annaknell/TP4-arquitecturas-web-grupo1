@@ -38,3 +38,11 @@ jmeter -n -t loadtest/ticketya-compra.jmx -JhilosIngreso=100 -JhilosCompra=0 -Jr
 docker exec ticketya-api-gateway-service-1 curl -s -X POST http://fila-virtual-service:8086/api/interno/fila/3/tandas/habilitar
 jmeter -n -t loadtest/ticketya-compra.jmx -JhilosIngreso=0 -JhilosCompra=100 -Jrun=r4 -JeventoId=3 -JasientoBase=201
 ```
+
+## Notas posteriores a la auditoría
+
+Los resultados anteriores corresponden a la corrida original; después de los arreglos de la Entrega 2 no se
+repitió la prueba de carga. Los puertos vigentes usados por el plan son `fila-virtual-service:8086` y
+`entrada-service:8090`. El rechazo por límite de entradas por cliente se responde ahora con `422` antes de
+cobrar, y los fallos de emisión con reserva confirmada reintegran y dejan la compra en `REINTEGRADA` en vez
+de `FALLO_SISTEMA`.

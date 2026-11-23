@@ -10,6 +10,8 @@ import org.example.compraservice.exception.LimiteEntradasExcedidoException;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.repository.CompraRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.math.BigDecimal;
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 public class CompraService {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final Logger log = LoggerFactory.getLogger(CompraService.class);
 
     @Autowired
     private CompraRepository compraRepository;
@@ -33,6 +37,8 @@ public class CompraService {
     private InventarioClient inventarioClient;
     @Autowired
     private PagosClient pagosClient;
+    @Autowired
+    private ReintegrosClient reintegrosClient;
     @Autowired
     private PagosClientResiliente pagosClientResiliente;
     @Autowired
@@ -153,40 +159,70 @@ public class CompraService {
             compraRepository.save(compra);
         } catch (FeignException e) {
             // COMPENSACIÓN 3: Si la reserva venció (pasaron 10 min), reintegrar el pago
-            pagosClient.reintegrar(compra.getPagoId());
+            // por compra (el endpoint /api/pagos/{id}/reintegrar no existe).
+            compensar("RESERVA_VENCIDA", compra.getId());
             compra.addPaso("Reserva vencida - Reintegro solicitado (Compensación)", "COMPENSADO");
             compra.setEstado("RESERVA_VENCIDA");
             return compraRepository.save(compra);
         }
 
         // PASO 4: Emitir Entradas
-        if (compra.getSectorId() == null) {
-            throw new IllegalStateException("Inventario no informó sectorId; no es posible registrar una venta auditable");
-        }
-        // Numerado: una entrada por asiento. Zona no numerada: una entrada por
-        // unidad pedida, todas sin asientoId (el QR se genera igual por UUID).
         List<Long> asientos = compra.getAsientos() == null ? List.of() : compra.getAsientos();
-        int totalEntradas = !asientos.isEmpty() ? asientos.size()
-                : (compra.getCantidad() == null ? 0 : compra.getCantidad());
-        if (totalEntradas <= 0) {
-            throw new IllegalStateException("La compra no tiene asientos ni cantidad de entradas");
-        }
+        try {
+            if (compra.getSectorId() == null) {
+                throw new IllegalStateException("Inventario no informó sectorId; no es posible registrar una venta auditable");
+            }
+            // Numerado: una entrada por asiento. Zona no numerada: una entrada por
+            // unidad pedida, todas sin asientoId (el QR se genera igual por UUID).
+            int totalEntradas = !asientos.isEmpty() ? asientos.size()
+                    : (compra.getCantidad() == null ? 0 : compra.getCantidad());
+            if (totalEntradas <= 0) {
+                throw new IllegalStateException("La compra no tiene asientos ni cantidad de entradas");
+            }
 
-        List<EntradaRequest> entradasAEmitir = new ArrayList<>();
-        for (int i = 0; i < totalEntradas; i++) {
-            Long asientoId = asientos.isEmpty() ? null : asientos.get(i);
-            entradasAEmitir.add(new EntradaRequest(compra.getEventoId(), asientoId,
-                    compra.getClienteId(), compra.getId(), compra.getSectorId()));
-        }
+            List<EntradaRequest> entradasAEmitir = new ArrayList<>();
+            for (int i = 0; i < totalEntradas; i++) {
+                Long asientoId = asientos.isEmpty() ? null : asientos.get(i);
+                entradasAEmitir.add(new EntradaRequest(compra.getEventoId(), asientoId,
+                        compra.getClienteId(), compra.getId(), compra.getSectorId()));
+            }
 
-        List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
-        registrarLineasVenta(compra, entradasEmitidas, importeReserva);
-        compra.addPaso("Entradas emitidas con éxito", "EJECUTADO");
-        compra.setEstado("COMPLETADA");
-        Compra compraCompletada = compraRepository.save(compra);
-        compraCompletada.getLineasVenta().forEach(linea -> reporteVentaPublisher.publicar(linea, correlationId));
-        compraCompletadaPublisher.publicar(compraCompletada, correlationId, email, entradasEmitidas);
-        return compraCompletada;
+            List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
+            registrarLineasVenta(compra, entradasEmitidas, importeReserva);
+            compra.addPaso("Entradas emitidas con éxito", "EJECUTADO");
+            compra.setEstado("COMPLETADA");
+            Compra compraCompletada = compraRepository.save(compra);
+            compraCompletada.getLineasVenta().forEach(linea -> reporteVentaPublisher.publicar(linea, correlationId));
+            compraCompletadaPublisher.publicar(compraCompletada, correlationId, email, entradasEmitidas);
+            return compraCompletada;
+        } catch (Exception e) {
+            // COMPENSACIÓN 4: la reserva ya está confirmada, así que se revierten
+            // las unidades vendidas (no se puede liberar una reserva CONFIRMADA).
+            compensar("FALLO_EMISION", compra.getId());
+            liberarVendidos(compra, asientos);
+            compra.addPaso("Fallo en emisión - Reintegro y liberación solicitados (Compensación)", "COMPENSADO");
+            compra.setEstado("REINTEGRADA");
+            return compraRepository.save(compra);
+        }
+    }
+
+    private void compensar(String motivo, Long compraId) {
+        try {
+            reintegrosClient.reintegrarPorCompra(compraId, Map.of("motivo", motivo));
+        } catch (Exception e) {
+            // No ocultamos el motivo original: queda registrado en los pasos y en el log.
+            log.error("No se pudo solicitar el reintegro de la compra {} ({})", compraId, motivo, e);
+        }
+    }
+
+    private void liberarVendidos(Compra compra, List<Long> asientos) {
+        try {
+            inventarioClient.liberarVendidos(new LiberacionRequest(
+                    compra.getEventoId(), compra.getSectorId(),
+                    asientos, asientos.isEmpty() ? compra.getCantidad() : null));
+        } catch (Exception e) {
+            log.error("No se pudo liberar el inventario vendido de la compra {}", compra.getId(), e);
+        }
     }
 
     @Scheduled(fixedDelayString = "${compras.reconciliacion.intervalo-ms:30000}")
@@ -228,12 +264,16 @@ public class CompraService {
         long totalCentavos = importeCentavos(importeReserva, compra.getPrecioTotal());
         long base = totalCentavos / entradas.size();
         long resto = totalCentavos % entradas.size();
+        // Se construye todo primero: si falla un cálculo, la compra no queda con
+        // líneas de venta parciales en memoria.
+        List<org.example.compraservice.entity.LineaVenta> lineas = new ArrayList<>();
         for (int i = 0; i < entradas.size(); i++) {
             EntradaResponse entrada = entradas.get(i);
             long importe = base + (i < resto ? 1 : 0);
-            compra.getLineasVenta().add(new org.example.compraservice.entity.LineaVenta(
+            lineas.add(new org.example.compraservice.entity.LineaVenta(
                     compra, entrada.id(), compra.getEventoId(), entrada.sectorId(), entrada.asientoId(), importe, "ARS"));
         }
+        compra.getLineasVenta().addAll(lineas);
     }
 
     private long importeCentavos(BigDecimal importeReserva, Double importeCompra) {

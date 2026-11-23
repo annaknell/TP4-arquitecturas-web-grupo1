@@ -29,7 +29,7 @@ public class CompradoresClient {
     @CircuitBreaker(name = "compradores", fallbackMethod = "buscarPorEventoFallback")
     public List<CompradorResponse> buscarPorEvento(Long eventoId) {
         List<CompradorResponse> respuesta = restClient.get()
-                .uri("/api/compras/interno/eventos/{eventoId}/compradores", eventoId)
+                .uri("/api/compras/interno/{eventoId}/compradores", eventoId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<CompradorResponse>>() {});
         return respuesta == null ? List.of() : respuesta;
