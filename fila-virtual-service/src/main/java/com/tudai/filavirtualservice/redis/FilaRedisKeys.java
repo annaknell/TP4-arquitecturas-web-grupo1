@@ -1,9 +1,6 @@
 package com.tudai.filavirtualservice.redis;
 
-/**
- * Único lugar donde se construyen las claves Redis de Fila Virtual.
- * El prefijo evita colisiones con otros microservicios que compartan la instancia.
- */
+
 public final class FilaRedisKeys {
 
     private static final String PREFIX = "fila-virtual:evento:";
@@ -38,6 +35,11 @@ public final class FilaRedisKeys {
     /** ZSET global: token -> instante de vencimiento; se usa en la siguiente etapa para expirar habilitaciones. */
     public static String vencimientosAutorizacion() {
         return "fila-virtual:autorizaciones:vencimientos";
+    }
+
+    /** SET global con los eventos configurados para que el scheduler pueda recorrer sus filas. */
+    public static String eventosConFilaActiva() {
+        return "fila-virtual:eventos:activos";
     }
 
     static String prefijoTicket(Long eventoId) {

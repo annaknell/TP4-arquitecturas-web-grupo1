@@ -72,18 +72,42 @@ public class FilaVirtualService {
 
     /** Habilita estrictamente a los primeros clientes que aún permanecen en la cola. */
     public HabilitarTandaResponse habilitarSiguienteTanda(Long eventoId) {
+        return habilitarTanda(eventoId, false);
+    }
+
+    /** Avanza las filas abiertas cuya ventana de compra anterior ya venció. */
+    public int habilitarTandasVencidas() {
+        int tandasHabilitadas = 0;
+        for (Long eventoId : repository.eventosConFilaActiva()) {
+            HabilitarTandaResponse respuesta = habilitarTanda(eventoId, true);
+            if (!respuesta.habilitados().isEmpty()) {
+                tandasHabilitadas++;
+            }
+        }
+        return tandasHabilitadas;
+    }
+
+    private HabilitarTandaResponse habilitarTanda(Long eventoId, boolean automatica) {
         if (eventoId == null || eventoId <= 0) {
             throw new IllegalArgumentException("El identificador del evento debe ser positivo");
         }
         int tamanioTanda = repository.obtenerTamanioTanda(eventoId);
         if (tamanioTanda <= 0) {
+            if (automatica) {
+                return new HabilitarTandaResponse(List.of());
+            }
             throw new EventoNoHabilitadoException();
         }
         List<String> tokens = java.util.stream.IntStream.range(0, tamanioTanda)
                 .mapToObj(indice -> UUID.randomUUID().toString())
                 .toList();
-        FilaVirtualRedisRepository.ResultadoTanda resultado = repository.habilitarSiguienteTanda(eventoId, tamanioTanda, tokens);
+        FilaVirtualRedisRepository.ResultadoTanda resultado = automatica
+                ? repository.habilitarSiguienteTandaSiCorresponde(eventoId, tamanioTanda, tokens)
+                : repository.habilitarSiguienteTanda(eventoId, tamanioTanda, tokens);
         if (resultado.eventoNoHabilitado()) {
+            if (automatica) {
+                return new HabilitarTandaResponse(List.of());
+            }
             throw new EventoNoHabilitadoException();
         }
         return new HabilitarTandaResponse(resultado.habilitaciones().stream()

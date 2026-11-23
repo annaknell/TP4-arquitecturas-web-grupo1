@@ -37,3 +37,11 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Secretos / claves JWT (nunca al repo) ###
+.env
+.env.*
+!.env.example
+*.pem
+*.b64
+secrets/

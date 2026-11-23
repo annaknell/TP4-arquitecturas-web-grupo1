@@ -2,9 +2,8 @@ package org.example.compraservice.integration;
 
 import org.example.compraservice.client.EntradaClient;
 import org.example.compraservice.client.InventarioClient;
-import org.example.compraservice.client.PagosClient;
+import org.example.compraservice.client.PagosClientResiliente;
 import org.example.compraservice.dto.CompraRequest;
-import org.example.compraservice.dto.PagoRequest;
 import org.example.compraservice.dto.PagoResponse;
 import org.example.compraservice.dto.ReservaRequest;
 import org.example.compraservice.dto.ReservaResponse;
@@ -45,7 +44,7 @@ class NoDobleVentaTest {
     private InventarioClient inventarioClient;
 
     @Mock
-    private PagosClient pagosClient;
+    private PagosClientResiliente pagosClientResiliente;
 
     @Mock
     private EntradaClient entradaClient;
@@ -85,15 +84,14 @@ class NoDobleVentaTest {
         });
 
         // 2. Pagos: Si la reserva pasó, el cobro se aprueba exitosamente
-        when(pagosClient.cobrar(any(PagoRequest.class)))
-            .thenReturn(ResponseEntity.ok(new PagoResponse(555L, "APROBADO")));
+        when(pagosClientResiliente.cobrar(anyLong(), any(), anyString()))
+            .thenReturn(new PagoResponse(555L, "APROBADO"));
         when(entradaClient.emitirEntradas(any()))
             .thenReturn(ResponseEntity.ok(List.of(new EntradaResponse(800L, "QR-800", "EMITIDA", eventoId, 1L,
                     asientoConflictivo, 1L, 1L))));
 
         // 3. Mocks de base de datos y repositorios
         when(compraRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
-        when(compraRepository.countByClienteIdAndEventoIdAndEstado(anyLong(), eq(eventoId), eq("COMPLETADA"))).thenReturn(0L);
         when(compraRepository.save(any(Compra.class))).thenAnswer(i -> i.getArgument(0));
 
         // Lanzamos 10 hilos concurrentes
@@ -102,7 +100,8 @@ class NoDobleVentaTest {
             executor.execute(() -> {
                 try {
                     latch.await(); // Disparo sincronizado
-                    CompraRequest request = new CompraRequest(eventoId, List.of(asientoConflictivo), 5000.0);
+                    CompraRequest request = new CompraRequest(eventoId, null,
+                            List.of(asientoConflictivo), null, 5000.0, null);
                     Compra resultado = compraService.procesarCompra(request, "idemp-conc-" + idFinal, idFinal);
 
                     if ("COMPLETADA".equals(resultado.getEstado())) {

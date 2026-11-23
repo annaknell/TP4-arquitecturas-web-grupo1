@@ -30,6 +30,14 @@ public class EntradaService {
     @Autowired
     private SolicitudDevolucionRepository devolucionRepository;
 
+    /** Builder configurado por Boot con spring.http.clients.* (connect/read timeout). */
+    @Autowired
+    private RestClient.Builder restClientBuilder;
+
+    private RestClient client(String baseUrl) {
+        return restClientBuilder.clone().baseUrl(baseUrl).build();
+    }
+
     @Value("${catalogo-service.url:http://localhost:8082}")
     private String catalogoUrl = "http://localhost:8082";
 
@@ -181,7 +189,7 @@ public class EntradaService {
     }
 
     private LocalDateTime fechaEvento(Long eventoId) {
-        Map<String, Object> evento = RestClient.create(catalogoUrl).get()
+        Map<String, Object> evento = client(catalogoUrl).get()
                 .uri("/api/eventos/{id}", eventoId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<Map<String, Object>>() { });
@@ -193,7 +201,7 @@ public class EntradaService {
     }
 
     private Map<String, Object> obtenerCompra(Long compraId) {
-        Map<String, Object> compra = RestClient.create(compraUrl).get()
+        Map<String, Object> compra = client(compraUrl).get()
                 .uri("/api/compras/{id}", compraId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<Map<String, Object>>() { });
@@ -203,10 +211,21 @@ public class EntradaService {
         return compra;
     }
 
-    private int montoPorEntrada(Map<String, Object> compra) {
+    /**
+     * Importe a reintegrar por entrada. En sectores numerados se divide por la
+     * cantidad de asientos; en zonas no numeradas los asientos están vacíos y
+     * hay que usar la `cantidad` de la compra, si no el reintegro sería por el
+     * total de la compra.
+     */
+    int montoPorEntrada(Map<String, Object> compra) {
         double total = ((Number) compra.get("precioTotal")).doubleValue();
         Object asientos = compra.get("asientos");
-        int cantidad = asientos instanceof List<?> lista && !lista.isEmpty() ? lista.size() : 1;
+        int cantidad = 1;
+        if (asientos instanceof List<?> lista && !lista.isEmpty()) {
+            cantidad = lista.size();
+        } else if (compra.get("cantidad") instanceof Number unidades && unidades.intValue() > 0) {
+            cantidad = unidades.intValue();
+        }
         return (int) Math.round(total / cantidad);
     }
 
@@ -223,7 +242,7 @@ public class EntradaService {
         cuerpo.put("monto", monto);
         cuerpo.put("asignaciones", List.of(asignacion));
 
-        RestClient.create(pagoUrl).post()
+        client(pagoUrl).post()
                 .uri("/reintegros/devolucion-aprobada")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(cuerpo)
@@ -241,7 +260,7 @@ public class EntradaService {
             cuerpo.put("cantidad", 1);
         }
 
-        RestClient.create(inventarioUrl).post()
+        client(inventarioUrl).post()
                 .uri("/api/inventario/liberaciones")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(cuerpo)

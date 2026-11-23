@@ -32,6 +32,9 @@ public class Compra {
     private Long pagoId;
     private Long sectorId;
 
+    /** Unidades pedidas en zonas no numeradas; null en compras por asiento. */
+    private Integer cantidad;
+
     @Column(nullable = false)
     private Double precioTotal;
 

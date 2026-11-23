@@ -1,9 +1,12 @@
 package org.example.compraservice.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.example.compraservice.client.*;
 import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
+import org.example.compraservice.exception.LimiteEntradasExcedidoException;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.repository.CompraRepository;
@@ -12,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +25,8 @@ import java.util.stream.Collectors;
 @Service
 public class CompraService {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Autowired
     private CompraRepository compraRepository;
     @Autowired
@@ -28,13 +34,13 @@ public class CompraService {
     @Autowired
     private PagosClient pagosClient;
     @Autowired
+    private PagosClientResiliente pagosClientResiliente;
+    @Autowired
     private EntradaClient entradaClient;
     @Autowired
     private CompraCompletadaPublisher compraCompletadaPublisher;
     @Autowired
     private ReporteVentaPublisher reporteVentaPublisher;
-
-    private static final int MAX_ENTRADAS_POR_CLIENTE = 4; // Límite de negocio
 
     @Transactional
     public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId) {
@@ -56,47 +62,59 @@ public class CompraService {
             return compraExistente.get();
         }
 
-        // 2. Verificar límite por cliente
-        long comprasPrevias = compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, request.eventoId(), "COMPLETADA");
-        if (comprasPrevias + request.asientos().size() > MAX_ENTRADAS_POR_CLIENTE) {
-            throw new RuntimeException("Límite de entradas excedido para este evento");
-        }
-
         // Inicializar la Compra
         Compra compra = new Compra();
         compra.setClienteId(clienteId);
         compra.setEmailCliente(email);
         compra.setEventoId(request.eventoId());
         compra.setIdempotencyKey(idempotencyKey);
-        compra.setAsientos(request.asientos());
+        // En zonas no numeradas no hay asientos: se guarda una lista vacía (nunca null)
+        // para que la entidad siga siendo persistible y el emisor use `cantidad`.
+        compra.setAsientos(request.asientos() == null
+                ? new ArrayList<>() : new ArrayList<>(request.asientos()));
+        compra.setSectorId(request.sectorId());
+        compra.setCantidad(request.cantidad());
         compra.setPrecioTotal(request.precioTotal());
         compra.setEstado("PENDIENTE");
         compra.addPaso("Inicio de compra", "EJECUTADO");
         compraRepository.save(compra);
 
         try {
-            // PASO 1: Reservar en Inventario (10 minutos)
-            ReservaResponse reserva = inventarioClient.reservarAsientos(
-                new ReservaRequest(request.eventoId(), clienteId, request.asientos(), request.autorizacionFila(), idempotencyKey)
-            ).getBody();
+            // PASO 1: Reservar en Inventario (10 minutos).
+            // US-18: inventario es la única fuente de verdad del tope por cliente
+            // (configurable por evento y con reservas activas). Acá no se re-cuenta nada:
+            // su 422 se propaga con el detalle para que el cliente sepa cuántas lleva.
+            ReservaResponse reserva;
+            try {
+                reserva = inventarioClient.reservarAsientos(
+                        new ReservaRequest(request.eventoId(), clienteId, request.asientos(),
+                                request.sectorId(), request.cantidad(),
+                                request.autorizacionFila(), idempotencyKey)).getBody();
+            } catch (FeignException e) {
+                if (e.status() == 422) {
+                    throw new LimiteEntradasExcedidoException(mensajeDelRechazo(e));
+                }
+                throw e;
+            }
+            if (reserva == null) {
+                throw new IllegalStateException("Inventario no devolvió datos de la reserva");
+            }
             compra.setReservaId(reserva.id()); // record no usa get
-            compra.setSectorId(reserva.sectorId());
-            compra.addPaso("Asientos reservados (ID: " + reserva.id() + ")", "EJECUTADO");
+            // Inventario confirma el sector y la cantidad efectivamente retenidos.
+            if (reserva.sectorId() != null) {
+                compra.setSectorId(reserva.sectorId());
+            }
+            if (reserva.cantidad() != null) {
+                compra.setCantidad(reserva.cantidad());
+            }
+            compra.addPaso("Lugares reservados (ID: " + reserva.id() + ")", "EJECUTADO");
             compraRepository.save(compra);
 
-            // PASO 2: Cobrar en Pagos
-            PagoResponse pago;
-            try {
-                pago = pagosClient.cobrar(
-                    new PagoRequest(clienteId, request.precioTotal(), idempotencyKey)
-                ).getBody();
-            } catch (FeignException e) {
-                // COMPENSACIÓN 2: Si falla el pago, liberar la reserva
-                inventarioClient.liberarReserva(compra.getReservaId());
-                compra.addPaso("Pago rechazado - Liberando reserva (Compensación)", "COMPENSADO");
-                compra.setEstado("PAGO_RECHAZADO");
-                return compraRepository.save(compra);
-            }
+            // PASO 2: Cobrar en Pagos. El cliente resilient aplica timeouts,
+            // reintentos (seguros por Idempotency-Key) y circuit breaker; su
+            // fallback devuelve PENDIENTE_RECONCILIACION, nunca APROBADO.
+            PagoResponse pago = pagosClientResiliente.cobrar(
+                    clienteId, request.precioTotal(), idempotencyKey);
             compra.setPagoId(pago.id()); // record no usa get
 
             if ("RECHAZADO".equals(pago.estado())) {
@@ -116,6 +134,10 @@ public class CompraService {
             compraRepository.save(compra);
             return confirmarYEmitir(compra, reserva.importeTotal(), correlationId, email);
 
+        } catch (LimiteEntradasExcedidoException e) {
+            // La excepción es de negocio, no un fallo del sistema: se propaga el 422
+            // y @Transactional revierte la compra PENDIENTE que se guardó recién.
+            throw e;
         } catch (Exception e) {
             compra.setEstado("FALLO_SISTEMA");
             compra.addPaso("Error crítico: " + e.getMessage(), "FALLO");
@@ -141,10 +163,21 @@ public class CompraService {
         if (compra.getSectorId() == null) {
             throw new IllegalStateException("Inventario no informó sectorId; no es posible registrar una venta auditable");
         }
-        List<EntradaRequest> entradasAEmitir = compra.getAsientos().stream()
-                .map(asientoId -> new EntradaRequest(compra.getEventoId(), asientoId, compra.getClienteId(),
-                        compra.getId(), compra.getSectorId()))
-                .collect(Collectors.toList());
+        // Numerado: una entrada por asiento. Zona no numerada: una entrada por
+        // unidad pedida, todas sin asientoId (el QR se genera igual por UUID).
+        List<Long> asientos = compra.getAsientos() == null ? List.of() : compra.getAsientos();
+        int totalEntradas = !asientos.isEmpty() ? asientos.size()
+                : (compra.getCantidad() == null ? 0 : compra.getCantidad());
+        if (totalEntradas <= 0) {
+            throw new IllegalStateException("La compra no tiene asientos ni cantidad de entradas");
+        }
+
+        List<EntradaRequest> entradasAEmitir = new ArrayList<>();
+        for (int i = 0; i < totalEntradas; i++) {
+            Long asientoId = asientos.isEmpty() ? null : asientos.get(i);
+            entradasAEmitir.add(new EntradaRequest(compra.getEventoId(), asientoId,
+                    compra.getClienteId(), compra.getId(), compra.getSectorId()));
+        }
 
         List<EntradaResponse> entradasEmitidas = entradaClient.emitirEntradas(entradasAEmitir).getBody();
         registrarLineasVenta(compra, entradasEmitidas, importeReserva);
@@ -213,6 +246,23 @@ public class CompraService {
         return BigDecimal.valueOf(importeCompra).movePointRight(2).longValueExact();
     }
 
+    /** Extrae el mensaje del 422 de inventario sin acoplarse al resto del formato del error. */
+    private String mensajeDelRechazo(FeignException exception) {
+        String contenido = exception.contentUTF8();
+        if (contenido != null && !contenido.isBlank()) {
+            try {
+                JsonNode cuerpo = MAPPER.readTree(contenido);
+                String mensaje = cuerpo.path("message").asText(null);
+                if (mensaje != null && !mensaje.isBlank()) {
+                    return mensaje;
+                }
+            } catch (Exception ignorado) {
+                // El cuerpo no era JSON: se usa el mensaje genérico de abajo.
+            }
+        }
+        return "El evento superó el límite de entradas por cliente";
+    }
+
     public Compra obtenerPorId(Long id) {
         return compraRepository.findById(id).orElseThrow(() -> new RuntimeException("Compra no encontrada"));
     }
@@ -220,7 +270,7 @@ public class CompraService {
     public List<CompradorNotificacionResponse> compradoresCompletadosPorEvento(Long eventoId) {
         return compraRepository.findByEventoIdAndEstado(eventoId, "COMPLETADA").stream()
                 .filter(compra -> compra.getEmailCliente() != null && !compra.getEmailCliente().isBlank())
-                .collect(java.util.stream.Collectors.toMap(
+                .collect(Collectors.toMap(
                         Compra::getEmailCliente,
                         compra -> new CompradorNotificacionResponse(compra.getClienteId(), compra.getEmailCliente()),
                         (primero, ignorado) -> primero

@@ -138,6 +138,37 @@ Ejemplo general:
 }
 ```
 
+### `EVENTO_PUBLICADO`
+
+- **Publica:** `catalogo-service`.
+- **Consume:** `notificaciones-service`.
+- **Condición de publicación:** el evento pasa de borrador a publicado.
+- **Efecto esperado:** avisar una única vez a quienes tengan como favorito alguno de sus artistas
+  y hayan guardado la ciudad del lugar entre sus ciudades frecuentes.
+
+```json
+{
+  "eventId": "uuid",
+  "eventType": "EVENTO_PUBLICADO",
+  "occurredAt": "2026-11-18T17:30:00Z",
+  "correlationId": "uuid",
+  "source": "catalogo-service",
+  "payload": {
+    "eventoId": 10,
+    "nombreEvento": "Recital",
+    "fechaEvento": "2026-12-20T21:00:00",
+    "lugar": "Teatro X",
+    "ciudad": "Tandil",
+    "artistas": ["Artista favorito"]
+  }
+}
+```
+
+Para resolver los destinatarios, Notificaciones consulta internamente
+`GET /api/preferencias/interno/destinatarios?artista={artista}&ciudad={ciudad}` de
+`recomendaciones-service`. Las preferencias guardan el email recibido en `X-User-Email` para
+poder enviar la notificación.
+
 ## Reglas de procesamiento
 
 1. Notificaciones registra primero el evento y luego realiza el envío de manera asíncrona.

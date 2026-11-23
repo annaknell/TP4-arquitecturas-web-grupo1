@@ -23,4 +23,9 @@ Requisitos Previos
 - Paso 3: Realizar Consultas y Pruebas
   Una vez que el API Gateway esté corriendo (generalmente en el puerto 8080), abrir Postman, importar la colección de requests y empezar a interactuar con el sistema apuntando siempre al Gateway.
 
+Configuración de entorno
+- Copiar `.env.example` a `.env` y completar las variables. El `auth-service` exige las claves RSA estables `AUTH_JWT_PRIVATE_KEY` / `AUTH_JWT_PUBLIC_KEY` (el `.env` y los `*.b64` están ignorados por Git). Sin esas claves el compose falla con un mensaje claro: nunca se genera un par efímero en Docker, porque eso cambiaría el JWKS e invalidaría los tokens vigentes al reiniciar.
+- Timeouts HTTP: `feign.client.config.default.connectTimeout/readTimeout` en `compra-service` y `spring.http.clients.connect-timeout/read-timeout` (2s/3s) en catálogo, inventario, notificaciones y entradas. Estos últimos se aplican porque los clientes usan el `RestClient.Builder` inyectado por Spring.
+- Circuit breaker / reintentos: `compra-service` reintenta el cobro (3 intentos con backoff exponencial, seguro por `Idempotency-Key`) y con el circuito abierto deja la compra en `PAGO_INCIERTO` para reconciliación; nunca aprueba un pago por fallback. Catálogo y notificaciones usan circuit breaker con fallback para no bloquear ni perder avisos. Los reintentos de emails de US-38 siguen en `notificaciones-service` (no se duplican).
+
 

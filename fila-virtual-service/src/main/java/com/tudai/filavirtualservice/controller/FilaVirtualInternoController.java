@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,8 +37,9 @@ public class FilaVirtualInternoController {
 
     @Operation(
             summary = "Configurar fila virtual para un evento",
-            description = "Define el tamaño de tanda y la ventana de compra (en minutos) para el evento indicado."
+            description = "Define el tamaño de tanda y la ventana de compra (en minutos) para el evento indicado.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Configuración aplicada correctamente"),
             @ApiResponse(responseCode = "400", description = "Parámetros de configuración inválidos")
@@ -52,8 +54,9 @@ public class FilaVirtualInternoController {
 
     @Operation(
             summary = "Cambiar estado de la fila virtual de un evento",
-            description = "Actualiza el estado operativo de la fila virtual para el evento."
+            description = "Actualiza el estado operativo de la fila virtual para el evento.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Estado actualizado correctamente"),
             @ApiResponse(responseCode = "400", description = "Estado o solicitud inválida")
@@ -68,8 +71,9 @@ public class FilaVirtualInternoController {
 
     @Operation(
             summary = "Habilitar siguiente tanda",
-            description = "Habilita el siguiente lote/tanda de usuarios autorizados para comprar."
+            description = "Habilita el siguiente lote/tanda de usuarios autorizados para comprar.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Siguiente tanda habilitada"),
             @ApiResponse(responseCode = "409", description = "No es posible habilitar tanda en el estado actual")
@@ -82,8 +86,9 @@ public class FilaVirtualInternoController {
 
     @Operation(
             summary = "Validar y consumir autorización",
-            description = "Verifica el token de autorización del cliente para el evento y lo consume al iniciar la compra."
+            description = "Verifica el token de autorización del cliente para el evento y lo consume al iniciar la compra.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Autorización validada y consumida"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos"),
@@ -98,8 +103,9 @@ public class FilaVirtualInternoController {
 
     @Operation(
             summary = "Restaurar autorización",
-            description = "Restaura o reintegra una autorización previamente consumida ante fallos/cancelaciones del flujo."
+            description = "Restaura o reintegra una autorización previamente consumida ante fallos/cancelaciones del flujo.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Autorización restaurada"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos"),

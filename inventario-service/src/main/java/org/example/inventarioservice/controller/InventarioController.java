@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.example.inventarioservice.dto.*;
 import org.example.inventarioservice.entity.ConfiguracionEvento;
@@ -34,8 +35,9 @@ public class InventarioController {
 
     @Operation(
             summary = "Consultar disponibilidad de un evento",
-            description = "Retorna la disponibilidad actual del evento (opcionalmente filtrada por `sectorId`) sin caché (`no-store`)."
+            description = "Retorna la disponibilidad actual del evento (opcionalmente filtrada por `sectorId`) sin caché (`no-store`).\n\n**Acceso:** público (sin token)."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Disponibilidad obtenida correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento o sector no encontrado")
@@ -51,8 +53,9 @@ public class InventarioController {
 
     @Operation(
             summary = "Crear o recuperar una reserva temporal",
-            description = "Reserva cupo/asientos para una solicitud de compra. Devuelve `201` si se crea una nueva reserva o `200` si ya existía."
+            description = "Reserva cupo/asientos para una solicitud de compra. Devuelve `201` si se crea una nueva reserva o `200` si ya existía.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reserva creada exitosamente"),
             @ApiResponse(responseCode = "200", description = "Reserva existente retornada"),
@@ -68,8 +71,9 @@ public class InventarioController {
 
     @Operation(
             summary = "Confirmar una reserva",
-            description = "Confirma definitivamente una reserva tras completarse el pago/compra."
+            description = "Confirma definitivamente una reserva tras completarse el pago/compra.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reserva confirmada correctamente"),
             @ApiResponse(responseCode = "404", description = "Reserva no encontrada"),
@@ -83,8 +87,9 @@ public class InventarioController {
 
     @Operation(
             summary = "Liberar una reserva",
-            description = "Libera una reserva pendiente/activa (por vencimiento, fallo de pago o cancelación) indicando un motivo opcional."
+            description = "Libera una reserva pendiente/activa (por vencimiento, fallo de pago o cancelación) indicando un motivo opcional.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reserva liberada correctamente"),
             @ApiResponse(responseCode = "404", description = "Reserva no encontrada"),
@@ -101,8 +106,9 @@ public class InventarioController {
 
     @Operation(
             summary = "[Interno/Orquestador] Provisionar inventario de evento",
-            description = "Inicializa y aprovisiona el inventario de localidades/sectores para un evento."
+            description = "Inicializa y aprovisiona el inventario de localidades/sectores para un evento.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Inventario provisionado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos de provisión inválidos")
@@ -114,8 +120,9 @@ public class InventarioController {
 
     @Operation(
             summary = "[Interno/Orquestador] Cambiar estado de inventario del evento",
-            description = "Actualiza el estado de configuración del evento en inventario y opcionalmente el límite `maxEntradas`."
+            description = "Actualiza el estado de configuración del evento en inventario y opcionalmente el límite `maxEntradas`.\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estado de inventario actualizado correctamente"),
             @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
@@ -131,8 +138,9 @@ public class InventarioController {
 
     @Operation(
             summary = "[Interno/Orquestador] Liberar entradas vendidas",
-            description = "Libera/revierte inventario asociado a entradas vendidas (por ejemplo ante cancelaciones o devoluciones)."
+            description = "Libera/revierte inventario asociado a entradas vendidas (por ejemplo ante cancelaciones o devoluciones).\n\n**Acceso:** [Interno] solo entre microservicios. El API Gateway lo bloquea para clientes externos."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Liberación procesada correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos de liberación inválidos")

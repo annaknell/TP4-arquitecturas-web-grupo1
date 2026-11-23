@@ -1,9 +1,9 @@
 package org.example.entradaservice.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,21 +11,26 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 title = "API de Entradas - TicketYa",
-                version = "v1",
+                version = "v2",
                 description = """
-                        Emisión, consulta por cliente y cancelación de entradas individuales o por evento.
-                        Requisitos de seguridad: acceso canalizado a través del API Gateway (puerto 8080),
-                        CORS configurado para el origen del Gateway, validación de identificadores de entrada/cliente/evento
-                        y control de autorización/titularidad previsto para consultas y cancelaciones (JWT/roles en E2).
+                        Emisión y consulta de entradas, validación de QR en el ingreso y solicitudes de devolución.
+
+                        **Seguridad (Entrega 2):** todas las requests pasan por el API Gateway (puerto 8080).
+                        El cliente envía `Authorization: Bearer <token>`, obtenido en `POST /api/auth/login`.
+                        El gateway valida el token y el rol, y reenvía al servicio los encabezados
+                        `X-User-Id` y `X-User-Role` (el cliente no los envía). Sin token o con token inválido → 401;
+                        con un rol sin permiso → 403. Cada endpoint indica qué roles pueden usarlo.
+                        Los endpoints marcados como [Interno] solo se usan entre microservicios: el gateway los bloquea.
                         """
-        )
+        ),
+        security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
-        name = "UserIdHeader",
-        type = SecuritySchemeType.APIKEY,
-        in = SecuritySchemeIn.HEADER,
-        paramName = "X-User-Id",
-        description = "Identificador del usuario/operador en la etapa actual (prevista autenticación Bearer JWT y control de roles en E2)."
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT",
+        description = "Token JWT emitido por POST /api/auth/login (válido 1 hora)."
 )
 public class OpenApiConfig {
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import org.example.catalogoservice.entity.Lugar;
 import org.example.catalogoservice.repository.LugarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,9 @@ public class LugarController {
 
     @Operation(
             summary = "Listar lugares",
-            description = "Obtiene todos los lugares/recintos registrados en el catálogo."
+            description = "Obtiene todos los lugares/recintos registrados en el catálogo.\n\n**Acceso:** público (sin token)."
     )
+    @SecurityRequirements
     @ApiResponse(responseCode = "200", description = "Listado de lugares obtenido correctamente")
     @GetMapping
     public ResponseEntity<List<Lugar>> listarLugares() {
@@ -33,11 +35,13 @@ public class LugarController {
 
     @Operation(
             summary = "Crear un lugar",
-            description = "Registra un nuevo lugar/recinto en el catálogo."
+            description = "Registra un nuevo lugar/recinto en el catálogo.\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Lugar creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos del lugar inválidos")
+            @ApiResponse(responseCode = "400", description = "Datos del lugar inválidos"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping
     public ResponseEntity<Lugar> crearLugar(@RequestBody Lugar lugar) {

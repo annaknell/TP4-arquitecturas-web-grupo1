@@ -31,37 +31,41 @@ public class FilaVirtualController {
 
     @Operation(
             summary = "Ingresar a la fila virtual",
-            description = "Registra el ingreso de un cliente a la fila virtual del evento o retorna su estado si ya estaba ingresado (`reingreso`).",
-            security = @SecurityRequirement(name = "UserIdHeader")
+            description = "Registra el ingreso de un cliente a la fila virtual del evento o retorna su estado si ya estaba ingresado (`reingreso`).\n\n**Roles:** CLIENTE.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Ingreso registrado en la fila virtual"),
             @ApiResponse(responseCode = "200", description = "Cliente ya ingresado previamente (reingreso)"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida o header faltante"),
-            @ApiResponse(responseCode = "409", description = "Evento no habilitado para fila virtual")
+            @ApiResponse(responseCode = "409", description = "Evento no habilitado para fila virtual"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping("/{eventoId}/ingresos")
     public ResponseEntity<IngresoFilaResponse> ingresar(
             @Parameter(description = "ID del evento", required = true) @PathVariable Long eventoId,
-            @Parameter(description = "ID del cliente/usuario", required = true) @RequestHeader("X-User-Id") Long clienteId) {
+            @Parameter(hidden = true) @RequestHeader("X-User-Id") Long clienteId) {
         IngresoFilaResponse respuesta = filaVirtualService.ingresar(eventoId, clienteId);
         return ResponseEntity.status(respuesta.reingreso() ? HttpStatus.OK : HttpStatus.CREATED).body(respuesta);
     }
 
     @Operation(
             summary = "Consultar mi posición en la fila",
-            description = "Devuelve la posición actual, tanda o estado del cliente en la fila virtual del evento.",
-            security = @SecurityRequirement(name = "UserIdHeader")
+            description = "Devuelve la posición actual, tanda o estado del cliente en la fila virtual del evento.\n\n**Roles:** CLIENTE.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Posición consultada correctamente"),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida o header faltante"),
-            @ApiResponse(responseCode = "404", description = "Ticket o registro de fila no encontrado")
+            @ApiResponse(responseCode = "404", description = "Ticket o registro de fila no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @GetMapping("/{eventoId}/mi-posicion")
     public ResponseEntity<PosicionFilaResponse> consultarMiPosicion(
             @Parameter(description = "ID del evento", required = true) @PathVariable Long eventoId,
-            @Parameter(description = "ID del cliente/usuario", required = true) @RequestHeader("X-User-Id") Long clienteId) {
+            @Parameter(hidden = true) @RequestHeader("X-User-Id") Long clienteId) {
         return ResponseEntity.ok(filaVirtualService.consultarPosicion(eventoId, clienteId));
     }
 }

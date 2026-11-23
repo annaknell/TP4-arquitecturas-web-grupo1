@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
@@ -30,8 +31,9 @@ public class EventoController {
 
     @Operation(
             summary = "Listar o buscar eventos publicados",
-            description = "Sin parámetros lista todos los publicados. Con parámetros filtra por texto, ciudad, participante, organizador y rango de fechas, y ordena por fecha, precio o relevancia."
+            description = "Sin parámetros lista todos los publicados. Con parámetros filtra por texto, ciudad, participante, organizador y rango de fechas, y ordena por fecha, precio o relevancia.\n\n**Acceso:** público (sin token)."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Listado de eventos obtenido correctamente"),
             @ApiResponse(responseCode = "400", description = "Criterio de orden inválido")
@@ -56,8 +58,9 @@ public class EventoController {
 
     @Operation(
             summary = "Obtener evento por ID",
-            description = "Busca y retorna el detalle de un evento específico según su identificador."
+            description = "Busca y retorna el detalle de un evento específico según su identificador.\n\n**Acceso:** público (sin token)."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento encontrado"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado")
@@ -70,6 +73,11 @@ public class EventoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(
+            summary = "[Interno] Datos del evento para notificaciones",
+            description = "Uso interno: lo consume notificaciones-service para armar los avisos a compradores.\n\n**Acceso:** solo entre microservicios. El API Gateway lo bloquea para clientes externos (403)."
+    )
+    @SecurityRequirements
     @GetMapping("/interno/{id}/notificacion")
     public ResponseEntity<EventoNotificacionResponse> obtenerEventoParaNotificacion(@PathVariable Long id) {
         return ResponseEntity.ok(eventoService.obtenerParaNotificacion(id));
@@ -77,8 +85,9 @@ public class EventoController {
 
     @Operation(
             summary = "Obtener sectores y precios de un evento",
-            description = "Retorna los sectores asociados a un evento junto con sus configuraciones/precios."
+            description = "Retorna los sectores asociados a un evento junto con sus configuraciones/precios.\n\n**Acceso:** público (sin token)."
     )
+    @SecurityRequirements
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Sectores del evento obtenidos correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado")
@@ -91,11 +100,13 @@ public class EventoController {
 
     @Operation(
             summary = "Crear un nuevo evento",
-            description = "Registra un evento nuevo asociado a un recinto/lugar existente (`lugarId`)."
+            description = "Registra un evento nuevo asociado a un recinto/lugar existente (`lugarId`).\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Evento creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos o lugar inexistente")
+            @ApiResponse(responseCode = "400", description = "Datos inválidos o lugar inexistente"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping
     public ResponseEntity<Evento> crearEvento(
@@ -107,12 +118,14 @@ public class EventoController {
 
     @Operation(
             summary = "Publicar un evento",
-            description = "Cambia el estado del evento a publicado para hacerlo visible."
+            description = "Cambia el estado del evento a publicado para hacerlo visible.\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento publicado correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida")
+            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/{id}/publicar")
     public ResponseEntity<Evento> publicarEvento(
@@ -123,12 +136,14 @@ public class EventoController {
 
     @Operation(
             summary = "Cancelar un evento",
-            description = "Marca el evento como cancelado."
+            description = "Marca el evento como cancelado.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento cancelado correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida")
+            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<Evento> cancelarEvento(
@@ -137,20 +152,33 @@ public class EventoController {
         return ResponseEntity.ok(eventoService.cancelarEvento(id, correlation(correlationId)));
     }
 
+    @Operation(
+            summary = "Modificar un evento",
+            description = "Modifica los datos de un evento. Si el evento tiene compradores, el cambio se notifica (US-02, US-39).\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Evento modificado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
+            @ApiResponse(responseCode = "409", description = "El evento no se puede modificar en su estado actual"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
+    })
     @PatchMapping("/{id}")
     public ResponseEntity<Evento> modificarEvento(@PathVariable Long id, @RequestBody EventoModificacionRequest request,
-            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+                                                  @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
         return ResponseEntity.ok(eventoService.modificarEvento(id, request, correlation(correlationId)));
     }
 
     @Operation(
             summary = "Suspender un evento",
-            description = "Marca el evento como suspendido temporalmente."
+            description = "Marca el evento como suspendido temporalmente.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento suspendido correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida")
+            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/{id}/suspender")
     public ResponseEntity<Evento> suspenderEvento(
@@ -160,12 +188,14 @@ public class EventoController {
 
     @Operation(
             summary = "Reanudar un evento",
-            description = "Reanuda un evento previamente suspendido."
+            description = "Reanuda un evento previamente suspendido.\n\n**Roles:** ADMINISTRADOR."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Evento reanudado correctamente"),
             @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida")
+            @ApiResponse(responseCode = "409", description = "Transición de estado no permitida"),
+            @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
+            @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PatchMapping("/{id}/reanudar")
     public ResponseEntity<Evento> reanudarEvento(
