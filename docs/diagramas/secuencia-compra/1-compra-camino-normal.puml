@@ -9,9 +9,9 @@ participant "Entrada\n8086" as ENT
 
 CLI -> COMP : POST /api/compras (vía API Gateway)\nIdempotency-Key + X-User-Id\n{eventoId, asientos[], precioTotal}
 COMP -> COMP : findByIdempotencyKey(clave)\nsi ya existe, devuelve esa compra
-COMP -> COMP : countByClienteIdAndEventoIdAndEstado()\ncompras previas + asientos <= 4
 note right of COMP : guarda la compra en estado PENDIENTE\npaso "Inicio de compra"
 COMP -> INV : POST /api/inventario/reservas\n{eventoId, asientos[]}
+INV -> INV : valida US-18 (única fuente de verdad)\ncompradas + activas + confirmadas <= maxEntradas\nsi excede: 422 con el detalle
 INV -> INV : retiene los asientos\nreserva ACTIVA, expiraEn = ahora + 10 min
 INV --> COMP : 201 ReservaResponse {id, estado, expiraEn}
 note right of COMP : guarda reservaId\npaso "Asientos reservados"
