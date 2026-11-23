@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="creación de método buscarDestinatarios en ClientePreferenciasService" />
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="workspace.xml" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,61 +62,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="3.70938418769099E-21" />
-      <entry key="MS500" value="1.0651630062702091E-4" />
-      <entry key="S2" value="0.2625583065767659" />
-      <entry key="S5" value="2.132256084377702" />
-      <entry key="S10" value="5.138943784040259" />
-      <entry key="S30" value="9.885662687160552" />
-      <entry key="S60" value="11.744083619018115" />
-      <entry key="M2" value="12.817040571317088" />
-      <entry key="M5" value="13.520819060477042" />
-      <entry key="M10" value="13.927340749810602" />
-      <entry key="M15" value="14.415072630528034" />
-      <entry key="M30" value="17.006057152420556" />
-      <entry key="H1" value="27.158915297647688" />
-      <entry key="H2" value="59.10053886017786" />
-      <entry key="H4" value="142.52303792898692" />
-      <entry key="D1" value="484.16273596348407" />
-      <entry key="W1" value="782.6714367869195" />
+      <entry key="MS100" value="1.0028006938643603" />
+      <entry key="MS500" value="1.315929971969766" />
+      <entry key="S2" value="2.0375495055397717" />
+      <entry key="S5" value="2.5004092936988984" />
+      <entry key="S10" value="2.7247848857951147" />
+      <entry key="S30" value="2.9018490416464093" />
+      <entry key="S60" value="2.9500697211138416" />
+      <entry key="M2" value="2.9748169428515396" />
+      <entry key="M5" value="2.989873927102668" />
+      <entry key="M10" value="2.9949283384767913" />
+      <entry key="M15" value="2.9967101137361585" />
+      <entry key="M30" value="3.041582888974309" />
+      <entry key="H1" value="4.369188278208066" />
+      <entry key="H2" value="16.2735528407664" />
+      <entry key="H4" value="70.54426908757276" />
+      <entry key="D1" value="430.50591113061114" />
+      <entry key="W1" value="771.879297654374" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0000000000000004" />
-      <entry key="M2" value="1.000000036805448" />
-      <entry key="M5" value="1.0024382694032152" />
-      <entry key="M10" value="1.1080431229328056" />
-      <entry key="M15" value="1.4265818364186875" />
-      <entry key="M30" value="3.1290991785961655" />
-      <entry key="H1" value="7.0242778485995006" />
-      <entry key="H2" value="13.610446624598461" />
-      <entry key="H4" value="24.118042565742453" />
-      <entry key="D1" value="63.15093042872491" />
-      <entry key="W1" value="109.59717410404872" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="2.1792264752573968E-156" />
+      <entry key="S60" value="1.4762203342514286E-78" />
+      <entry key="M2" value="1.2149981246558906E-39" />
+      <entry key="M5" value="2.721998457206154E-16" />
+      <entry key="M10" value="1.8258781056164764E-8" />
+      <entry key="M15" value="9.237903807880482E-6" />
+      <entry key="M30" value="0.00796265136985709" />
+      <entry key="H1" value="0.3543405609386505" />
+      <entry key="H2" value="3.0569051946057666" />
+      <entry key="H4" value="11.43001640986504" />
+      <entry key="D1" value="55.76099991687223" />
+      <entry key="W1" value="107.66586698037918" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="5.338687440187132E-19" />
-      <entry key="MS500" value="3.273022151930266E-4" />
-      <entry key="S2" value="0.3841729014580236" />
-      <entry key="S5" value="2.5620010323375997" />
-      <entry key="S10" value="5.793821560491999" />
-      <entry key="S30" value="10.753677075328051" />
-      <entry key="S60" value="12.675683132859195" />
-      <entry key="M2" value="13.782213414675711" />
-      <entry key="M5" value="14.509161229784608" />
-      <entry key="M10" value="15.028066298669971" />
-      <entry key="M15" value="15.83624640752985" />
-      <entry key="M30" value="20.130720101122396" />
-      <entry key="H1" value="34.178413811866314" />
-      <entry key="H2" value="72.70571815291171" />
-      <entry key="H4" value="166.63541229058077" />
-      <entry key="D1" value="547.3102895272458" />
-      <entry key="W1" value="892.2676859250024" />
+      <entry key="MS100" value="0.003154503629431718" />
+      <entry key="MS500" value="0.40451364748050256" />
+      <entry key="S2" value="1.574874804383625" />
+      <entry key="S5" value="2.279660751782287" />
+      <entry key="S10" value="2.6073920716429893" />
+      <entry key="S30" value="2.86104267774559" />
+      <entry key="S60" value="2.929449411338083" />
+      <entry key="M2" value="2.964451910058893" />
+      <entry key="M5" value="2.9857146662098875" />
+      <entry key="M10" value="2.992846511749224" />
+      <entry key="M15" value="2.995330927469948" />
+      <entry key="M30" value="3.048839810442358" />
+      <entry key="H1" value="4.722940462920703" />
+      <entry key="H2" value="19.329101336601575" />
+      <entry key="H4" value="81.97151239152802" />
+      <entry key="D1" value="486.2639148711704" />
+      <entry key="W1" value="879.5442539008969" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -366,7 +366,8 @@
     <MESSAGE value="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)" />
     <MESSAGE value="validaciones de catálogo: lat/long, @Valid, alta de sectores, carga de precios, 404 si el lugar no existe, organizadorId" />
     <MESSAGE value="creación de método buscarDestinatarios en ClientePreferenciasService" />
-    <option name="LAST_COMMIT_MESSAGE" value="creación de método buscarDestinatarios en ClientePreferenciasService" />
+    <MESSAGE value="workspace.xml" />
+    <option name="LAST_COMMIT_MESSAGE" value="workspace.xml" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
