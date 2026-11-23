@@ -39,7 +39,7 @@ public class EventoRecibido {
     @Column(nullable = false)
     private String correlacionId;
 
-    @Column
+    @Column(length = 4000)
     private String payload;
 
     @Column(nullable = false)

@@ -20,6 +20,7 @@
         <module>reportes-service</module>
         <module>auth-service</module>
         <module>recomendaciones-service</module>
+        <module>e2e-tests</module>
     </modules>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

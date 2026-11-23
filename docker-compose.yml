@@ -199,10 +199,12 @@ services:
   recomendaciones-service:
     build: ./recomendaciones-service
     environment:
+      <<: *rabbitCredenciales
       SPRING_MONGODB_HOST: mongo
       SPRING_MONGODB_PORT: 27017
       SPRING_DATA_MONGODB_HOST: mongo
       SPRING_DATA_MONGODB_PORT: 27017
+      CATALOGO_SERVICE_URL: http://catalogo-service:8082
     mem_limit: 420m
     restart: on-failure
     depends_on:

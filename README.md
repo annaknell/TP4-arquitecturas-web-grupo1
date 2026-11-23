@@ -17,7 +17,7 @@ La arquitectura y criterios de Fila Virtual, Notificaciones y Reportes de la ent
 Desde la raíz del proyecto, ejecutá:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Paso 3: Ejecución Manual / Depuración en IntelliJ IDEA (Opcional)

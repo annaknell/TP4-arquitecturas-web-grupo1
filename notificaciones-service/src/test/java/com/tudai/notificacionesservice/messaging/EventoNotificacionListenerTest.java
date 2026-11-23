@@ -1,12 +1,12 @@
 package com.tudai.notificacionesservice.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.dto.EventoNotificacionMessage;
 import com.tudai.notificacionesservice.entity.EventoRecibido;
 import com.tudai.notificacionesservice.repository.EventoRecibidoRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ class EventoNotificacionListenerTest {
         when(repository.findByEventId(eventId)).thenReturn(Optional.of(new EventoRecibido()));
         EventoNotificacionMessage mensaje = new EventoNotificacionMessage(
                 eventId, EventoRecibido.TipoEvento.COMPRA_COMPLETADA, OffsetDateTime.now(),
-                "corr-123", "compra-service", new ObjectMapper().createObjectNode().put("compraId", 1)
+                "corr-123", "compra-service", Map.of("compraId", 1)
         );
 
         listener.recibir(mensaje);
