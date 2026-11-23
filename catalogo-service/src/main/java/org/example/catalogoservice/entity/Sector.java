@@ -1,5 +1,6 @@
 package org.example.catalogoservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,7 @@ public class Sector {
 
     private Integer capacidad;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lugar_id", nullable = false)
     private Lugar lugar;

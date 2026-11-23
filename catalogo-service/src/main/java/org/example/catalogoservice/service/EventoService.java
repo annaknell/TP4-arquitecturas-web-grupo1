@@ -1,20 +1,21 @@
 package org.example.catalogoservice.service;
 
+import org.example.catalogoservice.client.EntradaClient;
+import org.example.catalogoservice.client.FilaVirtualClient;
+import org.example.catalogoservice.client.PagosClient;
+import org.example.catalogoservice.dto.AsignarSectorEventoDto;
+import org.example.catalogoservice.dto.EventoModificacionRequest;
+import org.example.catalogoservice.dto.EventoNotificacionResponse;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
 import org.example.catalogoservice.entity.Lugar;
 import org.example.catalogoservice.entity.Sector;
-import org.example.catalogoservice.dto.EventoNotificacionResponse;
-import org.example.catalogoservice.dto.EventoModificacionRequest;
 import org.example.catalogoservice.messaging.EventoNotificacionPublisher;
 import org.example.catalogoservice.messaging.ReporteEventoPublisher;
 import org.example.catalogoservice.repository.EventoRepository;
 import org.example.catalogoservice.repository.EventoSectorRepository;
 import org.example.catalogoservice.repository.LugarRepository;
-import org.example.catalogoservice.repository.ParticipanteRepository;
-import org.example.catalogoservice.client.EntradaClient;
-import org.example.catalogoservice.client.FilaVirtualClient;
-import org.example.catalogoservice.client.PagosClient;
+import org.example.catalogoservice.repository.SectorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -40,6 +41,15 @@ import java.util.stream.Collectors;
 @Service
 public class EventoService {
 
+    private record UbicacionAsiento(Long asientoId, String fila, String numero) {
+    }
+
+    private record SectorInventario(Long sectorId, String tipo, Integer capacidad, List<UbicacionAsiento> asientos) {
+    }
+
+    private record PedidoInventario(Long eventId, List<SectorInventario> sectores) {
+    }
+
     @Autowired
     private EventoRepository eventoRepository;
 
@@ -47,7 +57,7 @@ public class EventoService {
     private LugarRepository lugarRepository;
 
     @Autowired
-    private ParticipanteRepository participanteRepository;
+    private SectorRepository sectorRepository;
 
     @Autowired
     private EventoSectorRepository eventoSectorRepository;
@@ -60,11 +70,13 @@ public class EventoService {
 
     @Autowired
     private FilaVirtualClient filaVirtualClient;
+
     @Autowired
     private EventoNotificacionPublisher eventoNotificacionPublisher;
 
     @Value("${inventario-service.url:http://localhost:8083}")
     private String inventarioUrl = "http://localhost:8083";
+
     @Autowired
     private ReporteEventoPublisher reporteEventoPublisher;
 
@@ -96,7 +108,7 @@ public class EventoService {
         return switch (orden.toLowerCase()) {
             case "fecha" -> Comparator.comparing(Evento::getFechaInicio, porFecha);
             case "precio" -> {
-                java.util.Map<Long, Double> minimos = preciosMinimos();
+                Map<Long, Double> minimos = preciosMinimos();
                 yield Comparator.comparing(evento -> minimos.getOrDefault(evento.getId(), Double.MAX_VALUE));
             }
             case "relevancia" -> {
@@ -109,8 +121,8 @@ public class EventoService {
         };
     }
 
-    private java.util.Map<Long, Double> preciosMinimos() {
-        java.util.Map<Long, Double> minimos = new HashMap<>();
+    private Map<Long, Double> preciosMinimos() {
+        Map<Long, Double> minimos = new HashMap<>();
         for (EventoSector eventoSector : eventoSectorRepository.findAll()) {
             minimos.merge(eventoSector.getEvento().getId(), eventoSector.getPrecio(), Math::min);
         }
@@ -140,7 +152,8 @@ public class EventoService {
     @Transactional(readOnly = true)
     public EventoNotificacionResponse obtenerParaNotificacion(Long eventoId) {
         Evento evento = eventoRepository.findById(eventoId)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + eventoId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + eventoId));
         Map<Long, String> sectores = eventoSectorRepository.findByEventoId(eventoId).stream()
                 .collect(Collectors.toMap(
                         eventoSector -> eventoSector.getSector().getId(),
@@ -154,10 +167,14 @@ public class EventoService {
     @Transactional
     public Evento crearEvento(Evento evento, Long lugarId) {
         Lugar lugar = lugarRepository.findById(lugarId)
-                .orElseThrow(() -> new RuntimeException("Lugar no encontrado con ID: " + lugarId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Lugar no encontrado con ID: " + lugarId));
 
         evento.setLugar(lugar);
         evento.setEstado("BORRADOR");
+        if (evento.getAltaDemanda() == null) {
+            evento.setAltaDemanda(false);
+        }
 
         return eventoRepository.save(evento);
     }
@@ -166,7 +183,8 @@ public class EventoService {
     @Transactional
     public Evento publicarEvento(Long id) {
         Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + id));
 
         if ("PUBLICADO".equals(evento.getEstado())) {
             return evento;
@@ -179,7 +197,7 @@ public class EventoService {
                 eventoSectorRepository.findByEventoId(id), UUID.randomUUID().toString());
 
         sincronizarInventario(eventoPublicado);
-        if (eventoPublicado.isAltaDemanda()) {
+        if (Boolean.TRUE.equals(eventoPublicado.getAltaDemanda())) {
             filaVirtualClient.abrirFila(eventoPublicado.getId());
         }
 
@@ -196,7 +214,8 @@ public class EventoService {
     @Transactional
     public Evento cancelarEvento(Long id, String correlationId) {
         Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + id));
 
         if ("CANCELADO".equals(evento.getEstado())) {
             return evento;
@@ -207,7 +226,7 @@ public class EventoService {
         evento.setEstado("CANCELADO");
         Evento eventoCancelado = eventoRepository.save(evento);
         cambiarEstadoInventario(id, "CANCELADO");
-        if (eventoCancelado.isAltaDemanda()) {
+        if (Boolean.TRUE.equals(eventoCancelado.getAltaDemanda())) {
             filaVirtualClient.cancelarFila(eventoCancelado.getId());
         }
         eventoNotificacionPublisher.publicarCancelacion(eventoCancelado, correlationId);
@@ -218,7 +237,8 @@ public class EventoService {
     @Transactional
     public Evento modificarEvento(Long id, EventoModificacionRequest request, String correlationId) {
         Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + id));
         LinkedHashMap<String, Object> cambios = new LinkedHashMap<>();
         if (request.fechaInicio() != null && !request.fechaInicio().equals(evento.getFechaInicio())) {
             cambios.put("fechaAnterior", evento.getFechaInicio().toString());
@@ -233,7 +253,8 @@ public class EventoService {
         if (request.lugarId() != null && !request.lugarId().equals(evento.getLugar().getId())) {
             cambios.put("lugarAnterior", evento.getLugar().getNombre());
             Lugar lugarNuevo = lugarRepository.findById(request.lugarId())
-                    .orElseThrow(() -> new RuntimeException("Lugar no encontrado con ID: " + request.lugarId()));
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Lugar no encontrado con ID: " + request.lugarId()));
             evento.setLugar(lugarNuevo);
             cambios.put("lugarNuevo", lugarNuevo.getNombre());
         }
@@ -248,7 +269,8 @@ public class EventoService {
     @Transactional
     public Evento suspenderEvento(Long id) {
         Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + id));
 
         if ("CANCELADO".equals(evento.getEstado())) {
             throw new IllegalStateException("No se puede suspender un evento cancelado");
@@ -260,7 +282,7 @@ public class EventoService {
         evento.setEstado("SUSPENDIDO");
         Evento eventoSuspendido = eventoRepository.save(evento);
         cambiarEstadoInventario(id, "SUSPENDIDO");
-        if (eventoSuspendido.isAltaDemanda()) {
+        if (Boolean.TRUE.equals(eventoSuspendido.getAltaDemanda())) {
             filaVirtualClient.pausarFila(eventoSuspendido.getId());
         }
         return eventoSuspendido;
@@ -270,7 +292,8 @@ public class EventoService {
     @Transactional
     public Evento reanudarEvento(Long id) {
         Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + id));
 
         if (!"SUSPENDIDO".equals(evento.getEstado())) {
             throw new IllegalStateException("Solo se puede reanudar un evento suspendido");
@@ -279,7 +302,7 @@ public class EventoService {
         evento.setEstado("PUBLICADO");
         Evento eventoReanudado = eventoRepository.save(evento);
         cambiarEstadoInventario(id, "PUBLICADO");
-        if (eventoReanudado.isAltaDemanda()) {
+        if (Boolean.TRUE.equals(eventoReanudado.getAltaDemanda())) {
             filaVirtualClient.reabrirFila(eventoReanudado.getId());
         }
         return eventoReanudado;
@@ -290,28 +313,27 @@ public class EventoService {
         if (sectores.isEmpty()) {
             return;
         }
-        List<Map<String, Object>> detalle = sectores.stream().map(eventoSector -> {
-            Sector sector = eventoSector.getSector();
-            boolean numerado = sector.getAsientos() != null && !sector.getAsientos().isEmpty();
-            Map<String, Object> definicion = new LinkedHashMap<>();
-            definicion.put("sectorId", sector.getId());
-            definicion.put("tipo", numerado ? "NUMERADO" : "NO_NUMERADO");
-            definicion.put("capacidad", numerado ? sector.getAsientos().size() : sector.getCapacidad());
-            if (numerado) {
-                definicion.put("asientos", sector.getAsientos().stream().map(asiento -> {
-                    Map<String, Object> ubicacion = new LinkedHashMap<>();
-                    ubicacion.put("asientoId", asiento.getId());
-                    ubicacion.put("fila", asiento.getFila());
-                    ubicacion.put("numero", String.valueOf(asiento.getNumero()));
-                    return ubicacion;
-                }).toList());
-            }
-            return definicion;
-        }).toList();
 
-        Map<String, Object> pedido = new LinkedHashMap<>();
-        pedido.put("eventId", evento.getId());
-        pedido.put("sectores", detalle);
+        List<SectorInventario> detalle = sectores.stream()
+                .map(eventoSector -> {
+                    Sector sector = eventoSector.getSector();
+                    boolean numerado = sector.getAsientos() != null && !sector.getAsientos().isEmpty();
+                    List<UbicacionAsiento> asientos = numerado
+                            ? sector.getAsientos().stream()
+                            .map(asiento -> new UbicacionAsiento(
+                                    asiento.getId(),
+                                    asiento.getFila(),
+                                    String.valueOf(asiento.getNumero())
+                            ))
+                            .toList()
+                            : null;
+                    int capacidad = numerado ? sector.getAsientos().size() : sector.getCapacidad();
+                    String tipo = numerado ? "NUMERADO" : "NO_NUMERADO";
+                    return new SectorInventario(sector.getId(), tipo, capacidad, asientos);
+                })
+                .toList();
+
+        PedidoInventario pedido = new PedidoInventario(evento.getId(), detalle);
 
         RestClient.create(inventarioUrl).post()
                 .uri("/api/inventario/eventos")
@@ -332,5 +354,39 @@ public class EventoService {
         } catch (RestClientException e) {
             System.err.println("No se pudo actualizar el estado en inventario para el evento " + eventoId + ": " + e.getMessage());
         }
+    }
+
+    @CacheEvict(value = {"evento", "eventos-listado", "eventos-busqueda"}, allEntries = true)
+    @Transactional
+    public EventoSector asignarSectorYPrecio(Long eventoId, AsignarSectorEventoDto dto) {
+        Evento evento = eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Evento no encontrado con ID: " + eventoId));
+
+        Sector sector = sectorRepository.findById(dto.sectorId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Sector no encontrado con ID: " + dto.sectorId()));
+
+        if (sector.getLugar() == null || !sector.getLugar().getId().equals(evento.getLugar().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El sector " + sector.getId() + " no pertenece al lugar del evento (" + evento.getLugar().getId() + ")");
+        }
+
+        Integer capacidad = dto.capacidadDisponible() != null
+                ? dto.capacidadDisponible()
+                : sector.getCapacidad();
+
+        EventoSector eventoSector = eventoSectorRepository
+                .findByEventoIdAndSectorId(eventoId, dto.sectorId())
+                .orElseGet(() -> EventoSector.builder()
+                        .evento(evento)
+                        .sector(sector)
+                        .build());
+
+        eventoSector.setPrecio(dto.precio());
+        eventoSector.setCapacidadDisponible(capacidad);
+
+        return eventoSectorRepository.save(eventoSector);
     }
 }

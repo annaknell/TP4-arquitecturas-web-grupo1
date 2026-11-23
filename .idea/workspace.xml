@@ -4,26 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)">
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/client/CatalogoClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/config/RabbitMqConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/dto/EventoCatalogoDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/dto/ParticipanteDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/entity/CompraRegistrada.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/messaging/CompraCompletadaListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/CompraRegistradaRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/RecomendacionMotorService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)">
+      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/SectorController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/dto/AsignarSectorEventoDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/dto/CrearSectorDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/SectorService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/LugarController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/LugarController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/RecomendacionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/RecomendacionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/ClientePreferenciasRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/repository/ClientePreferenciasRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/controller/ClientePreferenciasControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/controller/ClientePreferenciasControllerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/service/ClientePreferenciasServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/test/java/org/example/recomendacionesservice/service/ClientePreferenciasServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Lugar.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Lugar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Sector.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Sector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/controller/LugarControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/controller/LugarControllerTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,61 +75,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="3.051825240361821E-88" />
-      <entry key="MS500" value="3.1398719141474117E-18" />
-      <entry key="S2" value="4.209475469442932E-5" />
-      <entry key="S5" value="0.017770154069560205" />
-      <entry key="S10" value="0.133304844401015" />
-      <entry key="S30" value="0.5169751090301554" />
-      <entry key="S60" value="0.82158007902802" />
-      <entry key="M2" value="1.3032427592141609" />
-      <entry key="M5" value="2.065335688970748" />
-      <entry key="M10" value="2.9526613517225693" />
-      <entry key="M15" value="4.253072789967522" />
-      <entry key="M30" value="11.039129022098983" />
-      <entry key="H1" value="28.155372688843045" />
-      <entry key="H2" value="68.24773398764587" />
-      <entry key="H4" value="159.66901625092342" />
-      <entry key="D1" value="484.6761423969323" />
-      <entry key="W1" value="767.3829508326494" />
-    </decayedCancelled>
-    <decayedSelected>
       <entry key="MS100" value="1.0" />
       <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0000000000000224" />
-      <entry key="S5" value="1.00000449412343" />
-      <entry key="S10" value="1.0029362450252783" />
-      <entry key="S30" value="1.2689448191881425" />
-      <entry key="S60" value="1.9538868602816621" />
-      <entry key="M2" value="2.9013620336145007" />
-      <entry key="M5" value="3.960260706334606" />
-      <entry key="M10" value="4.706995135860714" />
-      <entry key="M15" value="5.446209868738607" />
-      <entry key="M30" value="7.576200197689809" />
-      <entry key="H1" value="10.828698630415857" />
-      <entry key="H2" value="16.185731801982683" />
-      <entry key="H4" value="25.470090986412544" />
-      <entry key="D1" value="60.80563490321731" />
-      <entry key="W1" value="105.25485333712568" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0000000062469538" />
+      <entry key="S10" value="1.0000790376731217" />
+      <entry key="S30" value="1.0429152238407482" />
+      <entry key="S60" value="1.2071624754621666" />
+      <entry key="M2" value="1.456938360173349" />
+      <entry key="M5" value="1.8707695218261615" />
+      <entry key="M10" value="2.6577766842898987" />
+      <entry key="M15" value="3.5776352704546026" />
+      <entry key="M30" value="7.67361413284359" />
+      <entry key="H1" value="20.80666550904292" />
+      <entry key="H2" value="56.648849102993765" />
+      <entry key="H4" value="144.01942235652106" />
+      <entry key="D1" value="479.1637839587221" />
+      <entry key="W1" value="770.756498495601" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="4.907713904536896E-121" />
+      <entry key="S5" value="7.813813584415034E-49" />
+      <entry key="S10" value="1.0968482059198929E-24" />
+      <entry key="S30" value="1.9627628507586058E-8" />
+      <entry key="S60" value="2.5823481455110515E-4" />
+      <entry key="M2" value="0.031226786161457243" />
+      <entry key="M5" value="0.5734925245932806" />
+      <entry key="M10" value="1.6569910587925978" />
+      <entry key="M15" value="2.633203257325036" />
+      <entry key="M30" value="5.289771403212929" />
+      <entry key="H1" value="9.495667522273667" />
+      <entry key="H2" value="15.832180089471182" />
+      <entry key="H4" value="25.903365022709053" />
+      <entry key="D1" value="63.34054886873323" />
+      <entry key="W1" value="108.89171474481873" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.2671335354771717E-6" />
-      <entry key="MS500" value="0.06615527467969579" />
-      <entry key="S2" value="0.5071825263574501" />
-      <entry key="S5" value="0.7770710144439885" />
-      <entry key="S10" value="0.9977382418460884" />
-      <entry key="S30" value="1.7180206217004945" />
-      <entry key="S60" value="2.7255105078597963" />
-      <entry key="M2" value="4.168475347782825" />
-      <entry key="M5" value="6.005636077947344" />
-      <entry key="M10" value="7.6467805744487" />
-      <entry key="M15" value="9.688222449742947" />
-      <entry key="M30" value="18.605973514365893" />
-      <entry key="H1" value="38.976294071217175" />
-      <entry key="H2" value="84.42657738967279" />
-      <entry key="H4" value="185.13258034674948" />
-      <entry key="D1" value="545.4783685919426" />
-      <entry key="W1" value="872.6368897136771" />
+      <entry key="MS100" value="0.9201876506248751" />
+      <entry key="MS500" value="0.9835020740262483" />
+      <entry key="S2" value="0.9958497530944581" />
+      <entry key="S5" value="0.9983378358482585" />
+      <entry key="S10" value="0.9992469521964005" />
+      <entry key="S30" value="1.042519200871623" />
+      <entry key="S60" value="1.2069901113598818" />
+      <entry key="M2" value="1.4874613055632204" />
+      <entry key="M5" value="2.4415845788993638" />
+      <entry key="M10" value="4.310944574685136" />
+      <entry key="M15" value="6.2065787739736225" />
+      <entry key="M30" value="12.958231801028088" />
+      <entry key="H1" value="30.296662268975272" />
+      <entry key="H2" value="72.47515816432703" />
+      <entry key="H4" value="169.91676741696728" />
+      <entry key="D1" value="542.5009415347117" />
+      <entry key="W1" value="879.6472928228521" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -170,6 +164,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "JUnit.java in recomendaciones-service.executor": "Run",
+    "JUnit.org.example.catalogoservice in catalogo-service.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
@@ -220,11 +215,25 @@
       <recent name="com.tudai.notificacionesservice.messaging" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.java in recomendaciones-service">
+  <component name="RunManager" selected="Spring Boot.CatalogoServiceApplication">
     <configuration name="java in recomendaciones-service" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="recomendaciones-service" />
       <option name="TEST_OBJECT" value="directory" />
       <dir value="$PROJECT_DIR$/recomendaciones-service/src/test/java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="org.example.catalogoservice in catalogo-service" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="catalogo-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.catalogoservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.example.catalogoservice" />
+      <option name="TEST_OBJECT" value="package" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -326,6 +335,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.org.example.catalogoservice in catalogo-service" />
         <item itemvalue="JUnit.java in recomendaciones-service" />
       </list>
     </recent_temporary>
@@ -366,6 +376,7 @@
     <MESSAGE value="ajuste en el yml de api-gateway-service" />
     <MESSAGE value="ajuste en el pom de reportes (dependecia para openapi)" />
     <MESSAGE value="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)" />
-    <option name="LAST_COMMIT_MESSAGE" value="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)" />
+    <MESSAGE value="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)" />
+    <option name="LAST_COMMIT_MESSAGE" value="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)" />
   </component>
 </project>

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.Valid;
 import org.example.catalogoservice.entity.Lugar;
 import org.example.catalogoservice.repository.LugarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class LugarController {
             @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
     })
     @PostMapping
-    public ResponseEntity<Lugar> crearLugar(@RequestBody Lugar lugar) {
+    public ResponseEntity<Lugar> crearLugar(@Valid @RequestBody Lugar lugar) {
         Lugar nuevoLugar = lugarRepository.save(lugar);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoLugar);
     }

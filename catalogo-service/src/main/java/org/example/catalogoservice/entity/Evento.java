@@ -1,6 +1,8 @@
 package org.example.catalogoservice.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -20,12 +22,14 @@ public class Evento {
     private Long id;
 
     @Column(nullable = false)
+    @NotBlank
     private String titulo;
 
     @Column(length = 1000)
     private String descripcion;
 
     @Column(name = "fecha_inicio", nullable = false)
+    @NotNull
     private LocalDateTime fechaInicio;
 
     @Column(name = "fecha_fin")
@@ -36,13 +40,14 @@ public class Evento {
 
     @Builder.Default
     @Column(name = "alta_demanda", nullable = false)
-    private boolean altaDemanda = false;
+    private Boolean altaDemanda = false;
 
     /**
      * Identidad del organizador dueño del evento. Es una referencia lógica al
      * usuario de auth-service (no una FK entre bases de microservicios).
      */
     @Column(name = "organizador_id")
+    @NotNull(message = "El organizadorId es obligatorio")
     private Long organizadorId;
 
     @ManyToOne(fetch = FetchType.LAZY)

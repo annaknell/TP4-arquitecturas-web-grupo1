@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.example.catalogoservice.dto.AsignarSectorEventoDto;
 import org.example.catalogoservice.entity.Evento;
 import org.example.catalogoservice.entity.EventoSector;
 import org.example.catalogoservice.dto.EventoNotificacionResponse;
@@ -99,6 +101,23 @@ public class EventoController {
     }
 
     @Operation(
+            summary = "Asignar o actualizar sector y precio a un evento",
+            description = "Configura el precio y la capacidad disponible de un sector del lugar para un evento.\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Sector y precio asignados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos o el sector no pertenece al lugar del evento"),
+            @ApiResponse(responseCode = "404", description = "Evento o sector no encontrado")
+    })
+    @PostMapping("/{id}/sectores")
+    public ResponseEntity<EventoSector> asignarSectorYPrecio(
+            @Parameter(description = "ID del evento", required = true) @PathVariable Long id,
+            @Valid @RequestBody AsignarSectorEventoDto dto) {
+        EventoSector guardado = eventoService.asignarSectorYPrecio(id, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(guardado);
+    }
+
+    @Operation(
             summary = "Crear un nuevo evento",
             description = "Registra un evento nuevo asociado a un recinto/lugar existente (`lugarId`).\n\n**Roles:** ORGANIZADOR, ADMINISTRADOR."
     )
@@ -110,7 +129,7 @@ public class EventoController {
     })
     @PostMapping
     public ResponseEntity<Evento> crearEvento(
-            @RequestBody Evento evento,
+            @Valid @RequestBody Evento evento,
             @Parameter(description = "ID del lugar donde se realizará el evento", required = true) @RequestParam Long lugarId) {
         Evento nuevoEvento = eventoService.crearEvento(evento, lugarId);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoEvento);
