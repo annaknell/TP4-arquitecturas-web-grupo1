@@ -215,5 +215,20 @@ La configuración de colas y exchanges se encuentra en los `RabbitMqConfig` de c
 
 `reportes-service` configura un `JwtDecoder` con el JWK de autenticación, pero su cadena de seguridad permite todas las rutas. No se identificó configuración de Spring Security equivalente en los demás servicios; por ende, la autorización no está aplicada de forma homogénea en toda la API.
 
+## 7. Decisiones tecnológicas
 
+- **MongoDB en `recomendaciones-service`:** los datos son preferencias (listas de artistas, ciudades y tipos de evento) e historial de compras por cliente y evento. Son documentos con listas de tamaño variable, consultados por `clienteId` o `eventoId`, sin joins ni transacciones con el resto del sistema. Colecciones: `cliente_preferencias`, `compra_registrada` (índice `clienteId` + `eventoId`) y `recomendacion`; diagrama en `docs/diagramas/DER/ticket_ya_recomendaciones.puml`. Los demás servicios usan MySQL porque su modelo es relacional y necesita integridad.
+- **Redis:** en `fila-virtual-service` guarda configuración, tanda habilitada, posiciones y autorizaciones con vencimiento, con scripts atómicos. También es caché de lectura en `catalogo-service` y `reportes-service`, con TTL de 30 s. No se cachean compras, pagos ni disponibilidad porque requieren el dato exacto.
+- **RabbitMQ:** desacopla notificaciones, proyecciones de reportes y registro de compras para recomendaciones. Entrega al menos una vez, con deduplicación por `eventId`. Contratos: `notificaciones.exchange` / `notificaciones.eventos`, `reportes.exchange` / `reportes.proyecciones` con DLQ, y `recomendaciones.compras.completadas`.
+- **API Gateway:** Spring Cloud Gateway como único punto de entrada; autorización por rol, propagación de identidad y correlation id.
+- **Saga:** orquestada en `compra-service`, con cada paso en `paso_compra` y compensaciones ante fallo.
+- **Circuit Breaker:** Resilience4j en catálogo y notificaciones; el cobro se reintenta con backoff y el circuito abierto deja la compra en `PAGO_INCIERTO`, sin aprobar por fallback.
+- **Idempotencia:** `Idempotency-Key` en el alta de compra y en el cobro.
+- **BFF:** no se implementó; el gateway expone la API y el cliente hace una llamada por vista.
+- **Service Discovery:** sin registro tipo Eureka; Docker Compose resuelve por nombre y las URLs se parametrizan por variable de entorno.
 
+## 8. Consistencia y manejo de fallos parciales
+
+- **Fuerte en el stock:** reserva con actualización condicional y confirmación definitiva; dos compras simultáneas del mismo asiento dejan una sola venta (cubierto por `NoDobleVentaTest` y `NoDobleVentaInventarioTest`).
+- **Eventual en lecturas derivadas:** notificaciones, reportes y recomendaciones se actualizan por eventos y pueden quedar segundos atrás; la deduplicación por `eventId` evita aplicar dos veces el mismo hecho.
+- **Fallos parciales:** pago rechazado libera la reserva y la compra queda fallida; pago sin respuesta queda en `PAGO_INCIERTO` para reconciliación; fallo al emitir entradas libera la reserva y deja la compra en `FALLO_SISTEMA`. En devoluciones y cancelaciones el reintegro lo aplica `pago-service` y `entrada-service` invalida las entradas.

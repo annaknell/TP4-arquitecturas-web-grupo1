@@ -1,0 +1,40 @@
+@startuml
+skinparam classAttributeIconSize 0
+title recomendaciones-service — MongoDB ticket_ya_recomendaciones
+
+package "MongoDB ticket_ya_recomendaciones" {
+  class "cliente_preferencias" as Preferencias {
+    _id : ObjectId
+    clienteId : Long
+    email : String
+    tiposEventoFavoritos : String[]
+    artistasFavoritos : String[]
+    ciudadesFrecuentes : String[]
+  }
+
+  class "compra_registrada" as CompraRegistrada {
+    _id : ObjectId
+    compraId : Long
+    clienteId : Long
+    eventoId : Long
+    registradaEn : Instant
+  }
+
+  class "recomendacion" as Recomendacion {
+    _id : ObjectId
+    eventoId : Long
+    eventosSugeridos : String[]
+    ultimaActualizacion : Date
+  }
+}
+
+Preferencias --> CompraRegistrada : clienteId
+CompraRegistrada --> Recomendacion : eventoId
+
+note bottom of CompraRegistrada
+  indice compuesto (clienteId, eventoId)
+  clienteId referencia ticket_ya_auth.usuarios.id
+  eventoId referencia ticket_ya_catalogo.eventos.id
+  sin integridad referencial entre bases
+end note
+@enduml

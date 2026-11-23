@@ -1,20 +1,68 @@
 @startuml
 skinparam componentStyle rectangle
-component Catalogo
-component Compras
-component Pagos
-component Entradas
-component "Fila Virtual\n(Redis)" as Fila
-component "Notificaciones\n(BD propia)" as Notif
-component "Reportes\n(BD propia + Redis cache)" as Reportes
-queue RabbitMQ
-Catalogo --> Fila : abrir/pausar/cancelar
-Compras --> RabbitMQ : venta confirmada
-Catalogo --> RabbitMQ : evento configurado/modificado/cancelado
-Pagos --> RabbitMQ : reintegro pendiente/aplicado
-Entradas --> RabbitMQ : entrada devuelta
-RabbitMQ --> Notif
-RabbitMQ --> Reportes
-Compras --> Entradas
-Compras --> Pagos
+actor Cliente
+actor Organizador
+component "API Gateway\n(Spring Cloud Gateway)" as GW
+component "auth-service" as Auth
+component "catalogo-service" as Catalogo
+component "inventario-service" as Inventario
+component "compra-service" as Compras
+component "pago-service" as Pagos
+component "entrada-service" as Entradas
+component "fila-virtual-service" as Fila
+component "notificaciones-service" as Notif
+component "reportes-service" as Reportes
+component "recomendaciones-service" as Reco
+database "MySQL\nticket_ya_auth" as MySQLAuth
+database "MySQL\nticket_ya_catalogo" as MySQLCat
+database "MySQL\nticket_ya_inventario" as MySQLInv
+database "MySQL\nticket_ya_compras" as MySQLCom
+database "MySQL\nticket_ya_pagos" as MySQLPag
+database "MySQL\nticket_ya_entradas" as MySQLEnt
+database "MySQL\nticket_ya_notificaciones" as MySQLNot
+database "MySQL\nticket_ya_reportes" as MySQLRep
+database "MongoDB\nticket_ya_recomendaciones" as Mongo
+database "Redis" as Redis
+queue "RabbitMQ" as MQ
+
+Cliente --> GW
+Organizador --> GW
+GW --> Auth
+GW --> Catalogo
+GW --> Inventario
+GW --> Compras
+GW --> Pagos
+GW --> Entradas
+GW --> Fila
+GW --> Notif
+GW --> Reportes
+GW --> Reco
+
+Auth --> MySQLAuth
+Catalogo --> MySQLCat
+Inventario --> MySQLInv
+Compras --> MySQLCom
+Pagos --> MySQLPag
+Entradas --> MySQLEnt
+Notif --> MySQLNot
+Reportes --> MySQLRep
+Reco --> Mongo
+
+Fila --> Redis : tandas y autorizaciones
+Catalogo --> Redis : cache de eventos
+Reportes --> Redis : cache de reportes
+
+Catalogo --> Inventario : alta y cambios de evento
+Compras --> Inventario : reserva y liberacion
+Compras --> Pagos : cobro y reintegro
+Compras --> Entradas : emision y cancelacion
+Compras --> Fila : validacion de autorizacion
+
+Catalogo --> MQ : evento publicado/modificado/cancelado
+Compras --> MQ : compra completada
+Pagos --> MQ : reintegro pendiente/aplicado
+Entradas --> MQ : entrada devuelta
+MQ --> Notif
+MQ --> Reportes
+MQ --> Reco
 @enduml
