@@ -4,20 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)">
-      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/SectorController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/dto/AsignarSectorEventoDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/dto/CrearSectorDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/SectorService.java" afterDir="false" />
+    <list default="true" id="875dbd8c-26e9-43ed-9230-06353126c917" name="Changes" comment="validaciones de catálogo: lat/long, @Valid, alta de sectores, carga de precios, 404 si el lugar no existe, organizadorId">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/EventoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/LugarController.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/controller/LugarController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Evento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Lugar.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Lugar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Sector.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/entity/Sector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/main/java/org/example/catalogoservice/service/EventoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/controller/LugarControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/catalogo-service/src/test/java/org/example/catalogoservice/controller/LugarControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" beforeDir="false" afterPath="$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/service/ClientePreferenciasService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +32,7 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="entrega-2-main" />
@@ -215,7 +205,7 @@
       <recent name="com.tudai.notificacionesservice.messaging" />
     </key>
   </component>
-  <component name="RunManager" selected="Spring Boot.CatalogoServiceApplication">
+  <component name="RunManager" selected="Spring Boot.RecomendacionesServiceApplication">
     <configuration name="java in recomendaciones-service" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="recomendaciones-service" />
       <option name="TEST_OBJECT" value="directory" />
@@ -377,6 +367,19 @@
     <MESSAGE value="ajuste en el pom de reportes (dependecia para openapi)" />
     <MESSAGE value="cambios en el pom de api-gateway y puerto de entrada-service (8086 -&gt; 8090)" />
     <MESSAGE value="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)" />
-    <option name="LAST_COMMIT_MESSAGE" value="agregué recomendaciones reales (quienes compraron, excluir YA COMPRADOS, solo PUBLICADOS)" />
+    <MESSAGE value="validaciones de catálogo: lat/long, @Valid, alta de sectores, carga de precios, 404 si el lugar no existe, organizadorId" />
+    <option name="LAST_COMMIT_MESSAGE" value="validaciones de catálogo: lat/long, @Valid, alta de sectores, carga de precios, 404 si el lugar no existe, organizadorId" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="NONE" type="java-line">
+          <url>file://$PROJECT_DIR$/recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java</url>
+          <line>64</line>
+          <placement>INTER_LINE</placement>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

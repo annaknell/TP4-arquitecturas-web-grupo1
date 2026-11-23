@@ -1,5 +1,6 @@
 package org.example.recomendacionesservice.service;
 
+import org.example.recomendacionesservice.dto.DestinatarioNotificacionResponse;
 import org.example.recomendacionesservice.entity.ClientePreferencias;
 import org.example.recomendacionesservice.repository.ClientePreferenciasRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +24,22 @@ public class ClientePreferenciasService {
                 .findFirst();
 
         if (existente.isPresent()) {
-            // Si ya existe, le asignamos el ID actual para que MongoDB haga un UPDATE en vez de un INSERT duplicado
             preferencias.setId(existente.get().getId());
         }
 
         return cpRepository.save(preferencias);
+    }
+
+    public List<DestinatarioNotificacionResponse> buscarDestinatarios(String artista, String ciudad) {
+        String artistaBuscado = artista == null ? "" : artista.trim().toLowerCase();
+        String ciudadBuscada = ciudad == null ? "" : ciudad.trim().toLowerCase();
+
+        return cpRepository.findAll().stream()
+                .filter(pref -> pref.getArtistasFavoritos() != null && pref.getArtistasFavoritos().stream()
+                        .anyMatch(a -> a != null && a.trim().toLowerCase().equals(artistaBuscado)))
+                .filter(pref -> pref.getCiudadesFrecuentes() != null && pref.getCiudadesFrecuentes().stream()
+                        .anyMatch(c -> c != null && c.trim().toLowerCase().equals(ciudadBuscada)))
+                .map(pref -> new DestinatarioNotificacionResponse(pref.getClienteId(), pref.getEmail()))
+                .toList();
     }
 }
