@@ -55,6 +55,13 @@ public class Compra {
     private List<LineaVenta> lineasVenta = new ArrayList<>();
 
     public void addPaso(String descripcion, String estadoPaso) {
-        this.pasos.add(new PasoCompra(null, this, descripcion, estadoPaso, LocalDateTime.now()));
+        this.pasos.add(new PasoCompra(null, this, recortar(descripcion), estadoPaso, LocalDateTime.now()));
+    }
+
+    private String recortar(String descripcion) {
+        if (descripcion == null) {
+            return null;
+        }
+        return descripcion.length() <= 250 ? descripcion : descripcion.substring(0, 250);
     }
 }

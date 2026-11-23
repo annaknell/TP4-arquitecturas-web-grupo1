@@ -20,7 +20,7 @@ spring:
             - id: catalogo-service
               uri: ${CATALOGO_URL:http://localhost:8082}
               predicates:
-                - Path=/api/eventos/**,/api/lugares/**
+                - Path=/api/eventos/**,/api/lugares/**,/api/sectores/**
 
             - id: inventario-service
               uri: ${INVENTARIO_URL:http://localhost:8083}

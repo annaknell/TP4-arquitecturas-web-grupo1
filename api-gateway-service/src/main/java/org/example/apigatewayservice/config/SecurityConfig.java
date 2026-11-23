@@ -71,7 +71,8 @@ public class SecurityConfig {
 
                         // Catálogo: lectura pública, escritura de organizadores/administradores
                         .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/lugares/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/eventos", "/api/lugares")
+                        .requestMatchers(HttpMethod.POST, "/api/eventos", "/api/lugares", "/api/sectores",
+                                "/api/eventos/*/sectores")
                         .hasAnyRole("ORGANIZADOR", "ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/eventos/*/suspender", "/api/eventos/*/reanudar", "/api/eventos/*/cancelar")
                         .hasRole("ADMINISTRADOR")

@@ -199,7 +199,7 @@ public class FilaVirtualRedisRepository {
 
     public String validarYConsumirAutorizacion(Long eventoId, Long clienteId, String token) {
         if (token == null || token.isBlank()) {
-            return "TOKEN_REQUERIDO";
+            return obtenerTamanioTanda(eventoId) > 0 ? "TOKEN_REQUERIDO" : "NO_REQUIERE_FILA";
         }
         String resultado = redis.execute(VALIDAR_Y_CONSUMIR_AUTORIZACION_SCRIPT,
                 List.of(FilaRedisKeys.configuracion(eventoId), FilaRedisKeys.autorizacion(token),

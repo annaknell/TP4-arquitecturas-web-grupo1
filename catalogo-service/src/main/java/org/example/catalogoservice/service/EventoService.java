@@ -328,7 +328,7 @@ public class EventoService {
                             .toList()
                             : null;
                     int capacidad = numerado ? sector.getAsientos().size() : sector.getCapacidad();
-                    String tipo = numerado ? "NUMERADO" : "NO_NUMERADO";
+                    String tipo = numerado ? "NUMERADO" : "GENERAL";
                     return new SectorInventario(sector.getId(), tipo, capacidad, asientos);
                 })
                 .toList();

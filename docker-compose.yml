@@ -63,7 +63,7 @@ services:
       INVENTARIO_URL: http://inventario-service:8083
       COMPRAS_URL: http://compra-service:8084
       PAGOS_URL: http://pago-service:8085
-      ENTRADAS_URL: http://entrada-service:8086
+      ENTRADAS_URL: http://entrada-service:8090
       AUTH_URL: http://auth-service:8081
       AUTH_JWK_SET_URI: http://auth-service:8081/api/auth/.well-known/jwks.json
       FILA_VIRTUAL_URL: http://fila-virtual-service:8086
@@ -112,7 +112,7 @@ services:
     environment:
       <<: [*mysqlCredenciales, *rabbitCredenciales]
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_catalogo?createDatabaseIfNotExist=true
-      ENTRADA_SERVICE_URL: http://entrada-service:8086
+      ENTRADA_SERVICE_URL: http://entrada-service:8090
       FILA_VIRTUAL_SERVICE_URL: http://fila-virtual-service:8086
       PAGO_SERVICE_URL: http://pago-service:8085
       INVENTARIO_SERVICE_URL: http://inventario-service:8083
@@ -142,7 +142,7 @@ services:
       <<: [*mysqlCredenciales, *rabbitCredenciales]
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_compras?createDatabaseIfNotExist=true
       CATALOGO_SERVICE_URL: http://catalogo-service:8082
-      ENTRADA_SERVICE_URL: http://entrada-service:8086
+      ENTRADA_SERVICE_URL: http://entrada-service:8090
       INVENTARIO_SERVICE_URL: http://inventario-service:8083
       PAGO_SERVICE_URL: http://pago-service:8085
     mem_limit: 420m

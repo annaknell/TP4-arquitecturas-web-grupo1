@@ -46,6 +46,14 @@ public class LugarController {
     })
     @PostMapping
     public ResponseEntity<Lugar> crearLugar(@Valid @RequestBody Lugar lugar) {
+        if (lugar.getSectores() != null) {
+            lugar.getSectores().forEach(sector -> {
+                sector.setLugar(lugar);
+                if (sector.getAsientos() != null) {
+                    sector.getAsientos().forEach(asiento -> asiento.setSector(sector));
+                }
+            });
+        }
         Lugar nuevoLugar = lugarRepository.save(lugar);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoLugar);
     }
