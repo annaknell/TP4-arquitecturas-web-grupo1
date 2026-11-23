@@ -1,9 +1,12 @@
 package org.example.compraservice.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.example.compraservice.client.*;
 import org.example.compraservice.dto.*;
 import org.example.compraservice.entity.Compra;
+import org.example.compraservice.exception.LimiteEntradasExcedidoException;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.messaging.ReporteVentaPublisher;
 import org.example.compraservice.repository.CompraRepository;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class CompraService {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Autowired
     private CompraRepository compraRepository;
     @Autowired
@@ -33,8 +38,6 @@ public class CompraService {
     private CompraCompletadaPublisher compraCompletadaPublisher;
     @Autowired
     private ReporteVentaPublisher reporteVentaPublisher;
-
-    private static final int MAX_ENTRADAS_POR_CLIENTE = 4; // Límite de negocio
 
     @Transactional
     public Compra procesarCompra(CompraRequest request, String idempotencyKey, Long clienteId) {
@@ -56,12 +59,6 @@ public class CompraService {
             return compraExistente.get();
         }
 
-        // 2. Verificar límite por cliente
-        long comprasPrevias = compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, request.eventoId(), "COMPLETADA");
-        if (comprasPrevias + request.asientos().size() > MAX_ENTRADAS_POR_CLIENTE) {
-            throw new RuntimeException("Límite de entradas excedido para este evento");
-        }
-
         // Inicializar la Compra
         Compra compra = new Compra();
         compra.setClienteId(clienteId);
@@ -75,10 +72,24 @@ public class CompraService {
         compraRepository.save(compra);
 
         try {
-            // PASO 1: Reservar en Inventario (10 minutos)
-            ReservaResponse reserva = inventarioClient.reservarAsientos(
-                new ReservaRequest(request.eventoId(), clienteId, request.asientos(), request.autorizacionFila(), idempotencyKey)
-            ).getBody();
+            // PASO 1: Reservar en Inventario (10 minutos).
+            // US-18: inventario es la única fuente de verdad del tope por cliente
+            // (configurable por evento y con reservas activas). Acá no se re-cuenta nada:
+            // su 422 se propaga con el detalle para que el cliente sepa cuántas lleva.
+            ReservaResponse reserva;
+            try {
+                reserva = inventarioClient.reservarAsientos(
+                        new ReservaRequest(request.eventoId(), clienteId, request.asientos(),
+                                request.autorizacionFila(), idempotencyKey)).getBody();
+            } catch (FeignException e) {
+                if (e.status() == 422) {
+                    throw new LimiteEntradasExcedidoException(mensajeDelRechazo(e));
+                }
+                throw e;
+            }
+            if (reserva == null) {
+                throw new IllegalStateException("Inventario no devolvió datos de la reserva");
+            }
             compra.setReservaId(reserva.id()); // record no usa get
             compra.setSectorId(reserva.sectorId());
             compra.addPaso("Asientos reservados (ID: " + reserva.id() + ")", "EJECUTADO");
@@ -116,6 +127,10 @@ public class CompraService {
             compraRepository.save(compra);
             return confirmarYEmitir(compra, reserva.importeTotal(), correlationId, email);
 
+        } catch (LimiteEntradasExcedidoException e) {
+            // La excepción es de negocio, no un fallo del sistema: se propaga el 422
+            // y @Transactional revierte la compra PENDIENTE que se guardó recién.
+            throw e;
         } catch (Exception e) {
             compra.setEstado("FALLO_SISTEMA");
             compra.addPaso("Error crítico: " + e.getMessage(), "FALLO");
@@ -211,6 +226,23 @@ public class CompraService {
             throw new IllegalStateException("La compra no tiene importe confirmado");
         }
         return BigDecimal.valueOf(importeCompra).movePointRight(2).longValueExact();
+    }
+
+    /** Extrae el mensaje del 422 de inventario sin acoplarse al resto del formato del error. */
+    private String mensajeDelRechazo(FeignException exception) {
+        String contenido = exception.contentUTF8();
+        if (contenido != null && !contenido.isBlank()) {
+            try {
+                JsonNode cuerpo = MAPPER.readTree(contenido);
+                String mensaje = cuerpo.path("message").asText(null);
+                if (mensaje != null && !mensaje.isBlank()) {
+                    return mensaje;
+                }
+            } catch (Exception ignorado) {
+                // El cuerpo no era JSON: se usa el mensaje genérico de abajo.
+            }
+        }
+        return "El evento superó el límite de entradas por cliente";
     }
 
     public Compra obtenerPorId(Long id) {

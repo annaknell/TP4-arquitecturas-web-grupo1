@@ -1,5 +1,6 @@
 package org.example.compraservice;
 
+import feign.FeignException;
 import org.example.compraservice.client.EntradaClient;
 import org.example.compraservice.client.CatalogoClient;
 import org.example.compraservice.client.InventarioClient;
@@ -10,6 +11,7 @@ import org.example.compraservice.dto.ReservaResponse;
 import org.example.compraservice.dto.EntradaResponse;
 import org.example.compraservice.dto.EventoNotificacionResponse;
 import org.example.compraservice.entity.Compra;
+import org.example.compraservice.exception.LimiteEntradasExcedidoException;
 import org.example.compraservice.repository.CompraRepository;
 import org.example.compraservice.messaging.CompraCompletadaPublisher;
 import org.example.compraservice.messaging.ReporteVentaPublisher;
@@ -59,23 +61,29 @@ class CompraServiceTest {
     private CompraService compraService;
 
     @Test
-    @DisplayName("Lanza RuntimeException si la suma de compras excede el límite de 4 entradas")
-    void rechazarSuperacionDeLimiteEntradas() {
+    @DisplayName("Propaga el 422 de inventario con el detalle del límite (US-18)")
+    void propagarRechazoPorLimiteDeInventario() {
         Long clienteId = 1L;
         String idempotencyKey = "key-limite-1";
         CompraRequest request = new CompraRequest(15L, List.of(101L, 102L, 103L, 104L, 105L), 25000.0);
+        String detalle = "El evento permite 6 entradas por cliente y ya tiene 5";
+
+        FeignException rechazo = mock(FeignException.class);
+        when(rechazo.status()).thenReturn(422);
+        when(rechazo.contentUTF8()).thenReturn("{\"message\":\"" + detalle + "\"}");
 
         when(compraRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-        when(compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, 15L, "COMPLETADA")).thenReturn(0L);
+        when(inventarioClient.reservarAsientos(any(ReservaRequest.class))).thenThrow(rechazo);
+        when(compraRepository.save(any(Compra.class))).thenAnswer(i -> i.getArgument(0));
 
-        RuntimeException exception = assertThrows(
-            RuntimeException.class,
+        LimiteEntradasExcedidoException exception = assertThrows(
+            LimiteEntradasExcedidoException.class,
             () -> compraService.procesarCompra(request, idempotencyKey, clienteId)
         );
 
-        assertEquals("Límite de entradas excedido para este evento", exception.getMessage());
-        verifyNoInteractions(inventarioClient);
-        verify(compraRepository, never()).save(any());
+        assertEquals(detalle, exception.getMessage());
+        verify(pagosClient, never()).cobrar(any());
+        verify(entradaClient, never()).emitirEntradas(any());
     }
 
     @Test
@@ -86,7 +94,6 @@ class CompraServiceTest {
         CompraRequest request = new CompraRequest(15L, List.of(101L), 5000.0);
 
         when(compraRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
-        when(compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, 15L, "COMPLETADA")).thenReturn(0L);
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
             .thenThrow(new RuntimeException("Conexión rehusada en Inventario"));
         when(compraRepository.save(any(Compra.class))).thenAnswer(i -> i.getArgument(0));
@@ -105,7 +112,6 @@ class CompraServiceTest {
         CompraRequest request = new CompraRequest(15L, List.of(101L), 5000.0);
 
         when(compraRepository.findByIdempotencyKey("key-ok")).thenReturn(Optional.empty());
-        when(compraRepository.countByClienteIdAndEventoIdAndEstado(clienteId, 15L, "COMPLETADA")).thenReturn(0L);
         when(compraRepository.save(any(Compra.class))).thenAnswer(invocation -> {
             Compra compra = invocation.getArgument(0);
             if (compra.getId() == null) {

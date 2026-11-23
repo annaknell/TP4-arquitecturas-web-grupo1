@@ -22,9 +22,9 @@ sequenceDiagram
 
     C->>CO: POST /api/compras (vía API Gateway)<br/>Idempotency-Key + X-User-Id<br/>{eventoId, asientos[], precioTotal}
     CO->>CO: findByIdempotencyKey(clave)<br/>si ya existe, devuelve esa compra
-    CO->>CO: countByClienteIdAndEventoIdAndEstado()<br/>compras previas + asientos <= 4
     Note right of CO: guarda la compra PENDIENTE<br/>paso "Inicio de compra"
     CO->>IN: POST /api/inventario/reservas<br/>{eventoId, asientos[]}
+    IN->>IN: valida US-18 (única fuente de verdad)<br/>compradas + activas + confirmadas <= maxEntradas<br/>si excede: 422 con el detalle
     IN->>IN: retiene los asientos<br/>reserva ACTIVA, expiraEn = ahora + 10 min
     IN-->>CO: 201 {id, estado, expiraEn}
     Note right of CO: guarda reservaId<br/>paso "Asientos reservados"

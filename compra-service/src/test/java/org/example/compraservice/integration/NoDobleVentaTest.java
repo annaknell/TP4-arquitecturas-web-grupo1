@@ -93,7 +93,6 @@ class NoDobleVentaTest {
 
         // 3. Mocks de base de datos y repositorios
         when(compraRepository.findByIdempotencyKey(anyString())).thenReturn(Optional.empty());
-        when(compraRepository.countByClienteIdAndEventoIdAndEstado(anyLong(), eq(eventoId), eq("COMPLETADA"))).thenReturn(0L);
         when(compraRepository.save(any(Compra.class))).thenAnswer(i -> i.getArgument(0));
 
         // Lanzamos 10 hilos concurrentes
