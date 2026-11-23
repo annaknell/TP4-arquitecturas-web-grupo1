@@ -12,8 +12,9 @@ public class FilaVirtualClient {
     private final RestClient restClient;
 
     public FilaVirtualClient(@Value("${fila-virtual-service.url:http://localhost:8086}") String filaVirtualServiceUrl,
-                             ClientHttpRequestInterceptor correlationIdInterceptor) {
-        this.restClient = RestClient.builder()
+                             ClientHttpRequestInterceptor correlationIdInterceptor,
+                             RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.clone()
                 .baseUrl(filaVirtualServiceUrl)
                 .requestInterceptor(correlationIdInterceptor)
                 .build();

@@ -78,7 +78,25 @@ docker run -p 8081:8081 \
   auth-service
 ```
 
-> Si no se configuran claves RSA, se genera un par efímero (solo para desarrollo: al reiniciar, los tokens previos dejan de ser válidos y el gateway debe volver a leer el JWKS). Para producción, configurar `AUTH_JWT_PRIVATE_KEY` / `AUTH_JWT_PUBLIC_KEY` con un par estable.
+### Claves RSA estables (obligatorio en Docker)
+
+Si no se configuran claves RSA se genera un par efímero: **solo para desarrollo/tests**,
+porque al reiniciar cambia el JWKS y los tokens emitidos antes dejan de validar en el
+gateway y reportes (que cachean la clave pública). En `docker-compose.yml` se inyecta un
+par estable y `AUTH_JWT_ALLOW_EPHEMERAL=false`, así que **sin claves el servicio no arranca**
+(falla rápido, en vez de invalidar tokens silenciosamente).
+
+Generar el par **una sola vez** y pegarlo en el `.env` (el `.env` y los `*.b64` están ignorados):
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out auth_private.pem
+openssl pkey -in auth_private.pem -outform DER | base64 -w0 > auth_private.b64
+openssl rsa -in auth_private.pem -pubout -outform DER | base64 -w0 > auth_public.b64
+```
+
+Se acepta privada en Base64 **PKCS#8** y pública en Base64 **X.509**. Ver `.env.example`
+en la raíz. Si se rotan las claves, publicar la nueva y la vieja en el JWKS durante más
+de 60 minutos (la expiración del token) y recién retirar la vieja.
 
 ## Snippet para `docker-compose.yml` general
 
@@ -89,8 +107,9 @@ docker run -p 8081:8081 \
       - "8081:8081"
     environment:
       AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD}
-      AUTH_JWT_PRIVATE_KEY: ${AUTH_JWT_PRIVATE_KEY}
-      AUTH_JWT_PUBLIC_KEY: ${AUTH_JWT_PUBLIC_KEY}
+      AUTH_JWT_PRIVATE_KEY: ${AUTH_JWT_PRIVATE_KEY:?Definir en .env}
+      AUTH_JWT_PUBLIC_KEY: ${AUTH_JWT_PUBLIC_KEY:?Definir en .env}
+      AUTH_JWT_ALLOW_EPHEMERAL: "false"
     depends_on:
       mysql:
         condition: service_healthy

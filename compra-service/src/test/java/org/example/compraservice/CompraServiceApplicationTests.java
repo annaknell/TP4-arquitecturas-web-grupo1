@@ -4,7 +4,7 @@ import feign.FeignException;
 import org.example.compraservice.client.EntradaClient;
 import org.example.compraservice.client.CatalogoClient;
 import org.example.compraservice.client.InventarioClient;
-import org.example.compraservice.client.PagosClient;
+import org.example.compraservice.client.PagosClientResiliente;
 import org.example.compraservice.dto.CompraRequest;
 import org.example.compraservice.dto.EntradaRequest;
 import org.example.compraservice.dto.ReservaRequest;
@@ -45,7 +45,7 @@ class CompraServiceTest {
     private InventarioClient inventarioClient;
 
     @Mock
-    private PagosClient pagosClient;
+    private PagosClientResiliente pagosClientResiliente;
 
     @Mock
     private EntradaClient entradaClient;
@@ -85,7 +85,7 @@ class CompraServiceTest {
         );
 
         assertEquals(detalle, exception.getMessage());
-        verify(pagosClient, never()).cobrar(any());
+        verify(pagosClientResiliente, never()).cobrar(any(), any(), any());
         verify(entradaClient, never()).emitirEntradas(any());
     }
 
@@ -125,8 +125,8 @@ class CompraServiceTest {
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
                 .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
                         new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
-        when(pagosClient.cobrar(any()))
-                .thenReturn(ResponseEntity.ok(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO")));
+        when(pagosClientResiliente.cobrar(any(), any(), any()))
+                .thenReturn(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO"));
         when(entradaClient.emitirEntradas(any()))
                 .thenReturn(ResponseEntity.ok(List.of(new EntradaResponse(800L, "QR-800", "EMITIDA", 15L, 1L, 101L, clienteId, 123L))));
 
@@ -136,6 +136,27 @@ class CompraServiceTest {
         verify(entradaClient).emitirEntradas(any());
         verify(compraCompletadaPublisher).publicar(eq(resultado), eq("corr-123"),
                 eq("cliente@example.com"), any());
+    }
+
+    @Test
+    @DisplayName("Fallback del cobro: la compra queda PAGO_INCIERTO, nunca se aprueba ni emite entradas")
+    void fallbackDePagosDejaCompraIncierta() {
+        Long clienteId = 1L;
+        CompraRequest request = new CompraRequest(15L, null, List.of(101L), null, 5000.0, null);
+
+        when(compraRepository.findByIdempotencyKey("key-incierto")).thenReturn(Optional.empty());
+        when(compraRepository.save(any(Compra.class))).thenAnswer(i -> i.getArgument(0));
+        when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
+                .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
+                        new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
+        when(pagosClientResiliente.cobrar(any(), any(), any()))
+                .thenReturn(new org.example.compraservice.dto.PagoResponse(
+                        null, PagosClientResiliente.ESTADO_FALLBACK));
+
+        Compra resultado = compraService.procesarCompra(request, "key-incierto", clienteId);
+
+        assertEquals("PAGO_INCIERTO", resultado.getEstado());
+        verify(entradaClient, never()).emitirEntradas(any());
     }
 
     @Test
@@ -156,8 +177,8 @@ class CompraServiceTest {
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
                 .thenReturn(ResponseEntity.ok(new ReservaResponse(11L, "RESERVADO", 15L, 7L, 3,
                         new java.math.BigDecimal("5000"), new java.math.BigDecimal("15000"))));
-        when(pagosClient.cobrar(any()))
-                .thenReturn(ResponseEntity.ok(new org.example.compraservice.dto.PagoResponse(21L, "APROBADO")));
+        when(pagosClientResiliente.cobrar(any(), any(), any()))
+                .thenReturn(new org.example.compraservice.dto.PagoResponse(21L, "APROBADO"));
         when(entradaClient.emitirEntradas(any()))
                 .thenReturn(ResponseEntity.ok(List.of(
                         new EntradaResponse(801L, "QR-801", "EMITIDA", 15L, 7L, null, clienteId, 123L),

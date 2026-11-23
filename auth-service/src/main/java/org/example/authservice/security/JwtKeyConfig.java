@@ -43,10 +43,19 @@ public class JwtKeyConfig {
     @Value("${auth.jwt.public-key:}")
     private String publicKeyBase64;
 
+    /** En producción debe ser false: sin claves configuradas, el servicio no arranca. */
+    @Value("${auth.jwt.allow-ephemeral:true}")
+    private boolean allowEphemeral;
+
     @Bean
     public KeyPair jwtKeyPair() {
         if (!privateKeyBase64.isBlank() && !publicKeyBase64.isBlank()) {
             return new KeyPair(parsePublicKey(publicKeyBase64), parsePrivateKey(privateKeyBase64));
+        }
+        if (!allowEphemeral) {
+            throw new IllegalStateException(
+                "Faltan AUTH_JWT_PRIVATE_KEY / AUTH_JWT_PUBLIC_KEY. " +
+                "Sin un par estable, cada reinicio cambia el JWKS e invalida los tokens vigentes.");
         }
         // Par efímero: solo para desarrollo/tests. Los tokens emitidos con
         // una instancia anterior dejan de ser válidos al reiniciar.

@@ -96,6 +96,11 @@ services:
       <<: *mysqlCredenciales
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticket_ya_auth?createDatabaseIfNotExist=true
       AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-Admin123!}
+      # Par RSA estable: si cambia al reiniciar, el JWKS cambia y el gateway/reportes
+      # cachean la clave vieja, invalidando los tokens vigentes sin avisar al usuario.
+      AUTH_JWT_PRIVATE_KEY: ${AUTH_JWT_PRIVATE_KEY:?Definir AUTH_JWT_PRIVATE_KEY en .env (Base64 PKCS#8)}
+      AUTH_JWT_PUBLIC_KEY: ${AUTH_JWT_PUBLIC_KEY:?Definir AUTH_JWT_PUBLIC_KEY en .env (Base64 X.509)}
+      AUTH_JWT_ALLOW_EPHEMERAL: "false"
     mem_limit: 420m
     restart: on-failure
     depends_on:
