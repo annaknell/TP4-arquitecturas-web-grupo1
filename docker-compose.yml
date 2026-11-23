@@ -13,6 +13,10 @@ x-rabbit: &rabbitCredenciales
 services:
   mysql:
     image: mysql:8.4
+    # Publicado para poder conectarse desde IntelliJ (DER) y desde los servicios
+    # corriendo fuera de Docker con jdbc:mysql://localhost:3306/... .
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ticketya}
     volumes:

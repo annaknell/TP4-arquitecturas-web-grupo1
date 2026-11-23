@@ -90,9 +90,15 @@ Generar el par **una sola vez** y pegarlo en el `.env` (el `.env` y los `*.b64` 
 
 ```bash
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out auth_private.pem
-openssl pkey -in auth_private.pem -outform DER | base64 -w0 > auth_private.b64
-openssl rsa -in auth_private.pem -pubout -outform DER | base64 -w0 > auth_public.b64
+openssl pkcs8 -topk8 -nocrypt -in auth_private.pem -outform DER -out auth_private.der
+openssl rsa -in auth_private.pem -pubout -outform DER -out auth_public.der
+base64 -w0 auth_private.der > auth_private.b64
+base64 -w0 auth_public.der > auth_public.b64
 ```
+
+> La privada debe ser **PKCS#8** (el Base64 empieza con `MIIEv`). `openssl pkey -outform DER`
+> puede entregar PKCS#1 (`MIIEp`) según la versión, y entonces `auth-service` falla al arrancar
+> con `auth.jwt.private-key inválida: Unable to decode key`. Por eso se usa `pkcs8 -topk8 -nocrypt`.
 
 Se acepta privada en Base64 **PKCS#8** y pública en Base64 **X.509**. Ver `.env.example`
 en la raíz. Si se rotan las claves, publicar la nueva y la vieja en el JWKS durante más
