@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@FeignClient(name = "entrada-service", url = "${entrada-service.url:http://localhost:8086}/api/entradas")
+@FeignClient(name = "entrada-service", url = "${entrada-service.url:http://localhost:8090}/api/entradas")
 public interface EntradaClient {
 
     @PostMapping("/emitir")

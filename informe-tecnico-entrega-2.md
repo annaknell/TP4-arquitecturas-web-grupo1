@@ -40,11 +40,11 @@ La solución sigue una arquitectura de **microservicios**, con bases de datos po
 | `inventario-service` | Disponibilidad, reservas y retención de cupos/asientos | 8083 |
 | `compra-service` | Orquestación de compra y compensaciones | 8084 |
 | `pago-service` | Cobros, pasarela mock y reintegros | 8085 |
-| `entrada-service` | Emisión, consulta y cancelación de entradas | 8086 |
+| `entrada-service` | Emisión, consulta y cancelación de entradas | 8090 |
 | `recomendaciones-service` | Preferencias y recomendaciones | 8087 |
 | `notificaciones-service` | Eventos, reintentos y email simulado | 8088 |
 | `reportes-service` | Proyecciones de ventas y reintegros | 8089 |
-| `fila-virtual-service` | Fila de alta demanda y autorizaciones temporales | 8090 |
+| `fila-virtual-service` | Fila de alta demanda y autorizaciones temporales | 8086 |
 
 ### Organización interna
 
@@ -61,7 +61,8 @@ Los módulos siguen una separación por capas:
 
 ### Integraciones implementadas
 
-- `compra-service` invoca por Feign a catálogo, inventario, pagos y entradas.
+- `compra-service` invoca por Feign a catálogo, inventario, pagos, reintegros y entradas. Los reintegros se solicitan a `POST /reintegros/compra/{compraId}` de pago-service.
+- Notificaciones consulta compradores a `GET /api/compras/interno/{eventoId}/compradores` y destinatarios de preferencias a recomendaciones-service.
 - Catálogo publica eventos hacia notificaciones y reportes.
 - Compras publica ventas confirmadas para reportes y eventos de compra completada para notificaciones.
 - Pagos publica eventos de reintegro hacia reportes.
@@ -86,10 +87,9 @@ Entre los endpoints relevantes se encuentran:
 
 ### Observaciones de integración
 
-- El gateway enruta catálogo bajo `/api/eventos/**`, pero no tiene una ruta equivalente para `/api/lugares/**`.
-- No se observan rutas del gateway para autenticación ni entradas.
-- La URL configurada para documentación de reportes usa `/v3api-docs` en lugar de `/v3/api-docs`.
-- El código fuente ubica fila virtual en el puerto 8090, mientras que artefactos previos bajo `target/` refieren al 8086. El código fuente actual es la referencia válida.
+- El gateway enruta catálogo bajo `/api/eventos/**`, `/api/lugares/**` y `/api/sectores/**`, además de autenticación, entradas, compras, pagos, inventario, fila, recomendaciones, notificaciones y reportes.
+- Las rutas de documentación usan `/v3/api-docs/<servicio>` y se publican en Swagger UI en `http://localhost:8080/swagger-ui.html`.
+- Los puertos vigentes son entrada-service 8090 y fila-virtual-service 8086; artefactos previos bajo `target/` pueden referir al esquema anterior. El código fuente y `docker-compose.yml` son la referencia válida.
 
 ## 4. Modelo de datos y persistencia
 
@@ -173,7 +173,7 @@ Reportes se comporta como una proyección de lectura alimentada por eventos, no 
 | Pagos | Cobro idempotente, consultas por pago/cliente/compra, control de una pasarela simulada, creación y reintento de reintegros, resúmenes por compra y evento. | `/api/pagos`, `/api/pagos/cobrar`, `/reintegros`, `/reintegros/compra/{compraId}`, `/reintegros/cancelacion-evento`, `/pagos/mock`. | `pago-service/src/main/java/com/tudai/pagos/controller/PagoController.java`, `ReintegroController.java`, `service/PagoCobroTransaccionalService.java`, `pasarela/PasarelaMock.java` |
 | Entradas | Emisión en lote, búsqueda por ID o cliente, cancelación individual y cancelación por evento. | `/api/entradas/emitir`, `/{id}`, `/cliente/{clienteId}`, `/{id}/cancelar`, `/eventos/{eventoId}/cancelar`. | `entrada-service/src/main/java/org/example/entradaservice/controller/EntradaController.java`, `service/EntradaService.java` |
 | Fila virtual | Ingreso idempotente, consulta de posición, configuración/estado de evento, habilitación manual o automática de tandas al vencer la ventana anterior, vencimiento de autorizaciones y validación/consumo o restauración de autorización. | `/api/fila/{eventoId}/ingresos`, `/mi-posicion`; interfaces internas bajo `/api/interno/fila`. | `fila-virtual-service/src/main/java/com/tudai/filavirtualservice/controller/FilaVirtualController.java`, `FilaVirtualInternoController.java`, `service/FilaVirtualService.java`, `scheduler/TandasAutomaticasScheduler.java` |
-| Notificaciones | Consume eventos, crea notificaciones pendientes, procesa y reintenta envíos, consulta detalle/listado, habilita reintento manual y avisa sobre eventos publicados a clientes con artista favorito en la misma ciudad. | `/api/notificaciones`, `/{id}`, `/{id}/reintentar`. | `notificaciones-service/src/main/java/com/tudai/notificacionesservice/messaging/EventoNotificacionListener.java`, `service/NotificacionService.java`, `client/PreferenciasClient.java`, `scheduler/NotificacionScheduler.java` |
+| Notificaciones | Consume eventos, persiste el payload como JSON válido, crea notificaciones pendientes, procesa y reintenta envíos, consulta detalle/listado, habilita reintento manual y avisa sobre eventos publicados a clientes con artista favorito en la misma ciudad. | `/api/notificaciones`, `/{id}`, `/{id}/reintentar`. | `notificaciones-service/src/main/java/com/tudai/notificacionesservice/messaging/EventoNotificacionListener.java`, `service/NotificacionService.java`, `client/CompradoresClient.java`, `client/PreferenciasClient.java`, `scheduler/NotificacionScheduler.java` |
 | Recomendaciones | Persiste preferencias del cliente y recomendaciones por evento; resuelve destinatarios internos por coincidencia de artista favorito y ciudad. | `/api/preferencias`, `/api/preferencias/cliente/{clienteId}`, `/api/preferencias/interno/destinatarios`, `/api/recomendaciones/evento/{eventoId}`. | `recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java`, `service/ClientePreferenciasService.java`, `RecomendacionController.java` |
 | Reportes | Configura proyección de evento/sectores, consume ventas y reintegros, y devuelve listado, resumen y detalle por sector. | `/api/reportes/eventos`, `/eventos/{id}`, `/eventos/{id}/sectores`; operaciones internas bajo `/api/reportes/interno`. | `reportes-service/src/main/java/com/tudai/reportesservice/controller/ReporteController.java`, `service/ReporteService.java`, `messaging/ReporteEventListener.java` |
 
@@ -187,7 +187,7 @@ No se detectaron pantallas, componentes de frontend, `package.json` ni proyectos
 2. `CompraService` consulta si la clave ya fue usada; si no lo fue, crea una compra pendiente y solicita la reserva al servicio de inventario con Feign. Referencia: `compra-service/src/main/java/org/example/compraservice/service/CompraService.java` y `client/InventarioClient.java`.
 3. Inventario reserva asientos o cupos, mantiene la expiración y luego puede confirmar o liberar la reserva. Referencia: `inventario-service/src/main/java/org/example/inventarioservice/service/InventarioService.java`.
 4. Compra invoca al servicio de pagos. El cobro utiliza clave y hash de solicitud para resolver idempotencia; el servicio persiste el resultado y usa una pasarela en memoria simulada. Referencia: `pago-service/src/main/java/com/tudai/pagos/service/PagoCobroTransaccionalService.java` y `pasarela/PasarelaMock.java`.
-5. Si el cobro se aprueba, se emiten entradas, se confirma inventario, se congelan líneas de venta y se completa la compra. Ante un error, el orquestador registra pasos y ejecuta compensaciones, incluida la liberación de la reserva. Referencia: `compra-service/src/main/java/org/example/compraservice/service/CompraService.java`.
+5. Si el cobro se aprueba, se confirma inventario, se emiten entradas, se congelan líneas de venta y se completa la compra. Ante un error, el orquestador registra pasos y ejecuta compensaciones: libera la reserva si el pago fue rechazado, reintegra si la reserva venció y, si falla la emisión con la reserva ya confirmada, reintegra y libera las unidades vendidas dejando la compra en `REINTEGRADA`. Referencia: `compra-service/src/main/java/org/example/compraservice/service/CompraService.java`.
 6. Al completarse, se publican eventos RabbitMQ para notificaciones y reportes. Referencia: `compra-service/src/main/java/org/example/compraservice/messaging/CompraCompletadaPublisher.java` y `ReporteVentaPublisher.java`.
 
 ### Catálogo, inventario y fila virtual
@@ -197,7 +197,7 @@ No se detectaron pantallas, componentes de frontend, `package.json` ni proyectos
 
 ### Notificación de artista favorito en ciudad
 
-Al publicarse un evento, catálogo arma un mensaje que incluye artistas, ciudad, fecha y lugar y lo publica en RabbitMQ como `EVENTO_PUBLICADO`. Notificaciones consume el evento y consulta de forma síncrona al endpoint interno de preferencias por cada artista y ciudad. Para cada destinatario con email válido crea una notificación de tipo `ARTISTA_FAVORITO_EN_CIUDAD`, sin duplicar el mismo destinatario dentro del evento recibido. Referencias: `catalogo-service/src/main/java/org/example/catalogoservice/messaging/EventoNotificacionPublisher.java`, `notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java`, `client/PreferenciasClient.java` y `recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java`.
+Al publicarse un evento, catálogo arma un mensaje que incluye artistas, ciudad, fecha y lugar y lo publica en RabbitMQ como `EVENTO_PUBLICADO`. Notificaciones consume el evento, persiste el payload como JSON (no como `Map.toString()`) y consulta de forma síncrona al endpoint interno de preferencias de recomendaciones-service por cada artista y ciudad; para avisos de compra consulta el endpoint interno de compradores de compra-service. Para cada destinatario con email válido crea una notificación de tipo `ARTISTA_FAVORITO_EN_CIUDAD`, sin duplicar el mismo destinatario dentro del evento recibido. Referencias: `catalogo-service/src/main/java/org/example/catalogoservice/messaging/EventoNotificacionPublisher.java`, `notificaciones-service/src/main/java/com/tudai/notificacionesservice/service/NotificacionService.java`, `client/CompradoresClient.java`, `client/PreferenciasClient.java` y `recomendaciones-service/src/main/java/org/example/recomendacionesservice/controller/ClientePreferenciasController.java`.
 
 ### Eventos asíncronos
 
@@ -221,7 +221,7 @@ La configuración de colas y exchanges se encuentra en los `RabbitMqConfig` de c
 - **Redis:** en `fila-virtual-service` guarda configuración, tanda habilitada, posiciones y autorizaciones con vencimiento, con scripts atómicos. También es caché de lectura en `catalogo-service` y `reportes-service`, con TTL de 30 s. No se cachean compras, pagos ni disponibilidad porque requieren el dato exacto.
 - **RabbitMQ:** desacopla notificaciones, proyecciones de reportes y registro de compras para recomendaciones. Entrega al menos una vez, con deduplicación por `eventId`. Contratos: `notificaciones.exchange` / `notificaciones.eventos`, `reportes.exchange` / `reportes.proyecciones` con DLQ, y `recomendaciones.compras.completadas`.
 - **API Gateway:** Spring Cloud Gateway como único punto de entrada; autorización por rol, propagación de identidad y correlation id.
-- **Saga:** orquestada en `compra-service`, con cada paso en `paso_compra` y compensaciones ante fallo.
+- **Saga:** orquestada en `compra-service`, con cada paso en `paso_compra` y compensaciones ante fallo. Los reintegros usan el endpoint por compra de pago-service con motivos `RESERVA_VENCIDA` y `FALLO_EMISION`; la liberación de vendidos usa `POST /api/inventario/liberaciones`.
 - **Circuit Breaker:** Resilience4j en catálogo y notificaciones; el cobro se reintenta con backoff y el circuito abierto deja la compra en `PAGO_INCIERTO`, sin aprobar por fallback.
 - **Idempotencia:** `Idempotency-Key` en el alta de compra y en el cobro.
 - **BFF:** no se implementó; el gateway expone la API y el cliente hace una llamada por vista.
@@ -231,4 +231,4 @@ La configuración de colas y exchanges se encuentra en los `RabbitMqConfig` de c
 
 - **Fuerte en el stock:** reserva con actualización condicional y confirmación definitiva; dos compras simultáneas del mismo asiento dejan una sola venta (cubierto por `NoDobleVentaTest` y `NoDobleVentaInventarioTest`).
 - **Eventual en lecturas derivadas:** notificaciones, reportes y recomendaciones se actualizan por eventos y pueden quedar segundos atrás; la deduplicación por `eventId` evita aplicar dos veces el mismo hecho.
-- **Fallos parciales:** pago rechazado libera la reserva y la compra queda fallida; pago sin respuesta queda en `PAGO_INCIERTO` para reconciliación; fallo al emitir entradas libera la reserva y deja la compra en `FALLO_SISTEMA`. En devoluciones y cancelaciones el reintegro lo aplica `pago-service` y `entrada-service` invalida las entradas.
+- **Fallos parciales:** pago rechazado libera la reserva y la compra queda fallida; pago sin respuesta queda en `PAGO_INCIERTO` para reconciliación; reserva vencida reintegra y deja la compra en `RESERVA_VENCIDA`; fallo al emitir entradas con reserva confirmada reintegra, libera las unidades vendidas y deja la compra en `REINTEGRADA`. Las líneas de venta se construyen en memoria antes de agregarse a la compra, de modo que un fallo parcial no deja líneas a medias. En devoluciones y cancelaciones el reintegro lo aplica `pago-service` y `entrada-service` invalida las entradas.

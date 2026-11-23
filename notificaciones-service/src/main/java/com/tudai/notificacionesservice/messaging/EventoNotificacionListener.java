@@ -1,5 +1,7 @@
 package com.tudai.notificacionesservice.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tudai.notificacionesservice.entity.EventoRecibido;
 import com.tudai.notificacionesservice.dto.EventoNotificacionMessage;
 import com.tudai.notificacionesservice.repository.EventoRecibidoRepository;
@@ -20,9 +22,12 @@ public class EventoNotificacionListener {
     private static final Logger log = LoggerFactory.getLogger(EventoNotificacionListener.class);
 
     private final EventoRecibidoRepository eventoRecibidoRepository;
+    private final ObjectMapper objectMapper;
 
-    public EventoNotificacionListener(EventoRecibidoRepository eventoRecibidoRepository) {
+    public EventoNotificacionListener(EventoRecibidoRepository eventoRecibidoRepository,
+                                      ObjectMapper objectMapper) {
         this.eventoRecibidoRepository = eventoRecibidoRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -43,7 +48,7 @@ public class EventoNotificacionListener {
             evento.setTipo(mensaje.eventType());
             evento.setOrigen(mensaje.source());
             evento.setCorrelacionId(mensaje.correlationId());
-            evento.setPayload(mensaje.payload().toString());
+            evento.setPayload(serializarPayload(mensaje));
             evento.setRecibidoEn(LocalDateTime.now(ZoneOffset.UTC));
             evento.setEstado(EventoRecibido.Estado.RECIBIDO);
 
@@ -52,6 +57,15 @@ public class EventoNotificacionListener {
                     evento.getEventId(), evento.getTipo(), evento.getCorrelacionId());
         } finally {
             MDC.remove("correlationId");
+        }
+    }
+
+    private String serializarPayload(EventoNotificacionMessage mensaje) {
+        try {
+            return objectMapper.writeValueAsString(mensaje.payload());
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("No se pudo serializar el payload del evento "
+                    + mensaje.eventId(), e);
         }
     }
 

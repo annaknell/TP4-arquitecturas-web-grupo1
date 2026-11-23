@@ -15,9 +15,6 @@ public interface PagosClient {
     ResponseEntity<PagoResponse> cobrar(@RequestHeader("Idempotency-Key") String clave,
                                         @RequestBody PagoRequest request);
 
-    @PostMapping("/{id}/reintegrar")
-    ResponseEntity<Void> reintegrar(@PathVariable("id") Long pagoId);
-
     @GetMapping("/compra/{compraId}")
     ResponseEntity<List<PagoResponse>> pagosDeCompra(@PathVariable("compraId") Long compraId);
 }

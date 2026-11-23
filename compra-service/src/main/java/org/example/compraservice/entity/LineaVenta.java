@@ -1,5 +1,6 @@
 package org.example.compraservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,6 +28,7 @@ public class LineaVenta {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "compra_id", nullable = false)
+    @JsonIgnore
     private Compra compra;
 
     @Column(name = "entrada_id", unique = true)

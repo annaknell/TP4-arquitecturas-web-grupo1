@@ -1,5 +1,6 @@
 package org.example.compraservice.client;
 
+import org.example.compraservice.dto.LiberacionRequest;
 import org.example.compraservice.dto.ReservaRequest;
 import org.example.compraservice.dto.ReservaResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -17,4 +18,8 @@ public interface InventarioClient {
 
     @PostMapping("/reservas/{id}/liberar")
     ResponseEntity<Void> liberarReserva(@PathVariable("id") Long reservaId);
+
+    /** Revierte unidades ya vendidas (la reserva está CONFIRMADA, no se puede liberar). */
+    @PostMapping("/liberaciones")
+    void liberarVendidos(@RequestBody LiberacionRequest request);
 }
