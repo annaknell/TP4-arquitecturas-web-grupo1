@@ -1,7 +1,8 @@
-# Diagramas de secuencia: compra de una entrada numerada
+# Diagramas de secuencia: compra de entradas
 
-Saga de compra de la Entrega 1: el cliente pide entradas numeradas y `compra-service` orquesta
-a los demás servicios. Un diagrama por caso.
+Saga de compra: el cliente pide asientos (sector numerado) o una cantidad en una zona no
+numerada (`sectorId` + `cantidad`) y `compra-service` orquesta a los demás servicios.
+Un diagrama por caso.
 
 Los nombres y los puertos son los de los servicios del repositorio: compra (8084), inventario
 (8083), pago (8085) y entrada (8086). Los endpoints y los contratos son los de cada servicio
@@ -9,8 +10,9 @@ Los nombres y los puertos son los de los servicios del repositorio: compra (8084
 
 ## 1. Camino normal
 
-El cliente pide la compra, inventario retiene los asientos por 10 minutos, pago cobra y
-inventario confirma la reserva; recién entonces se emiten las entradas.
+El cliente pide la compra, inventario retiene los lugares por 10 minutos, pago cobra y
+inventario confirma la reserva; recién entonces se emiten las entradas. En zonas no numeradas
+se emite una entrada por unidad, todas sin `asientoId`.
 
 ```mermaid
 sequenceDiagram
@@ -20,14 +22,14 @@ sequenceDiagram
     participant PA as Pago 8085
     participant EN as Entrada 8086
 
-    C->>CO: POST /api/compras (vía API Gateway)<br/>Idempotency-Key + X-User-Id<br/>{eventoId, asientos[], precioTotal}
+    C->>CO: POST /api/compras (vía API Gateway)<br/>Idempotency-Key + X-User-Id<br/>{eventoId, asientos[] | sectorId + cantidad, precioTotal}
     CO->>CO: findByIdempotencyKey(clave)<br/>si ya existe, devuelve esa compra
     Note right of CO: guarda la compra PENDIENTE<br/>paso "Inicio de compra"
-    CO->>IN: POST /api/inventario/reservas<br/>{eventoId, asientos[]}
+    CO->>IN: POST /api/inventario/reservas<br/>{eventoId, asientos[] | sectorId + cantidad}
     IN->>IN: valida US-18 (única fuente de verdad)<br/>compradas + activas + confirmadas <= maxEntradas<br/>si excede: 422 con el detalle
-    IN->>IN: retiene los asientos<br/>reserva ACTIVA, expiraEn = ahora + 10 min
+    IN->>IN: retiene asientos o cupos de la zona<br/>reserva ACTIVA, expiraEn = ahora + 10 min
     IN-->>CO: 201 {id, estado, expiraEn}
-    Note right of CO: guarda reservaId<br/>paso "Asientos reservados"
+    Note right of CO: guarda reservaId, sectorId y cantidad<br/>paso "Lugares reservados"
     CO->>PA: POST /api/pagos/cobrar<br/>Idempotency-Key<br/>{compraId, clienteId, monto, moneda}
     Note right of PA: cobra en la pasarela<br/>idempotente por clave
     PA-->>CO: 201 {id, estado}
@@ -35,7 +37,7 @@ sequenceDiagram
     CO->>IN: POST /api/inventario/reservas/{id}/confirmar
     IN->>IN: RETENIDO pasa a VENDIDO<br/>reserva CONFIRMADA
     IN-->>CO: 200 {estado = CONFIRMADA}
-    CO->>EN: POST /api/entradas/emitir<br/>una EntradaRequest por asiento
+    CO->>EN: POST /api/entradas/emitir<br/>una EntradaRequest por entrada (sin asientoId en zonas)
     EN-->>CO: entradas emitidas
     CO->>CO: estado COMPLETADA<br/>paso "Entradas emitidas con éxito"
     CO-->>C: 201 Created
@@ -57,7 +59,7 @@ sequenceDiagram
     CO->>IN: POST /api/inventario/reservas<br/>{eventoId, asientos[]}
     IN->>IN: retiene los asientos<br/>ACTIVA, expiraEn = ahora + 10 min
     IN-->>CO: 201 {id, estado}
-    Note right of CO: guarda reservaId<br/>paso "Asientos reservados"
+    Note right of CO: guarda reservaId, sectorId y cantidad<br/>paso "Lugares reservados"
     CO->>PA: POST /api/pagos/cobrar<br/>Idempotency-Key<br/>{compraId, clienteId, monto, moneda}
     PA-->>CO: 201 {estado = RECHAZADO}
     Note over CO,IN: compensación

@@ -203,10 +203,21 @@ public class EntradaService {
         return compra;
     }
 
-    private int montoPorEntrada(Map<String, Object> compra) {
+    /**
+     * Importe a reintegrar por entrada. En sectores numerados se divide por la
+     * cantidad de asientos; en zonas no numeradas los asientos están vacíos y
+     * hay que usar la `cantidad` de la compra, si no el reintegro sería por el
+     * total de la compra.
+     */
+    int montoPorEntrada(Map<String, Object> compra) {
         double total = ((Number) compra.get("precioTotal")).doubleValue();
         Object asientos = compra.get("asientos");
-        int cantidad = asientos instanceof List<?> lista && !lista.isEmpty() ? lista.size() : 1;
+        int cantidad = 1;
+        if (asientos instanceof List<?> lista && !lista.isEmpty()) {
+            cantidad = lista.size();
+        } else if (compra.get("cantidad") instanceof Number unidades && unidades.intValue() > 0) {
+            cantidad = unidades.intValue();
+        }
         return (int) Math.round(total / cantidad);
     }
 

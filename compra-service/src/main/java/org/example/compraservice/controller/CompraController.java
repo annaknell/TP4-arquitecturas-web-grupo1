@@ -33,6 +33,9 @@ public class CompraController {
                     Procesa una solicitud de compra de forma idempotente utilizando `Idempotency-Key`.
                     El cliente se identifica con su token JWT: el gateway completa `X-User-Id` y `X-User-Email`.
 
+                    **Lugares:** enviar `asientos` (sector numerado) o `sectorId` + `cantidad`
+                    (zona no numerada, cantidad mayor a 0). Son opciones excluyentes.
+
                     **Roles:** CLIENTE.
                     """,
             security = {
@@ -42,7 +45,9 @@ public class CompraController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Compra completada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Selección inválida: asientos o sectorId + cantidad, no ambos"),
             @ApiResponse(responseCode = "402", description = "Pago rechazado (`PAGO_RECHAZADO`)"),
+            @ApiResponse(responseCode = "422", description = "Supera el límite de entradas por cliente (US-18)"),
             @ApiResponse(responseCode = "409", description = "Conflicto al procesar la compra (ej. disponibilidad/estado)"),
             @ApiResponse(responseCode = "401", description = "Sin token o token inválido/vencido"),
             @ApiResponse(responseCode = "403", description = "El rol del usuario no tiene permiso")
