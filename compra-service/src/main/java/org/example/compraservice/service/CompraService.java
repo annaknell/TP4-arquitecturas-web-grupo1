@@ -34,6 +34,8 @@ public class CompraService {
     @Autowired
     private PagosClient pagosClient;
     @Autowired
+    private PagosClientResiliente pagosClientResiliente;
+    @Autowired
     private EntradaClient entradaClient;
     @Autowired
     private CompraCompletadaPublisher compraCompletadaPublisher;
@@ -108,19 +110,11 @@ public class CompraService {
             compra.addPaso("Lugares reservados (ID: " + reserva.id() + ")", "EJECUTADO");
             compraRepository.save(compra);
 
-            // PASO 2: Cobrar en Pagos
-            PagoResponse pago;
-            try {
-                pago = pagosClient.cobrar(
-                    new PagoRequest(clienteId, request.precioTotal(), idempotencyKey)
-                ).getBody();
-            } catch (FeignException e) {
-                // COMPENSACIÓN 2: Si falla el pago, liberar la reserva
-                inventarioClient.liberarReserva(compra.getReservaId());
-                compra.addPaso("Pago rechazado - Liberando reserva (Compensación)", "COMPENSADO");
-                compra.setEstado("PAGO_RECHAZADO");
-                return compraRepository.save(compra);
-            }
+            // PASO 2: Cobrar en Pagos. El cliente resilient aplica timeouts,
+            // reintentos (seguros por Idempotency-Key) y circuit breaker; su
+            // fallback devuelve PENDIENTE_RECONCILIACION, nunca APROBADO.
+            PagoResponse pago = pagosClientResiliente.cobrar(
+                    clienteId, request.precioTotal(), idempotencyKey);
             compra.setPagoId(pago.id()); // record no usa get
 
             if ("RECHAZADO".equals(pago.estado())) {
