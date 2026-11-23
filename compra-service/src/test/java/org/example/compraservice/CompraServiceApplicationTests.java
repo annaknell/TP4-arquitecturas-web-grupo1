@@ -299,6 +299,24 @@ class CompraServiceTest {
     }
 
     @Test
+    @DisplayName("La respuesta de compra no serializa la referencia circular de líneas de venta")
+    void serializarCompraSinReferenciaCircular() throws Exception {
+        Compra compra = new Compra();
+        compra.setId(123L);
+        compra.getLineasVenta().add(new org.example.compraservice.entity.LineaVenta(
+                compra, 800L, 15L, 1L, 101L, 500000L, "ARS"));
+
+        com.fasterxml.jackson.databind.ObjectMapper mapper =
+                new com.fasterxml.jackson.databind.ObjectMapper()
+                        .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        String json = mapper.writeValueAsString(compra);
+        String lineas = json.substring(json.indexOf("\"lineasVenta\""));
+
+        assertTrue(lineas.contains("\"entradaId\":800"));
+        assertFalse(lineas.contains("\"compra\""), "LineaVenta.no debe serializar su padre Compra: " + lineas);
+    }
+
+    @Test
     @DisplayName("Un error al publicar no se propaga ni invalida la compra")
     void ignorarFalloDePublicacion() {
         RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
