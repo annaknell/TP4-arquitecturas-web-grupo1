@@ -2,7 +2,7 @@
 skinparam componentStyle rectangle
 actor Cliente
 actor Organizador
-component "API Gateway\n(Spring Cloud Gateway)" as GW
+component "api-gateway-service\n(Spring Cloud Gateway)" as GW
 component "auth-service" as Auth
 component "catalogo-service" as Catalogo
 component "inventario-service" as Inventario
