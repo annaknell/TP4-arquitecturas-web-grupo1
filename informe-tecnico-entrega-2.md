@@ -26,7 +26,7 @@ No existe una interfaz web o móvil en el repositorio. La interfaz expuesta es u
 
 Los servicios incluyen Maven Wrapper individual. El `pom.xml` raíz agrega los once módulos del repositorio, incluidos `auth-service` y `recomendaciones-service`; por ello, un build Maven ejecutado desde la raíz sí los incorpora. El proyecto raíz no incluye Maven Wrapper propio.
 
-No se encontraron Docker Compose, configuración de CI/CD, infraestructura como código ni frontend. Solo `auth-service` contiene un `Dockerfile`.
+El sistema se orquesta con un `docker-compose.yml` en la raíz que levanta los once microservicios, sus bases de datos y el stack de observabilidad (Loki/Promtail/Grafana); cada microservicio cuenta con su propio `Dockerfile`. No se incluye configuración de CI/CD, infraestructura como código ni frontend.
 
 ## 3. Arquitectura y estructura del proyecto
 

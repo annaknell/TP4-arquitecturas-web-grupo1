@@ -16,8 +16,9 @@ La arquitectura y criterios de Fila Virtual, Notificaciones y Reportes de la ent
 ### Paso 2: Levantar la Plataforma con Docker Compose
 Desde la raíz del proyecto, ejecutá:
 
-bash
-docker-compose up -d'
+```bash
+docker-compose up -d
+```
 
 ### Paso 3: Ejecución Manual / Depuración en IntelliJ IDEA (Opcional)
 Si necesitás ejecutar o depurar algún microservicio puntual fuera de Docker (deteniendo primero su contenedor y ejecutando su clase \*Application desde el botón verde de IntelliJ IDEA):
