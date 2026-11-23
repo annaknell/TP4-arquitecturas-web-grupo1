@@ -12,7 +12,8 @@ import java.util.List;
 public interface PagosClient {
 
     @PostMapping("/cobrar")
-    ResponseEntity<PagoResponse> cobrar(@RequestBody PagoRequest request);
+    ResponseEntity<PagoResponse> cobrar(@RequestHeader("Idempotency-Key") String clave,
+                                        @RequestBody PagoRequest request);
 
     @PostMapping("/{id}/reintegrar")
     ResponseEntity<Void> reintegrar(@PathVariable("id") Long pagoId);

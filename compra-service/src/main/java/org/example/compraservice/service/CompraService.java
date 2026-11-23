@@ -114,7 +114,7 @@ public class CompraService {
             // reintentos (seguros por Idempotency-Key) y circuit breaker; su
             // fallback devuelve PENDIENTE_RECONCILIACION, nunca APROBADO.
             PagoResponse pago = pagosClientResiliente.cobrar(
-                    clienteId, request.precioTotal(), idempotencyKey);
+                    compra.getId(), clienteId, request.precioTotal(), idempotencyKey);
             compra.setPagoId(pago.id()); // record no usa get
 
             if ("RECHAZADO".equals(pago.estado())) {

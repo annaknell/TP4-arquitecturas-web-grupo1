@@ -30,9 +30,9 @@ public class PagosClientResiliente {
 
     @CircuitBreaker(name = "cobroPagos", fallbackMethod = "cobrarFallback")
     @Retry(name = "cobroPagos")
-    public PagoResponse cobrar(Long clienteId, Double monto, String idempotencyKey) {
+    public PagoResponse cobrar(Long compraId, Long clienteId, Double monto, String idempotencyKey) {
         PagoResponse pago = pagosClient.cobrar(
-                new PagoRequest(clienteId, monto, idempotencyKey)).getBody();
+                idempotencyKey, new PagoRequest(compraId, clienteId, monto, idempotencyKey)).getBody();
         if (pago == null) {
             throw new IllegalStateException("pagos-service no devolvió el resultado del cobro");
         }
@@ -41,7 +41,7 @@ public class PagosClientResiliente {
 
     /** Se ejecuta al agotar reintentos o con el circuito abierto. Nunca aprueba un pago. */
     @SuppressWarnings("unused")
-    PagoResponse cobrarFallback(Long clienteId, Double monto, String idempotencyKey, Throwable causa) {
+    PagoResponse cobrarFallback(Long compraId, Long clienteId, Double monto, String idempotencyKey, Throwable causa) {
         log.warn("Cobro sin respuesta para el cliente {} (idempotencyKey={}): {}. "
                         + "La compra queda PAGO_INCIERTO para reconciliación.",
                 clienteId, idempotencyKey, causa.toString());

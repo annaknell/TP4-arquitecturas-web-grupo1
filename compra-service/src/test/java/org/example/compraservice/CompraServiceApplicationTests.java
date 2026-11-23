@@ -85,7 +85,7 @@ class CompraServiceTest {
         );
 
         assertEquals(detalle, exception.getMessage());
-        verify(pagosClientResiliente, never()).cobrar(any(), any(), any());
+        verify(pagosClientResiliente, never()).cobrar(any(), any(), any(), any());
         verify(entradaClient, never()).emitirEntradas(any());
     }
 
@@ -125,7 +125,7 @@ class CompraServiceTest {
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
                 .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
                         new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
-        when(pagosClientResiliente.cobrar(any(), any(), any()))
+        when(pagosClientResiliente.cobrar(any(), any(), any(), any()))
                 .thenReturn(new org.example.compraservice.dto.PagoResponse(20L, "APROBADO"));
         when(entradaClient.emitirEntradas(any()))
                 .thenReturn(ResponseEntity.ok(List.of(new EntradaResponse(800L, "QR-800", "EMITIDA", 15L, 1L, 101L, clienteId, 123L))));
@@ -149,7 +149,7 @@ class CompraServiceTest {
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
                 .thenReturn(ResponseEntity.ok(new ReservaResponse(10L, "RESERVADO", 15L, 1L, 1,
                         new java.math.BigDecimal("5000"), new java.math.BigDecimal("5000"))));
-        when(pagosClientResiliente.cobrar(any(), any(), any()))
+        when(pagosClientResiliente.cobrar(any(), any(), any(), any()))
                 .thenReturn(new org.example.compraservice.dto.PagoResponse(
                         null, PagosClientResiliente.ESTADO_FALLBACK));
 
@@ -177,7 +177,7 @@ class CompraServiceTest {
         when(inventarioClient.reservarAsientos(any(ReservaRequest.class)))
                 .thenReturn(ResponseEntity.ok(new ReservaResponse(11L, "RESERVADO", 15L, 7L, 3,
                         new java.math.BigDecimal("5000"), new java.math.BigDecimal("15000"))));
-        when(pagosClientResiliente.cobrar(any(), any(), any()))
+        when(pagosClientResiliente.cobrar(any(), any(), any(), any()))
                 .thenReturn(new org.example.compraservice.dto.PagoResponse(21L, "APROBADO"));
         when(entradaClient.emitirEntradas(any()))
                 .thenReturn(ResponseEntity.ok(List.of(

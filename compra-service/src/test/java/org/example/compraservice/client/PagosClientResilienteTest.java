@@ -18,7 +18,7 @@ class PagosClientResilienteTest {
         PagosClientResiliente cliente = new PagosClientResiliente(null);
         FeignException timeout = mock(FeignException.class);
 
-        PagoResponse resultado = cliente.cobrarFallback(1L, 5000.0, "key-timeout", timeout);
+        PagoResponse resultado = cliente.cobrarFallback(10L, 1L, 5000.0, "key-timeout", timeout);
 
         assertNull(resultado.id());
         assertNotEquals("APROBADO", resultado.estado());
